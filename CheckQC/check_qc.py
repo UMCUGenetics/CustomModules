@@ -54,7 +54,7 @@ def read_yaml(yaml_file):
     yaml_loaded = yaml.safe_load(open(yaml_file))
     if not yaml_loaded:
         raise ValueError("File is empty.")
-    return(yaml_loaded)
+    return yaml_loaded
 
 
 def check_allowed_operators(qc_operator):
