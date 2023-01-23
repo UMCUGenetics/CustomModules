@@ -12,6 +12,6 @@ process GetStatsFromFlagstat {
 
     script:
         """
-        python ${baseDir}/assets/get_stats_from_flagstat.py ${flagstat_files} > run_stats.txt
+        python ${baseDir}CustomModules/Utils/get_stats_from_flagstat.py ${flagstat_files} > run_stats.txt
         """
 }
