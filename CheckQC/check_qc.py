@@ -103,7 +103,7 @@ def add_and_rename_columns(qc_metric, qc_title, qc_col, qc_operator, qc_threshol
 def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
     # Select failed rows using qc_threshold regex pattern and qc_operator 'match'
     if qc_operator == "match" and isinstance(qc_threshold, str):
-        return qc_metric["qc_value"].str.match(qc_threshold)
+        return qc_metric[qc_col].str.match(qc_threshold)
     elif isinstance(qc_threshold, str):  # Add quotes areound qc_threshold if it is string.
         # Note: using `query` has the advantage to dynamically build the comparison condition.
         # Disadvantage: no boolean indexing available. Assumed it is ok to use 'index'
