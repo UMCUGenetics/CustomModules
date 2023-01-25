@@ -180,10 +180,10 @@ class TestAddFailedSamplesMetric():
 
     def test_add_failed_samples_multi_sample_col(self):
         fake_kinship_metric = DataFrame(
-            data=list(combinations(["sample1", "sample2", "sample3", "sample4", "sample5"], 2)), 
+            data=list(combinations(["sample1", "sample2", "sample3", "sample4", "sample5"], 2)),
             columns=["sample_col1", "sample_col2"]
         )
-        fake_kinship_metric = fake_kinship_metric.assign(qc_check="val op thres", qc_value="wrong")
+        fake_kinship_metric = fake_kinship_metric.assign(qc_check="checks", qc_value="wrong")
         failed_rows = fake_kinship_metric.iloc[0:2].index  # define sample1 vs sample2 and sample1 vs sample3 as failed
         qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(
             fake_kinship_metric, failed_rows, fake_kinship_metric.columns.to_list(), ["sample_col1", "sample_col2"])
@@ -192,6 +192,10 @@ class TestAddFailedSamplesMetric():
             assert failed_sample in qc_metric_out["sample"].to_list()  # test added failed sample
         assert qc_metric_out["qc_status"].values.all() == "FAIL"
         assert len(qc_metric) == 1
+        twice_failed = qc_metric_out.loc[qc_metric_out["sample"] == "sample1"]
+        assert "wrong;wrong" == twice_failed["qc_value"].item()  # assert join with ';' on column qc_value
+        # assert join with ';' on column qc_msg
+        assert "sample1 sample2 checks wrong;sample1 sample3 checks wrong" == twice_failed["qc_msg"].item()
         for passed_sample in ["sample4", "sample5"]:
             assert passed_sample in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())
 
