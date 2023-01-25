@@ -19,7 +19,7 @@ process CallCNV {
 
     script:
         """
-        source ${params.exomedepth_path}/venv/bin/activate
-        python ${params.exomedepth_path}/run_ExomeDepth.py callcnv ./ ${bam_file} ${analysis_id} ${sample_id}
+        source ${params.dx_resources_path}/${params.exomedepth_path}/venv/bin/activate
+        python ${params.dx_resources_path}/${params.exomedepth_path}/run_ExomeDepth.py callcnv ./ ${bam_file} ${analysis_id} ${sample_id}
         """
 }
