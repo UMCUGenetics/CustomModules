@@ -17,6 +17,6 @@ process Kinship {
         ${params.plink_path}/plink --file out --make-bed --noweb
         ${params.king_path}/king -b plink.bed --kinship
         cp king.kin0 ${analysis_id}.kinship
-        python ${baseDir}/assets/check_kinship.py ${analysis_id}.kinship ${ped_file} > ${analysis_id}.kinship_check.out
+        python ${baseDir}/CustomModules/Utils/check_kinship.py ${analysis_id}.kinship ${ped_file} > ${analysis_id}.kinship_check.out
         """
 }

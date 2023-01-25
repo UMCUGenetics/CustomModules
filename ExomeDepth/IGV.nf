@@ -13,8 +13,8 @@ process SingleIGV {
 
     script:
         """
-        source ${params.exomedepth_path}/venv/bin/activate
-        python ${params.exomedepth_path}/igv_xml_session.py single_igv ./ ${sample_id} ${analysis_id} ${refset}
+        source ${params.dx_resources_path}/${params.exomedepth_path}/venv/bin/activate
+        python ${params.dx_resources_path}/${params.exomedepth_path}/igv_xml_session.py single_igv ./ ${sample_id} ${analysis_id} ${refset}
         """
 }
 
@@ -34,7 +34,7 @@ process FamilyIGV {
     script:
         def bam_files = bam_files.collect{"$it"}.join(" ")
         """
-        source ${params.exomedepth_path}/venv/bin/activate
-        python ${params.exomedepth_path}/igv_xml_session.py family_igv ./ ${ped_file} ${analysis_id} ${sample_id} ${bam_files}
+        source ${params.dx_resources_path}/${params.exomedepth_path}/venv/bin/activate
+        python ${params.dx_resources_path}/${params.exomedepth_path}/igv_xml_session.py family_igv ./ ${ped_file} ${analysis_id} ${sample_id} ${bam_files}
         """
 }

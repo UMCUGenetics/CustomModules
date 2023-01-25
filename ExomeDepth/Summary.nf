@@ -14,7 +14,7 @@ process Summary {
 
     script:
         """
-        source ${params.exomedepth_path}/venv/bin/activate
-        python ${params.exomedepth_path}/run_ExomeDepth.py summary ${exomedepth_logs} > ${analysis_id}_exomedepth_summary.txt
+        source ${params.dx_resources_path}/${params.exomedepth_path}/venv/bin/activate
+        python ${params.dx_resources_path}/${params.exomedepth_path}/run_ExomeDepth.py summary ${exomedepth_logs} > ${analysis_id}_exomedepth_summary.txt
         """
 }

@@ -15,6 +15,6 @@ process ParseChildFromFullTrio {
     script:
         def sample_ids = sample_id.join(" ")
         """
-        python ${baseDir}/assets/parse_child_from_fulltrio.py ${ped_file} ${sample_ids} | tr -d '\n'
+        python ${baseDir}/CustomModules/Utils/parse_child_from_fulltrio.py ${ped_file} ${sample_ids} | tr -d '\n'
         """
 }
