@@ -80,12 +80,12 @@ def get_columns_to_report(qc_report_cols, qc_metric_cols, qc_col):
     not_existing_cols = list(set(qc_report_cols) - set(qc_metric_cols))
     if qc_report_cols == "@all":
         qc_report_cols = qc_metric_cols
+    elif not isinstance(qc_report_cols, str) and not isinstance(qc_report_cols, list):
+        raise TypeError(f"{qc_report_cols} not string, list or '@all'")
     elif not_existing_cols:
         raise ValueError(f"Some column names provided as report_cols do not exists: {not_existing_cols}")
-    if not isinstance(qc_report_cols, str) and not isinstance(qc_report_cols, list):
-        raise TypeError(f"{qc_report_cols} not string, list or '@all'")
-    qc_report_cols = list(map(lambda x: x.replace(qc_col, "qc_value"), qc_report_cols))
-    qc_report_cols.insert(0, "qc_title")
+    qc_report_cols = list(map(lambda x: x.replace(qc_col, "qc_value"), qc_report_cols))  # rename qc_col with qc_value
+    qc_report_cols.insert(0, "qc_title")  # add column qc_title
     return qc_report_cols
 
 
