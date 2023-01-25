@@ -133,7 +133,7 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
                     qc_metric
                     .rename(columns={sample_col: "sample"})
                     .loc[failed_rows, qc_metric_out.columns.to_list()]
-                    .groupby(["sample", "qc_check", "qc_status"])
+                    .groupby(["sample", "qc_check", "qc_status"], dropna=False)
                     .agg(lambda val: ';'.join(val.astype(str)))  # Or .agg(lambda val: val.to_list())
                     .reset_index()
                 )
