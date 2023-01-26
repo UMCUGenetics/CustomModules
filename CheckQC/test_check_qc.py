@@ -206,3 +206,45 @@ class TestAddFailedSamplesMetric():
         assert qc_metric_out.empty
         assert fake_qc_metric.equals(qc_metric)
 
+
+class TestAddPassedSamplesMetric():
+    def test_add_passed_samples_multi_sample_col(self):
+        fake_sample_qc = DataFrame([
+                ("s1", "kinship", "FAIL", "s1 s2 kinship wrong;s1 s3 kinship wrong", "wrong;wrong"),
+                ("s2", "kinship", "FAIL", "s1 s2 kinship wrong", "wrong"),
+                ("s3", "kinship", "FAIL", "s1 s3 kinship wrong", "wrong"),
+        ], columns=["sample", "qc_check", "qc_status", "qc_msg", "qc_value"])
+        fake_qc_metric = DataFrame(
+            [
+                ("s4", "s5", "kinship", "ok", "PASS", "", "empty"),
+                ("s4", "s6", "kinship", "ok", "PASS", "", "empty"),
+                ("s5", "s6", "kinship", "ok", "PASS", "", "empty"),
+            ],
+            columns=["sample_col1", "sample_col2", "qc_check", "qc_value", "qc_status", "qc_msg", "new_col"]
+        )
+        qc_metric_out = check_qc.add_passed_samples_metric(
+            fake_qc_metric, fake_sample_qc, ["sample_col1", "sample_col2"])
+        assert "sample" in qc_metric_out.columns.to_list()  # test rename column
+        assert qc_metric_out["sample"].to_list().count("s4") == 1  # test removal duplicates
+        assert "new_col" not in qc_metric_out.columns.to_list()  # test additional columns ignored
+
+
+class TestCreateAndWriteOutput():
+    @pytest.mark.parametrize("exp_summary,qc_output", [
+        # all qc checks passed
+        ("PASS", DataFrame({"sample": ["s1"], "qc_status_cov": ["PASS"], "qc_status_kinship": ["PASS"]})),
+        # single qc check failed
+        ("FAIL", DataFrame({"sample": ["s1"], "qc_status_cov": ["PASS"], "qc_status_kinship": ["FAIL"]})),
+        # all qc check failed
+        ("FAIL", DataFrame({"sample": ["s1"], "qc_status_cov": ["FAIL"], "qc_status_kinship": ["FAIL"]})),
+        # not restricted to qc_status_<check> column name
+        ("PASS", DataFrame({"sample": ["s1"], "random_col1": ["PASS"], "random_col2": ["PASS"]})),
+    ])
+    def test_create_and_write_output(self, setup_test_path, exp_summary, qc_output):
+        prefix = "test_output"
+        check_qc.create_and_write_output(qc_output, setup_test_path, prefix)
+        expected_output = Path(f"{setup_test_path}/{prefix}_summary.csv")
+        assert expected_output.exists()
+        out = read_csv(expected_output)
+        assert "qc_summary" in out.columns.to_list()
+        assert out["qc_summary"].values == exp_summary
