@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # Import statements, alphabetic order of main package.
 from itertools import combinations
+from pathlib import Path
 import pytest
 from pytest_unordered import unordered
 
 # Third party libraries alphabetic order of main package.
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 # Custom libraries alphabetic order of main package.
 import check_qc
@@ -86,7 +87,7 @@ class TestCheckRequiredKeysMetrics():
         error_val = str(required_error.value)
         assert "not in all metrics settings." in error_val
         assert error_val.split(" ")[2] in ["filename", "qc_col", "threshold", "operator", "report_cols"]
-    
+
 
 class TestSelectMetrics():
     @pytest.mark.parametrize("input_files,expected", [
@@ -109,7 +110,7 @@ class TestGetColumnsToReport():
     @pytest.mark.parametrize("report_cols,metric_cols,qc_col,expected", [
         (["col1"], ["col1"], "col1", ["qc_title", "qc_value"]),
         (["col1", "col2"], ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),  # additional report col
-        (["col1", "col2"], ["col1", "col2"], "col2", ["qc_title", "qc_value", "col1"]),  # additional report col, different order output
+        (["col1", "col2"], ["col1", "col2"], "col2", ["qc_title", "qc_value", "col1"]),  # different order output
         (["col1"], ["col1", "col3"], "col1", ["qc_title", "qc_value"]),  # additional metric col
 
     ])
@@ -138,7 +139,9 @@ class TestAddAndRenameColumns():
         assert qc_metric_out["qc_status"].values == "PASS"
         assert qc_metric_out["qc_check"].values == "fake_thres fake_op fake_qc_col"
         # assert all expected columns exist
-        assert not list(set(['sample', 'qc_value', 'qc_title', 'qc_status', 'qc_check', 'qc_msg']) - set(qc_metric_out.columns))
+        assert not list(
+            set(['sample', 'qc_value', 'qc_title', 'qc_status', 'qc_check', 'qc_msg']) - set(qc_metric_out.columns)
+        )
         assert "fake_qc_col" not in qc_metric_out.columns
 
 
@@ -188,7 +191,8 @@ class TestAddFailedSamplesMetric():
         qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(
             fake_kinship_metric, failed_rows, fake_kinship_metric.columns.to_list(), ["sample_col1", "sample_col2"])
         for failed_sample in ["sample1", "sample2", "sample3"]:
-            assert failed_sample not in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())  # test removal failed sample
+            # test removal failed sample
+            assert failed_sample not in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())
             assert failed_sample in qc_metric_out["sample"].to_list()  # test added failed sample
         assert qc_metric_out["qc_status"].values.all() == "FAIL"
         assert len(qc_metric) == 1
