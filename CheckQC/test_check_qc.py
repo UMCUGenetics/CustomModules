@@ -112,7 +112,7 @@ class TestGetColumnsToReport():
         (["col1", "col2"], ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),  # additional report col
         (["col1", "col2"], ["col1", "col2"], "col2", ["qc_title", "qc_value", "col1"]),  # different order output
         (["col1"], ["col1", "col3"], "col1", ["qc_title", "qc_value"]),  # additional metric col
-
+        ("@all", ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),  # special @all option
     ])
     def test_get_columns_to_report(self, report_cols, metric_cols, qc_col, expected):
         qc_report_cols = check_qc.get_columns_to_report(report_cols, metric_cols, qc_col)
@@ -149,8 +149,8 @@ class TestGetFailedRows():
     @pytest.mark.parametrize("qc_op,qc_thres", [
         ("match", "fake_thres"),  # test match
         ("==", "FAIL"),  # test string
-        ("==", "1"),  # test int
-        ("==", ""),  # test float
+        ("==", 1),  # test int
+        ("==", 0.1),  # test float
     ])
     def test_correct(self, qc_op, qc_thres):
         fake_qc_metric = DataFrame({"sample": ["sample1"], "fake_qc_col": [qc_thres]})
