@@ -35,7 +35,7 @@ class TestNonEmptyExistingPath():
     def test_empty_file(self, setup_test_path):
         with pytest.raises(OSError) as empty_error:
             check_qc.non_empty_existing_path(setup_test_path + "empty.txt")
-        assert "File is empty." in str(empty_error.value)
+        assert f"File {setup_test_path}empty.txt is empty." in str(empty_error.value)
 
     def test_append_suffix(self, setup_test_path):
         dir_without_suffix = setup_test_path.rstrip("/")
