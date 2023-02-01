@@ -1,7 +1,7 @@
 process CheckQC {
     tag {"CheckQC ${identifier}"}
     label 'CheckQC'
-    container = 'container_url'
+    container = 'docker.io/umcugenbioinf/checkqc:1.0.0'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
