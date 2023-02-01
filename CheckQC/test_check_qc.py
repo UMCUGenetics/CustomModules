@@ -48,7 +48,7 @@ class TestReadYaml():
     def test_empty_yaml(self, setup_test_path):
         with pytest.raises(ValueError) as empty_error:
             check_qc.read_yaml(setup_test_path + "empty.yaml")
-        assert "File is empty." in str(empty_error.value)
+        assert "Could not load YAML." in str(empty_error.value)
 
 
 class TestCheckAllowedOperators():
