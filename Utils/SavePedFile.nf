@@ -6,6 +6,7 @@ process SavePedFile {
 
     input:
         path(ped_file)
+        val(analysis_id)
 
     output:
         path("*.ped", includeInputs: true)

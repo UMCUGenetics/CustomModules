@@ -8,6 +8,7 @@ process ParseChildFromFullTrio {
     input:
         path(ped_file)
         val(sample_id)
+        val(analysis_id)
 
     output:
         stdout emit: trio_sample
