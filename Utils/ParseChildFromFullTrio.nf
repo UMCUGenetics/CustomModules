@@ -1,6 +1,6 @@
 process ParseChildFromFullTrio {
     //Custom process to parse PED file and output sampleID of children with both parents.
-    tag {"ParseChildFromFullTrio ${analysis_id}"}
+    tag {"ParseChildFromFullTrio ${sample_id}"}
     label 'ParseChildFromFullTrio'
     shell = ['/bin/bash', '-eo', 'pipefail']
     cache = false
@@ -8,7 +8,6 @@ process ParseChildFromFullTrio {
     input:
         path(ped_file)
         val(sample_id)
-        val(analysis_id)
 
     output:
         stdout emit: trio_sample

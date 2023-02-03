@@ -1,12 +1,11 @@
 process VersionLog {
     // Custom process to log repository versions
-    tag {"VersionLog ${identifier}"}
+    tag {"VersionLog"}
     label 'VersionLog'
     shell = ['/bin/bash', '-eo', 'pipefail']
     cache = false  //Disable cache to force a new version log when restarting the workflow.
 
     input:
-        val(identifier)
         path(git_dirs)
 
     output:
