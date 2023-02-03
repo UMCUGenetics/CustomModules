@@ -1,5 +1,5 @@
 # CustomModules
-UMCU Genetics Custom Modules.
+UMCU Genetics Custom Modules - Genome Diagnostics.
 
 This repository contains custom nextflow processes and their dependent/linked files (scripts, dockerfiles etc.) used as submodule in our NGS workflows.
 
