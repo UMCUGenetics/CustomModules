@@ -113,7 +113,7 @@ def check_fingerprint_vcf(output_file, fingerprint_vcf_files):
     write_result(
         output_file,
         [
-            'filename', 'lowcovcount', 'homaltcount', 'contamination', 'vcf_file_gender', 'ycount', 'disbalancecount',
+            'sample', 'filename', 'lowcovcount', 'homaltcount', 'contamination', 'vcf_file_gender', 'ycount', 'disbalancecount',
             'state', 'warning'
         ]
     )
@@ -127,9 +127,10 @@ def check_fingerprint_vcf(output_file, fingerprint_vcf_files):
             shutil.move(vcf_file_name, disapproved_folder)
         else:
             shutil.move(vcf_file_name, approved_folder)
+        sample = Path(vcf_file_name).stem
         write_result(
             output_file,
-            [vcf_file_name, lowcovcount, homaltcount, contamination, vcf_file_gender, ycount, disbalancecount, state, warning]
+            [sample, vcf_file_name, lowcovcount, homaltcount, contamination, vcf_file_gender, ycount, disbalancecount, state, warning]
         )
     output_file.close()
 
