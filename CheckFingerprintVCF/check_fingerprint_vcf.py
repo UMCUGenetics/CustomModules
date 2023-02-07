@@ -110,13 +110,10 @@ def check_fingerprint_vcf(output_file, fingerprint_vcf_files):
     approved_folder = 'approvedVCFs'
     os.mkdir(disapproved_folder)
     os.mkdir(approved_folder)
-    write_result(
-        output_file,
-        [
-            'sample', 'filename', 'lowcovcount', 'homaltcount', 'contamination', 'vcf_file_gender', 'ycount', 'disbalancecount',
-            'state', 'warning'
-        ]
-    )
+    write_result(output_file, [
+        'sample', 'filename', 'lowcovcount', 'homaltcount', 'contamination', 'vcf_file_gender', 'ycount', 'disbalancecount',
+        'state', 'warning'
+    ])
     for vcf_file in fingerprint_vcf_files:
         vcf_file_name, lowcovcount, homaltcount, contamination, vcf_file_gender, ycount, disbalancecount = parse_vcf(vcf_file)
         state, warning = get_state_and_warning(
@@ -128,10 +125,10 @@ def check_fingerprint_vcf(output_file, fingerprint_vcf_files):
         else:
             shutil.move(vcf_file_name, approved_folder)
         sample = Path(vcf_file_name).stem
-        write_result(
-            output_file,
-            [sample, vcf_file_name, lowcovcount, homaltcount, contamination, vcf_file_gender, ycount, disbalancecount, state, warning]
-        )
+        write_result(output_file, [
+            sample, vcf_file_name, lowcovcount, homaltcount, contamination, vcf_file_gender, ycount, disbalancecount,
+            state, warning
+        ])
     output_file.close()
 
 
