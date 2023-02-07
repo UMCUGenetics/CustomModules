@@ -15,6 +15,6 @@ process CheckFingerprintVCF {
 
     script:
         """
-        python ${baseDir}/CustomModules/CheckFingerprintVCF/check_fingerprint_vcf.py ${vcf_files} > logbook.txt
+        python ${baseDir}/CustomModules/CheckFingerprintVCF/check_fingerprint_vcf.py -o logbook.txt ${vcf_files}
         """
 }
