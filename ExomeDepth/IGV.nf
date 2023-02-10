@@ -26,15 +26,33 @@ process FamilyIGV {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(sample_id, path(bam_files), ped_file, analysis_id)
+        val(ped_file)
+        val(analysis_id)
+        path(bam_files)
+        path(snv_vcf_files)
+        path(cnv_vcf_files)
+        path(igv_files)
+        path(upd_files)
+        path(baf_files)
 
     output:
         path("*.xml", emit: Family_IGV_file)
 
     script:
         def bam_files = bam_files.collect{"$it"}.join(" ")
+        def snv_vcf_files = snv_vcf_files.collect{"$it"}.join(" ")
+        def cnv_vcf_files = cnv_vcf_files.collect{"$it"}.join(" ")
+        def igv_files = igv_files.collect{"$it"}.join(" ")
+        def upd_files = upd_files.collect{"$it"}.join(" ")
+        def baf_files = baf_files.collect{"$it"}.join(" ")
         """
         source ${params.dx_resources_path}/${params.exomedepth_path}/venv/bin/activate
-        python ${params.dx_resources_path}/${params.exomedepth_path}/igv_xml_session.py family_igv ./ ${ped_file} ${analysis_id} ${sample_id} ${bam_files}
+        python ${params.dx_resources_path}/${params.exomedepth_path}/igv_xml_session.py family_igv ./ ${ped_file} ${analysis_id} \
+            --bam_files $bam_files \
+            --snv_vcf_files $snv_vcf_files \
+            --cnv_vcf_files $cnv_vcf_files \
+            --igv_files $igv_files \
+            --upd_files $upd_files  \
+            --baf_files $baf_files
         """
 }
