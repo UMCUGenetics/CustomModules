@@ -5,10 +5,10 @@ process Fraction {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(sample_id, path(mosdepth_summary))
+        tuple(val(sample_id), path(mosdepth_summary))
 
     output:
-        tuple(sample_id, stdout)
+        tuple(val(sample_id), stdout)
 
     script:
         """
