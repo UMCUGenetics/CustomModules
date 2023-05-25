@@ -1,7 +1,7 @@
 process Kinship {
-    // Custom process to run Kinship tools
     tag {"Kinship ${analysis_id}"}
     label 'Kinship'
+    container = 'docker.io/umcugenbioinf/kinship:1.0.0'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -13,10 +13,10 @@ process Kinship {
 
     script:
         """
-        ${params.vcftools_path}/vcftools --vcf ${vcf_file} --plink
-        ${params.plink_path}/plink --file out --make-bed --noweb
-        ${params.king_path}/king -b plink.bed --kinship
+        vcftools --vcf ${vcf_file} --plink
+        plink --file out --make-bed --noweb
+        king -b plink.bed --kinship
         cp king.kin0 ${analysis_id}.kinship
-        python2 ${baseDir}/CustomModules/Utils/check_kinship.py ${analysis_id}.kinship ${ped_file} > ${analysis_id}.kinship_check.out
+        python ${baseDir}/CustomModules/Kinship/check_kinship.py ${analysis_id}.kinship ${ped_file} > ${analysis_id}.kinship_check.out
         """
 }
