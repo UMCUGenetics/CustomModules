@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+## adapted from 2-DIMS.R
 
 #.libPaths(new = "/hpc/local/CentOS7/dbg_mz/R_libs/3.6.2")
 
