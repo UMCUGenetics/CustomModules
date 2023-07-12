@@ -9,7 +9,7 @@ process IGV {
         tuple(output_name, path(vcf_files), path(vcf_idx_files))
 
     output:
-        path("${output_name}_baf.igv")
+        path("${output_name}_baf.igv", emit: BAF_IGV_files)
 
     script:
         """
