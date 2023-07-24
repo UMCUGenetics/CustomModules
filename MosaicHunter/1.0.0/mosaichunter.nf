@@ -3,7 +3,7 @@ nextflow.preview.dsl=2
 
 // Step 1: Process input files
 process MosaicHunterStepOne {
-    container = 'docker://anabuurs/mosaichunter'
+    container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterStepOne'
     tag = tag {"MosaicHunterStepOne $sample_id"}
 
@@ -40,7 +40,7 @@ process MosaicHunterStepOne {
 }
 
 process MosaicHunterStepTwo {
-    container = 'docker://anabuurs/mosaichunter'
+    container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterStepTwo'
     tag = tag {"MosaicHunterStepTwo $sample_id"}
 
