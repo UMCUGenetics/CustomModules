@@ -8,7 +8,7 @@ process VCF2GLIMS {
         tuple(val(analysis_id), val(sample_id), path(vcf_file))
 
     output:
-        path("${sample_id}.csv")
+        path("${analysis_id}_${sample_id}.csv")
 
     script:
         """
