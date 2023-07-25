@@ -24,7 +24,7 @@ process MosaicHunterStepOne {
     tuple(env(MHALPHA), env(MHBETA))
 
     // The command to execute MosaicHunter
-    """
+    '''
     SEX_STRING=$(echo "$sample_id" | egrep -o '[MF]')
 
     java -Xmx${task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
@@ -36,7 +36,7 @@ process MosaicHunterStepOne {
 -P output_dir=./
     export MHALPHA="\$(grep -Po "(?<=beta:\\s)\\w+" ./stdout*)"
     export MHBETA="\$(grep -Po "(?<=beta:\\s)\\w+" ./stdout*)"
-    """
+    '''
 }
 
 process MosaicHunterStepTwo {
@@ -64,7 +64,7 @@ process MosaicHunterStepTwo {
     file 'final.passed.tsv'
 
     // The command to execute step two of MosaicHunter
-    """
+    '''
     SEX_STRING=$(echo "$sample_id" | egrep -o '[MF]')
 
     java -Xmx${task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
@@ -75,5 +75,5 @@ process MosaicHunterStepTwo {
 -P reference_file=$mh_reference_file \
 -P common_site_filter.bed_file=$mh_common_site_filter_bed_file \
 -P output_dir=./
-    """
+    '''
 }
