@@ -14,7 +14,10 @@ process MosaicHunterStepOne {
     - input_sex_string -> a string (must be "M" or "F") for the sex of the patient
     */
     input:
-    tuple(sample_id, path(bam_files), path(bai_files), path(mh_reference_file), path(mh_common_site_filter_bed_file), path(mh_config_file))
+    tuple(sample_id, path(bam_files), path(bai_files))
+    path(mh_reference_file)
+    path(mh_common_site_filter_bed_file)
+    path(mh_config_file)
 
     /*
     Define outputs.
