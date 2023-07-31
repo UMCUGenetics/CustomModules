@@ -27,17 +27,18 @@ process MosaicHunterStepOne {
     tuple(env(MHALPHA), env(MHBETA))
 
     // The command to execute MosaicHunter
+    shell:
     '''
-    SEX_STRING=$(echo "$sample_id" | egrep -o '[MF]')
+    SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
 
-    java -Xmx${task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
--C $mh_config_file \
--P input_file=$input_bam_file \
--P mosaic_filter.sex=\$SEX_STRING \
--P reference_file=$mh_reference_file \
--P common_site_filter.bed_file=$mh_common_site_filter_bed_file \
+    java -Xmx!{task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
+-C !{mh_config_file} \
+-P input_file=!{bam_files} \
+-P mosaic_filter.sex=$SEX_STRING \
+-P reference_file=!{mh_reference_file} \
+-P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
 -P output_dir=./
-    export MHALPHA="\$(grep -Po "(?<=beta:\\s)\\w+" ./stdout*)"
+    export MHALPHA="\$(grep -Po "(?<=alpha:\\s)\\w+" ./stdout*)"
     export MHBETA="\$(grep -Po "(?<=beta:\\s)\\w+" ./stdout*)"
     '''
 }
@@ -56,27 +57,28 @@ process MosaicHunterStepTwo {
     */
     input:
     tuple(sample_id, path(bam_files), path(bai_files))
-    tuple env(MHALPHA),env(MHBETA)
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
     path(mh_config_file)
     MosaicHunterStepOne.out
+    tuple(env(MHALPHA),env(MHBETA))
 
     // Final file, will be published to output directory
     output:
     file 'final.passed.tsv'
 
     // The command to execute step two of MosaicHunter
+    shell:
     '''
-    SEX_STRING=$(echo "$sample_id" | egrep -o '[MF]')
+    SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
 
-    java -Xmx${task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
--C $mh_config_file \
--P mosaic_filter.alpha_param=\$MHALPHA -P mosaic_filter.beta_param=\$MHBETA \
--P input_file=$bam_files \
--P mosaic_filter.sex=\$SEX_STRING \
--P reference_file=$mh_reference_file \
--P common_site_filter.bed_file=$mh_common_site_filter_bed_file \
+    java -Xmx!{task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
+-C !{mh_config_file} \
+-P mosaic_filter.alpha_param=$MHALPHA -P mosaic_filter.beta_param=$MHBETA \
+-P input_file=!{bam_files} \
+-P mosaic_filter.sex=$SEX_STRING \
+-P reference_file=!{mh_reference_file} \
+-P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
 -P output_dir=./
     '''
 }
