@@ -65,7 +65,7 @@ process MosaicHunterStepTwo {
 
     // Final file, will be published to output directory
     output:
-    file 'final.passed.tsv'
+    file 'final.passed.tsv', optional: true
 
     // The command to execute step two of MosaicHunter
     shell:
