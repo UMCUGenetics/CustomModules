@@ -17,7 +17,7 @@ process MosaicHunterStepOne {
     tuple(sample_id, path(bam_files), path(bai_files))
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
-    path(mh_config_file)
+    path(mh_config_file_one)
 
     /*
     Define outputs.
@@ -59,7 +59,7 @@ process MosaicHunterStepTwo {
     tuple(sample_id, path(bam_files), path(bai_files))
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
-    path(mh_config_file)
+    path(mh_config_file_two)
     MosaicHunterStepOne.out
     tuple(env(MHALPHA),env(MHBETA))
 
