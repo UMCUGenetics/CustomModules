@@ -32,7 +32,7 @@ process MosaicHunterStepOne {
     SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
 
     java -Xmx!{task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
--C !{mh_config_file} \
+-C !{mh_config_file_one} \
 -P input_file=!{bam_files} \
 -P mosaic_filter.sex=$SEX_STRING \
 -P reference_file=!{mh_reference_file} \
@@ -65,7 +65,7 @@ process MosaicHunterStepTwo {
 
     // Final file, will be published to output directory
     output:
-    file 'final.passed.tsv', optional: true
+    path 'final.passed.tsv', optional: true
 
     // The command to execute step two of MosaicHunter
     shell:
@@ -73,7 +73,7 @@ process MosaicHunterStepTwo {
     SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
 
     java -Xmx!{task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
--C !{mh_config_file} \
+-C !{mh_config_file_two} \
 -P mosaic_filter.alpha_param=$MHALPHA -P mosaic_filter.beta_param=$MHBETA \
 -P input_file=!{bam_files} \
 -P mosaic_filter.sex=$SEX_STRING \
