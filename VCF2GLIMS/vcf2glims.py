@@ -9,7 +9,7 @@ def vcf2csv(args):
     reader = vcfpy.Reader.from_stream(args.vcf_file)
 
     # print header
-    print('chrom', 'pos', 'id', 'genotype', 'sample', 'sequencing_run', sep=',')
+    print('sample', 'sequencing_run', 'chrom', 'pos', 'id', 'genotype', sep=',')
 
     for record in reader:
         sample_call = record.calls[0]  # Assume single sample vcf
@@ -28,12 +28,12 @@ def vcf2csv(args):
             gt_sep = '|'
 
         print(
+            sample_call.sample,
+            args.sequencing_run,
             record.CHROM,
             record.POS,
             record.ID[0] if record.ID else '',  # print record.ID unless empty
             gt_sep.join(sample_call.gt_bases),  # create genotype using genotype separator
-            sample_call.sample,
-            args.sequencing_run_id,
             sep=','
         )
 
