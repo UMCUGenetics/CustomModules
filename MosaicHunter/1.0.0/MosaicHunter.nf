@@ -48,6 +48,8 @@ process MosaicHunterStepTwo {
     label = 'MosaicHunterStepTwo'
     tag = tag {"MosaicHunterStepTwo $sample_id"}
 
+    publishDir '${params.outdir}/QC/MosaicHunter', saveAs: { filename -> "${sample_id}_$filename" }, mode: 'link'
+
     /*
     Define inputs.
     - input_bam_file -> a path to the .bam file
@@ -65,7 +67,7 @@ process MosaicHunterStepTwo {
 
     // Final file, will be published to output directory
     output:
-    path('final.passed.tsv').renameTo('${sample_id}_final.passed.tsv')
+    path('final.passed.tsv')
 
     // The command to execute step two of MosaicHunter
     shell:
