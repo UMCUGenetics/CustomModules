@@ -65,7 +65,7 @@ process MosaicHunterStepTwo {
 
     // Final file, will be published to output directory
     output:
-    path 'final.passed.tsv', optional: true
+    path('final.passed.tsv').renameTo('${sample_id}_final.passed.tsv')
 
     // The command to execute step two of MosaicHunter
     shell:
