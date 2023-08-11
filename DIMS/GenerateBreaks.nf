@@ -8,7 +8,7 @@ process GenerateBreaks {
 
 
     output:
-       file 'breaks.fwhm.RData' 
+       path 'breaks.fwhm.RData'
 
     script:
         """

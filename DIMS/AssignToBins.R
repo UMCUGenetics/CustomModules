@@ -19,9 +19,9 @@ print(filepath)
 print(breaks_filepath)
 print(resol)
 
-#sampname <- sub('\\..*$', '', basename(filepath))
+sampname <- sub('\\..*$', '', basename(filepath))
 #cat(paste0("\n", sampname))
-sampname <- "AssignToBins"
+# sampname <- "AssignToBins"
 
 #suppressPackageStartupMessages(library("Cairo"))
 options(digits=16)

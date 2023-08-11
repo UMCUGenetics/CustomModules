@@ -54,4 +54,6 @@ for (i in 1:nsegment) {
 }
 
 save(breaks.fwhm, breaks.fwhm.avg, trimLeft, trimRight, file=paste(outdir, "breaks.fwhm.RData", sep="/"))
+# temporary fix for breaks file:
+# save(breaks.fwhm, breaks.fwhm.avg, trimLeft, trimRight, file=paste(outdir/../, "breaks.fwhm.RData", sep="/"))
 

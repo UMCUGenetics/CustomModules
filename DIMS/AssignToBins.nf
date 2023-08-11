@@ -4,12 +4,11 @@ process AssignToBins {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple(file_id, path(mzML_filename))
-       file(breaks_file)
+       tuple(file_id, path(mzML_filename), path(breaks_file))
        val(resolution)
 
     output:
-       file 'AssignToBins.RData'
+       path("${file_id}.RData")
 
     script:
         """

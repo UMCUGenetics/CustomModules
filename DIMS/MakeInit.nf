@@ -7,7 +7,7 @@ process MakeInit {
        tuple(path(samplesheet), val(nr_replicates))
 
     output:
-       file 'init.RData' 
+       path 'init.RData'
 
     script:
         """
