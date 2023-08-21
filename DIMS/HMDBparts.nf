@@ -6,8 +6,11 @@ process HMDBparts {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
+        // tuple(path(hmdb_db_file), path(breaks_file))
         path(hmdb_db_file)
         path(breaks_file)
+        // val(standard_run)
+        // val(ppm)
 
     output:
         path('*.RData')
@@ -15,6 +18,6 @@ process HMDBparts {
     script:
 
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file
+        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.standard_run $params.ppm
         """
 }

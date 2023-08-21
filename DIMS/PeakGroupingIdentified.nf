@@ -4,15 +4,16 @@ process PeakGroupingIdentified {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
+       path(SpectrumPeak_file)
        path(HMDBpart_file)
-       val(resolution)
+       path(pattern_file)
 
     output:
-       path 'negative.RData'
-       path 'positive.RData'
+       path '*_negative.RData'
+       path '*_positive.RData'
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakGroupingIdentified.R $HMDBpart_file $resolution $ppm
+        Rscript ${baseDir}/CustomModules/DIMS/PeakGroupingIdentified.R $SpectrumPeak_file $HMDBpart_file $pattern_file $params.resolution $params.ppm
         """
 }

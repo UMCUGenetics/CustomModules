@@ -6,18 +6,16 @@ process AverageTechReplicates {
     input:
        path(RData_file)
        path(init_filepath)
-       val(nr_replicates)
 
     output:
-       path '*_*.RData', emit: binned
-       path 'repl.pattern.negative.RData'
-       path 'repl.pattern.positive.RData'
-       path 'miss_infusions_neg.txt'
-       path 'miss_infusions_pos.txt'
+       path '*_repl_pattern.RData', emit: patterns
+       path '*_avg.RData', emit: binned
+       path 'miss_infusions_negative.txt'
+       path 'miss_infusions_positive.txt'
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $nr_replicates
+        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates
         """
 }
 

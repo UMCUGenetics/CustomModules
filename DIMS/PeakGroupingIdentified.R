@@ -7,9 +7,9 @@
 cmd_args <- commandArgs(trailingOnly = TRUE)
 for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
-SpecPeaks_file <- cmd_args[1]
 #outdir <- cmd_args[2]
 #scanmode <- cmd_args[3]
+SpecPeaks_file <- cmd_args[1]
 HMDB_part_file <- cmd_args[2]
 pattern_file <- cmd_args[3]
 resol <- as.numeric(cmd_args[4])

@@ -5,6 +5,7 @@ process SpectrumPeakFinding {
 
     input:
        path(RData_file)
+       path(replication_pattern)
 
     output:
        path 'negative.RData'
@@ -12,6 +13,6 @@ process SpectrumPeakFinding {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/SpectrumPeakFinding.R $RData_file
+        Rscript ${baseDir}/CustomModules/DIMS/SpectrumPeakFinding.R $replication_pattern
         """
 }

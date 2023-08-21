@@ -1,8 +1,6 @@
 #!/usr/bin/Rscript
 ## adapted from 2-DIMS.R
 
-#.libPaths(new = "/hpc/local/CentOS7/dbg_mz/R_libs/3.6.2")
-
 # load required packages 
 suppressPackageStartupMessages(library("xcms"))
 
@@ -20,10 +18,7 @@ print(breaks_filepath)
 print(resol)
 
 sampname <- sub('\\..*$', '', basename(filepath))
-#cat(paste0("\n", sampname))
-# sampname <- "AssignToBins"
 
-#suppressPackageStartupMessages(library("Cairo"))
 options(digits=16)
 
 ### process one sample at a time and find peaks FOR BOTH SCAN MODES! #
@@ -32,11 +27,11 @@ scale=2 # Initial value used to estimate scaling parameter
 width=1024
 height=768
 
-# Aggregate
+# Initiate  
 trimLeft=NULL
 trimRight=NULL
-breaks.fwhm=NULL
-breaks.fwhm.avg=NULL
+breaks_fwhm=NULL
+breaks_fwhm_avg=NULL
 bins=NULL
 pos_results=NULL
 neg_results=NULL
@@ -44,11 +39,11 @@ neg_results=NULL
 # read in the data for 1 sample
 raw_data <- suppressMessages(xcmsRaw(filepath))
 
-# load breaks.fwhm
+# load breaks_fwhm
 load(breaks_filepath)
 
 # Create empty placeholders for later use
-bins <- rep(0, length(breaks.fwhm) - 1)
+bins <- rep(0, length(breaks_fwhm) - 1)
 pos_bins <- bins
 neg_bins <- bins
 
@@ -70,8 +65,8 @@ pos_raw_data_matrix <- raw_data_matrix[pos_index, ]
 neg_raw_data_matrix <- raw_data_matrix[neg_index, ]
 
 # Get index for binning intensity values
-bin_indices_pos <- cut(pos_raw_data_matrix[ ,"mz"], breaks.fwhm, include.lowest=TRUE, right=TRUE, labels=FALSE)
-bin_indices_neg <- cut(neg_raw_data_matrix[ ,"mz"], breaks.fwhm, include.lowest=TRUE, right=TRUE, labels=FALSE)
+bin_indices_pos <- cut(pos_raw_data_matrix[ ,"mz"], breaks_fwhm, include.lowest=TRUE, right=TRUE, labels=FALSE)
+bin_indices_neg <- cut(neg_raw_data_matrix[ ,"mz"], breaks_fwhm, include.lowest=TRUE, right=TRUE, labels=FALSE)
 
 # Get the list of intensity values for each bin, and add the
 # intensity values which are in the same bin
@@ -109,19 +104,19 @@ neg_results_transpose = t(neg_results)
 rownames(pos_results_transpose) = sampname
 rownames(neg_results_transpose) = sampname
 
-# delete the last value of breaks.fwhm.avg to match dimensions of pos_results and neg_results
-breaks.fwhm.avg.minus1 <- breaks.fwhm.avg[-length(breaks.fwhm.avg)]
+# delete the last value of breaks_fwhm_avg to match dimensions of pos_results and neg_results
+breaks_fwhm_avg_minus1 <- breaks_fwhm_avg[-length(breaks_fwhm_avg)]
 # Format as string and show precision of float to 5 digits
-breaks.fwhm.avg.minus1 <- sprintf("%.5f", breaks.fwhm.avg.minus1)
+breaks_fwhm_avg_minus1 <- sprintf("%.5f", breaks_fwhm_avg_minus1)
 
 # Use this as the column names
-colnames(pos_results_transpose) <- breaks.fwhm.avg.minus1
-colnames(neg_results_transpose) <- breaks.fwhm.avg.minus1
+colnames(pos_results_transpose) <- breaks_fwhm_avg_minus1
+colnames(neg_results_transpose) <- breaks_fwhm_avg_minus1
 
 # transpose back
 pos_results_final <- t(pos_results_transpose)
 neg_results_final <- t(neg_results_transpose)
 
-pklist <- list("pos"=pos_results_final, "neg"=neg_results_final, "breaksFwhm"=breaks.fwhm)
+pklist <- list("pos"=pos_results_final, "neg"=neg_results_final, "breaksFwhm"=breaks_fwhm)
 
 save(pklist, file=paste("./", sampname, ".RData", sep=""))

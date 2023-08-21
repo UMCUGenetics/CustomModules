@@ -2,8 +2,6 @@
 ## adapted from 1-generateBreaksFwhm.HPC.R ##
 #!/usr/bin/Rscript
 
-# .libPaths(new = "/hpc/local/CentOS7/dbg_mz/R_libs/3.2.2")
-
 # load required package 
 suppressPackageStartupMessages(library("xcms"))
 
@@ -19,8 +17,8 @@ resol    <- as.numeric(cmd_args[4]) # 140000
 # initialize
 trimLeft        = NULL
 trimRight       = NULL
-breaks.fwhm     = NULL
-breaks.fwhm.avg = NULL
+breaks_fwhm     = NULL
+breaks_fwhm_avg = NULL
 bins            = NULL
 posRes          = NULL
 negRes          = NULL
@@ -28,7 +26,7 @@ negRes          = NULL
 # read in mzML file
 raw_data <- suppressMessages(xcmsRaw(filepath))
 
-# trim scans at the start and end
+# trim (remove) scans at the start and end
 trimLeft  = round(raw_data@scantime[length(raw_data@scantime)*trim])
 trimRight = round(raw_data@scantime[length(raw_data@scantime)*(1-trim)])
 
@@ -44,16 +42,16 @@ segment  = seq(from=lowMZ, to=highMZ, length.out=nsegment+1)
 for (i in 1:nsegment) {
   startsegm   <- segment[i]
   endsegm     <- segment[i+1]
-  resol.mz    <- resol*(1/sqrt(2)^(log2(startsegm/200)))
-  fwhmsegm    <- startsegm/resol.mz
-  breaks.fwhm <- c(breaks.fwhm, seq(from=(startsegm + fwhmsegm), to=endsegm, by=0.2*fwhmsegm))
+  resol_mz    <- resol*(1/sqrt(2)^(log2(startsegm/200)))
+  fwhmsegm    <- startsegm/resol_mz
+  breaks_fwhm <- c(breaks_fwhm, seq(from=(startsegm + fwhmsegm), to=endsegm, by=0.2*fwhmsegm))
   # average the m/z instead of start value
   range = seq(from=(startsegm + fwhmsegm), to=endsegm, by=0.2*fwhmsegm)
   deltaMZ = range[2] - range[1]
-  breaks.fwhm.avg <- c(breaks.fwhm.avg, range + 0.5*deltaMZ)
+  breaks_fwhm_avg <- c(breaks_fwhm_avg, range + 0.5*deltaMZ)
 }
 
-save(breaks.fwhm, breaks.fwhm.avg, trimLeft, trimRight, file=paste(outdir, "breaks.fwhm.RData", sep="/"))
-# temporary fix for breaks file:
-# save(breaks.fwhm, breaks.fwhm.avg, trimLeft, trimRight, file=paste(outdir/../, "breaks.fwhm.RData", sep="/"))
+# remove one of these:
+# save(breaks_fwhm, breaks_fwhm_avg, trimLeft, trimRight, file=paste(outdir, "breaks.fwhm.RData", sep="/"))
+save(breaks_fwhm, breaks_fwhm_avg, trimLeft, trimRight, file="./breaks.fwhm.RData")
 

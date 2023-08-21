@@ -5,14 +5,13 @@ process AssignToBins {
 
     input:
        tuple(file_id, path(mzML_filename), path(breaks_file))
-       val(resolution)
 
     output:
        path("${file_id}.RData")
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AssignToBins.R $mzML_filename $breaks_file $resolution
+        Rscript ${baseDir}/CustomModules/DIMS/AssignToBins.R $mzML_filename $breaks_file $params.resolution
         """
 }
 

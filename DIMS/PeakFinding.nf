@@ -4,20 +4,15 @@ process PeakFinding {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(RData_file)
-       val(resolution)
-       path(scripts)
-       path(breaks_file)
+       // path(RData_file)
+       // path(breaks_file)
+       tuple(path(RData_file), path(breaks_file))
 
     output:
-       path '*_neg.RData'
-       path '*_pos.RData'
-       path 'repl.pattern.*.RData', emit: pattern
-       path 'miss_infusions_neg.txt'
-       path 'miss_infusions_pos.txt'
+       path '*tive.RData'
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $RData_file $resolution $scripts $breaks_file
+        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $RData_file $breaks_file $params.resolution $params.scripts_dir
         """
 }
