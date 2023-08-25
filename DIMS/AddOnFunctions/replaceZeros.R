@@ -1,4 +1,4 @@
-replaceZeros <- function(file,scanmode,resol,outdir,thresh,scriptDir,ppm){
+replaceZeros <- function(outpgrlist, repl_pattern, scanmode, resol, outdir, thresh, ppm) {
   # file="./results/grouping_rest/negative_1.RData"
   # scanmode= "negative"
   # scriptDir="./scripts"
@@ -6,49 +6,43 @@ replaceZeros <- function(file,scanmode,resol,outdir,thresh,scriptDir,ppm){
   # thresh=2000
   # outdir="./results"
   
-  control_label="C"
+  # control_label="C"
   
-  source(paste(scriptDir, "AddOnFunctions/sourceDir.R", sep="/"))
-  sourceDir(paste(scriptDir, "AddOnFunctions", sep="/"))
+  # source(paste(scriptDir, "AddOnFunctions/sourceDir.R", sep="/"))
+  # sourceDir(paste(scriptDir, "AddOnFunctions", sep="/"))
   
-  dir.create(paste(outdir, "9-samplePeaksFilled", sep="/"), showWarnings = FALSE)
+  # dir.create(paste(outdir, "9-samplePeaksFilled", sep="/"), showWarnings = FALSE)
   
   # int.factor=1*10^5 # Number of x used to calc area under Gaussian (is not analytic)
   # scale=2 # Initial value used to estimate scaling parameter
   # width=1024
   # height=768
   
-  # message(paste("file", file))
-  # message(paste("scanmode", scanmode))
-  # message(paste("resol", resol))
-  # message(paste("outdir", outdir))
-  # message(paste("thresh", thresh))
-  # message(paste("scriptDir", scriptDir))
-  
-  load(paste0(outdir, "/repl.pattern.",scanmode, ".RData"))
-  
-  name = as.vector(unlist(strsplit(file, "/", fixed=TRUE)))
-  name = name[length(name)]
+  # load(paste0(outdir, "/repl.pattern.",scanmode, ".RData"))
+ 
+  # batch_number = strsplit(basename(HMDB_part_file), ".",fixed = TRUE)[[1]][2]
+  # name = as.vector(unlist(strsplit(file, "/", fixed=TRUE)))
+  # name = name[length(name)]
   # message(paste("File name: ", name))
   
   # load samplePeaks
   # load  outpgrlist
-  load(file)
+  # load(file)
   
-  # #################################################################################
   # # filter on at least signal in two control samples
   # int.cols = grep(control_label, colnames(outpgrlist),fixed = TRUE)
   # # barplot(as.numeric(outpgrlist[753, int.cols]))
   # keep = NULL
   # keep = apply(outpgrlist, 1, function(x) if (length(which(as.numeric(x[int.cols]) > 0)) > 1) keep=c(keep,TRUE) else keep=c(keep,FALSE))
   # outpgrlist = outpgrlist[keep,]
-  # #################################################################################
   
-  ################################################################################
-  # For now only replace zeros
+  # replace zeros
   if (!is.null(outpgrlist)) {
-    for (i in 1:length(names(repl.pattern.filtered))){
-      samplePeaks=outpgrlist[,names(repl.pattern.filtered)[i]]
+	  print(dim(outpgrlist))
+	  print(colnames(outpgrlist))
+    for (i in 1:length(names(repl_pattern))){
+	    print(names(repl_pattern)[i])
+      samplePeaks=outpgrlist[,names(repl_pattern)[i]]
       index=which(samplePeaks<=0)
       if (!length(index)){
         next
@@ -56,16 +50,13 @@ replaceZeros <- function(file,scanmode,resol,outdir,thresh,scriptDir,ppm){
       for (j in 1:length(index)){
         area = generateGaussian(outpgrlist[index[j],"mzmed.pgrp"],thresh,resol,FALSE,scanmode,int.factor=1*10^5,1,1)$area
         # for testing purposes, add a fixed random seed
-        set.seed(123)
-        outpgrlist[index[j], names(repl.pattern.filtered)[i]] = rnorm(n=1, mean=area, sd=0.25*area)
+        # set.seed(123)
+        outpgrlist[index[j], names(repl_pattern)[i]] = rnorm(n=1, mean=area, sd=0.25*area)
       }
     }
   
-  ################################################################################
   
-  
-  #################### identification #########################################################
-    # load(paste(scriptDir, "../db/HMDB_add_iso_corrNaCl.RData", sep="/")) # E:\Metabolomics\LargeDataBase\Apr25_2016
+    # Identification 
     
     # Add average column
     outpgrlist = cbind(outpgrlist, "avg.int"=apply(outpgrlist[, 7:(ncol(outpgrlist)-4)], 1, mean))
@@ -84,25 +75,16 @@ replaceZeros <- function(file,scanmode,resol,outdir,thresh,scriptDir,ppm){
       # HMDB_add_iso=HMDB_add_iso.Pos
     }
     
-    # # Identification using large database
-    # final.outlist.idpat = iden.code(outpgrlist, HMDB_add_iso, ppm=2, label)
-    # message(paste(sum(final.outlist.idpat[ , "assi_HMDB"] != ""), "assigned peakgroups"))
-    # message(paste(sum(final.outlist.idpat[ , "iso_HMDB"] != ""), "assigned isomeres"))
-    
     # Identify noise peaks
     noise.MZ <- read.table(file="/hpc/dbg_mz/tools/db/TheoreticalMZ_NegPos_incNaCl.txt", sep="\t", header=TRUE, quote = "")
     noise.MZ <- noise.MZ[(noise.MZ[ , label] != 0), 1:4]
-    
-    # Replace "Negative" by "negative" in ident.hires.noise
     final.outlist.idpat2 = ident.hires.noise.HPC(outpgrlist, allAdducts, scanmode=label2, noise.MZ, look4=look4.add2, resol=resol, slope=0, incpt=0, ppm.fixed=ppm, ppm.iso.fixed=ppm)
-    # message(paste(sum(final.outlist.idpat2[ , "assi"] != ""), "assigned noise peaks"))
     tmp <- final.outlist.idpat2[ , c("assi", "theormz")]
     colnames(tmp) <- c("assi_noise",  "theormz_noise")
     
     final.outlist.idpat3 <- cbind(outpgrlist, tmp)
-    #############################################################################################
-    
-    # message(paste("File saved: ", paste(outdir, "/samplePeaksFilled/", name, sep="")))
-    save(final.outlist.idpat3, file=paste(outdir, "/9-samplePeaksFilled/", name, sep=""))
+   
+    return(final.outlist.idpat3) 
+    # save(final.outlist.idpat3, file=paste("./", name, sep=""))
   }
 }

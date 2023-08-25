@@ -8,8 +8,8 @@ process SpectrumPeakFinding {
        path(replication_pattern)
 
     output:
-       path 'negative.RData'
-       path 'positive.RData'
+       path 'SpectrumPeaks_*.RData'
+       // path 'SpectrumPeaks_positive.RData'
 
     script:
         """

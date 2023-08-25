@@ -8,34 +8,31 @@ suppressPackageStartupMessages(library("xcms"))
 cmd_args <- commandArgs(trailingOnly = TRUE)
 for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
-filepath <- cmd_args[1] # location of mzML file
+filepath        <- cmd_args[1] # location of mzML file
 breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData
-resol <- as.numeric(cmd_args[3]) # 140000
-trim <- 0.1
-dimsThresh <- 100
-print(filepath)
-print(breaks_filepath)
-print(resol)
+resol           <- as.numeric(cmd_args[3]) # 140000
+trim            <- 0.1
+dimsThresh      <- 100
 
-sampname <- sub('\\..*$', '', basename(filepath))
+# get sample name
+sample_name <- sub('\\..*$', '', basename(filepath))
 
 options(digits=16)
 
+# Initialize
+int.factor <- 1*10^5 # Number of x used to calc area under Gaussian (is not analytic)
+scale      <- 2 # Initial value used to estimate scaling parameter
+width      <- 1024
+height     <- 768
+trimLeft        <- NULL
+trimRight       <- NULL
+breaks_fwhm     <- NULL
+breaks_fwhm_avg <- NULL
+bins            <- NULL
+pos_results     <- NULL
+neg_results     <- NULL
+
 ### process one sample at a time and find peaks FOR BOTH SCAN MODES! #
-int.factor=1*10^5 # Number of x used to calc area under Gaussian (is not analytic)
-scale=2 # Initial value used to estimate scaling parameter
-width=1024
-height=768
-
-# Initiate  
-trimLeft=NULL
-trimRight=NULL
-breaks_fwhm=NULL
-breaks_fwhm_avg=NULL
-bins=NULL
-pos_results=NULL
-neg_results=NULL
-
 # read in the data for 1 sample
 raw_data <- suppressMessages(xcmsRaw(filepath))
 
@@ -93,16 +90,16 @@ if (nrow(neg_raw_data_matrix) > 0) {
 pos_bins[pos_bins < dimsThresh] <- 0
 neg_bins[neg_bins < dimsThresh] <- 0
 
-pos_results = cbind(pos_results, pos_bins)
-neg_results = cbind(neg_results, neg_bins)
+pos_results <- cbind(pos_results, pos_bins)
+neg_results <- cbind(neg_results, neg_bins)
 
 # transpose
-pos_results_transpose = t(pos_results)
-neg_results_transpose = t(neg_results)
+pos_results_transpose <- t(pos_results)
+neg_results_transpose <- t(neg_results)
 
 # Add file names as row names
-rownames(pos_results_transpose) = sampname
-rownames(neg_results_transpose) = sampname
+rownames(pos_results_transpose) <- sample_name
+rownames(neg_results_transpose) <- sample_name
 
 # delete the last value of breaks_fwhm_avg to match dimensions of pos_results and neg_results
 breaks_fwhm_avg_minus1 <- breaks_fwhm_avg[-length(breaks_fwhm_avg)]
@@ -117,6 +114,6 @@ colnames(neg_results_transpose) <- breaks_fwhm_avg_minus1
 pos_results_final <- t(pos_results_transpose)
 neg_results_final <- t(neg_results_transpose)
 
-pklist <- list("pos"=pos_results_final, "neg"=neg_results_final, "breaksFwhm"=breaks_fwhm)
+peak_list <- list("pos"=pos_results_final, "neg"=neg_results_final, "breaksFwhm"=breaks_fwhm)
 
-save(pklist, file=paste("./", sampname, ".RData", sep=""))
+save(peak_list, file=paste("./", sample_name, ".RData", sep=""))

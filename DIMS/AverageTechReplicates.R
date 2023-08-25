@@ -1,9 +1,6 @@
 #!/usr/bin/Rscript
 # adapted from 3-AverageTechReplicates.R
 
-# load required functions 
-# source(paste(scripts_dir, "AddOnFunctions/removeFromRepl.patR", sep=""))
-
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 for (arg in cmd_args) cat("  ", arg, "\n", sep="")
@@ -11,36 +8,32 @@ for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 init_filepath <- cmd_args[1]
 nr_replicates <- as.numeric(cmd_args[2])
 thresh2remove <- 2000
-dimsThresh <- 100
+dimsThresh    <- 100
 
 removeFromRepl.pat <- function(bad_samples, repl_pattern, nr_replicates) {
   # bad_samples=remove_pos
   
-  tmp = repl_pattern
+  tmp <- repl_pattern
   
-  removeFromGroup=NULL
+  removeFromGroup <- NULL
   
   for (i in 1:length(tmp)){
-    tmp2 = repl_pattern[[i]]
+    tmp2 <- repl_pattern[[i]]
     
-    remove=NULL
+    remove <- NULL
     
     for (j in 1:length(tmp2)){
       if (tmp2[j] %in% bad_samples){
-        #cat(tmp2[j])
-        #cat(paste("remove",tmp2[j]))
-        #cat(paste("remove i",i))
-        #cat(paste("remove j",j))
         remove = c(remove, j)
       }
     }
     
-    if (length(remove)==nr_replicates) removeFromGroup=c(removeFromGroup,i)
-    if (!is.null(remove)) repl_pattern[[i]]=repl_pattern[[i]][-remove]
+    if (length(remove) == nr_replicates) removeFromGroup <- c(removeFromGroup,i)
+    if (!is.null(remove)) repl_pattern[[i]] <- repl_pattern[[i]][-remove]
   }
   
   if (length(removeFromGroup)!=0) {
-    repl_pattern=repl_pattern[-removeFromGroup]
+    repl_pattern <- repl_pattern[-removeFromGroup]
   }
   
   return(list("pattern"=repl_pattern))
@@ -50,44 +43,44 @@ removeFromRepl.pat <- function(bad_samples, repl_pattern, nr_replicates) {
 # get repl_pattern
 load("./init.RData")
 
-remove_neg=NULL
-remove_pos=NULL
+remove_neg <- NULL
+remove_pos <- NULL
 cat("Pklist sum threshold to remove technical replicate:", thresh2remove, "\n")
 for (i in 1:length(repl_pattern)) {
-  techRepsArray.pos = NULL
-  techRepsArray.neg = NULL
+  techRepsArray.pos <- NULL
+  techRepsArray.neg <- NULL
   
-  tech_reps = as.vector(unlist(repl_pattern[i]))
-  sum_neg=0
-  sum_pos=0
-  n_pos=0
-  n_neg=0
+  tech_reps <- as.vector(unlist(repl_pattern[i]))
+  sum_neg <- 0
+  sum_pos <- 0
+  n_pos <- 0
+  n_neg <- 0
   cat("\n\nNow sample ", i, " from replication pattern with length ", length(repl_pattern))
   for (j in 1:length(tech_reps)) {
     load(paste("./", tech_reps[j], ".RData", sep=""))
     cat("\n\nParsing", tech_reps[j])
 
-    cat("\n\tNegative pklist sum",sum(pklist$neg[,1]))
-    if (sum(pklist$neg[,1])<thresh2remove){
+    cat("\n\tNegative peak_list sum", sum(peak_list$neg[,1]))
+    if (sum(peak_list$neg[,1]) < thresh2remove){
       cat(" ... Removed")
-      remove_neg=c(remove_neg, tech_reps[j])
+      remove_neg <- c(remove_neg, tech_reps[j])
     } else {
-      n_neg=n_neg+1
-      sum_neg=sum_neg+pklist$neg
+      n_neg <- n_neg + 1
+      sum_neg <- sum_neg + peak_list$neg
     }
     
-    techRepsArray.neg = cbind(techRepsArray.neg, pklist$neg)
+    techRepsArray.neg <- cbind(techRepsArray.neg, peak_list$neg)
     
-    cat("\n\tPositive pklist sum",sum(pklist$pos[,1]))
-    if (sum(pklist$pos[,1])<thresh2remove){
+    cat("\n\tPositive peak_list sum", sum(peak_list$pos[,1]))
+    if (sum(peak_list$pos[,1]) < thresh2remove){
       cat(" ... Removed")
-      remove_pos=c(remove_pos, tech_reps[j])
+      remove_pos <- c(remove_pos, tech_reps[j])
     } else {
-      n_pos=n_pos+1
-      sum_pos=sum_pos+pklist$pos
+      n_pos <- n_pos + 1
+      sum_pos <- sum_pos + peak_list$pos
     }
     
-    techRepsArray.pos = cbind(techRepsArray.pos, pklist$pos)
+    techRepsArray.pos <- cbind(techRepsArray.pos, peak_list$pos)
   }
   
   # filter within bins on at least signal in more than one tech. rep.!!!
@@ -108,12 +101,12 @@ for (i in 1:length(repl_pattern)) {
 
 retVal <- removeFromRepl.pat(remove_neg, repl_pattern, nr_replicates)
 repl_pattern_filtered <- retVal$pattern
-save(repl_pattern_filtered, file="./negative_repl_pattern.RData")
-write.table(remove_neg, file="./miss_infusions_negative.txt", row.names=FALSE, col.names=FALSE ,sep= "\t")
+save(repl_pattern_filtered, file = "./negative_repl_pattern.RData")
+write.table(remove_neg, file = "./miss_infusions_negative.txt", row.names=FALSE, col.names=FALSE , sep= "\t")
 
 retVal <- removeFromRepl.pat(remove_pos, repl_pattern, nr_replicates)
 repl_pattern_filtered <- retVal$pattern
-save(repl_pattern_filtered, file="./positive_repl_pattern.RData")
-write.table(remove_pos, file="./miss_infusions_positive.txt", row.names=FALSE, col.names=FALSE ,sep= "\t")
+save(repl_pattern_filtered, file = "./positive_repl_pattern.RData")
+write.table(remove_pos, file = "./miss_infusions_positive.txt", row.names=FALSE, col.names=FALSE , sep= "\t")
 
 
