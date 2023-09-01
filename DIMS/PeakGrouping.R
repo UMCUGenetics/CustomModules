@@ -6,9 +6,9 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
 HMDB_part_file <- cmd_args[1]
-SpecPeaks_file <- cmd_args[2]
-pattern_file   <- cmd_args[3]
-ppm <- as.numeric(cmd_args[4])
+# SpecPeaks_file <- cmd_args[2]
+# pattern_file   <- cmd_args[3]
+ppm <- as.numeric(cmd_args[2])
 
 options(digits=16)
 
@@ -30,6 +30,8 @@ load(SpecPeaks_file)
 outlist.copy <- outlist.tot
 rm(outlist.tot)
 
+print(dim(outlist.copy))
+
 # load replication pattern
 # load(paste0("./", scanmode, "_repl_pattern", ".RData"))
 pattern_file <- paste0(scanmode, "_repl_pattern.RData")
@@ -40,9 +42,11 @@ load(pattern_file)
 if (scanmode=="negative") { column_label <- "MNeg" } else { column_label <- "Mpos" }
 
 # for debugging:
-print(head(HMDB_add_iso))
+print(dim(HMDB_add_iso))
 print(scanmode)
 print(column_label)
+print(ppm)
+print(head(repl_pattern_filtered, 1))
 
 # Initialize
 outpgrlist.identified <- NULL
@@ -56,11 +60,14 @@ while (dim(HMDB_add_iso)[1] > 0) {
   reference_mass <- as.numeric(HMDB_add_iso[index, column_label])
   mass_tolerance <- (reference_mass * ppm) / 10^6
   
+  print(paste0("ref_mass ", reference_mass, " mtol ", mass_tolerance))
+
   # find the peaks in the dataset with corresponding m/z
   mzmed <- as.numeric(outlist.copy[ ,"mzmed.pkt"])
   selp <- which((mzmed > (reference_mass - mass_tolerance)) & (mzmed < (reference_mass + mass_tolerance)))
   tmplist <- outlist.copy[selp,,drop=FALSE]
   outlist.grouped <- rbind(outlist.grouped, tmplist)
+
   nrsamples <- length(selp)
   if (nrsamples > 0) {
     mzmed.pgrp <- mean(as.numeric(outlist.copy[selp, "mzmed.pkt"]))
@@ -72,8 +79,8 @@ while (dim(HMDB_add_iso)[1] > 0) {
     fq.best.pgrp <- as.numeric(min(outlist.copy[selp, "fq"]))
     
     # set up object for intensities for all samples
-    ints.allsamps <- rep(0, length(names(repl.pattern.filtered)))
-    names(ints.allsamps) <- names(repl.pattern.filtered) 
+    ints.allsamps <- rep(0, length(names(repl_pattern_filtered)))
+    names(ints.allsamps) <- names(repl_pattern_filtered) 
     
     # Check for each sample if multiple peaks exist, if so take the sum of the intensities
     labels <- unique(tmplist[ ,"samplenr"])
@@ -179,6 +186,9 @@ while (dim(HMDB_add_iso)[1] > 0) {
   HMDB_add_iso <- HMDB_add_iso[-index,]
   
 }
+
+
+print(head(outpgrlist.identified))
 
 # save peak list corresponding to masses in HMDB part
 # save(outlist.grouped, file=paste0(batch_number, "_", scanmode, "_all.RData"))

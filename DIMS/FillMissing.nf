@@ -8,7 +8,7 @@ process FillMissing {
        path(replication_pattern)
 
     output:
-       path('.RData')
+       path('*_filled.RData')
 
     script:
         """

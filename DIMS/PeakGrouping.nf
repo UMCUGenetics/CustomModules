@@ -5,7 +5,7 @@ process PeakGrouping {
 
     input:
        path(HMDBpart_file)
-       path(SpectrumPeak_file)
+       path(SpectrumPeak_file) // input files need to be linked, but called within R script
        path(pattern_file)
 
     output:
@@ -14,6 +14,6 @@ process PeakGrouping {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakGrouping.R $HMDBpart_file $SpectrumPeak_file $pattern_file $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/PeakGrouping.R $HMDBpart_file $params.ppm
         """
 }
