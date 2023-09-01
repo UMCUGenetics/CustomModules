@@ -48,7 +48,7 @@ process MosaicHunterStepTwo {
     label = 'MosaicHunterStepTwo'
     tag = tag {"MosaicHunterStepTwo $sample_id"}
 
-    publishDir "${params.outdir}/QC/MosaicHunter", saveAs: { filename -> "${sample_id}_$filename" }, mode: 'link'
+    publishDir "$params.outdir/QC/MosaicHunter", saveAs: { filename -> "${sample_id}_$filename" }, mode: 'link'
 
     /*
     Define inputs.
