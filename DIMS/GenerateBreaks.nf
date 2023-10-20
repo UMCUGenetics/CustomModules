@@ -1,14 +1,15 @@
 process GenerateBreaks {
+    tag "DIMS GenerateBreaks"
     label 'GenerateBreaks'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple(file_id, path(mzML_file))
+       tuple val(file_id), path(mzML_file)
 
 
     output:
-       path 'breaks.fwhm.RData'
+       path('breaks.fwhm.RData')
 
     script:
         """

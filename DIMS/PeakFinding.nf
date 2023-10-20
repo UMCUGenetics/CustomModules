@@ -1,11 +1,10 @@
 process PeakFinding {
+    tag "DIMS PeakFinding ${RData_file}"
     label 'PeakFinding'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       // path(RData_file)
-       // path(breaks_file)
        tuple(path(RData_file), path(breaks_file))
 
     output:

@@ -7,12 +7,14 @@ process GenerateExcel {
     input:
        path(collect_file) // input files need to be linked, but called within R script
        path(init_filepath) 
+       val(analysis_id) 
+       path(relevance_file)
 
     output:
        path('AdductSums_*.RData')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_filepath $params.analysis_id $params.matrix $params.relevance_file $params.zscore 
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_filepath $analysis_id $params.matrix $relevance_file $params.zscore 
         """
 }

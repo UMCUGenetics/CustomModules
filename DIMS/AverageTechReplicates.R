@@ -3,7 +3,6 @@
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
 init_filepath <- cmd_args[1]
 nr_replicates <- as.numeric(cmd_args[2])
@@ -12,16 +11,12 @@ dimsThresh    <- 100
 
 removeFromRepl.pat <- function(bad_samples, repl_pattern, nr_replicates) {
   # bad_samples=remove_pos
-  
   tmp <- repl_pattern
-  
   removeFromGroup <- NULL
   
   for (i in 1:length(tmp)){
     tmp2 <- repl_pattern[[i]]
-    
     remove <- NULL
-    
     for (j in 1:length(tmp2)){
       if (tmp2[j] %in% bad_samples){
         remove = c(remove, j)

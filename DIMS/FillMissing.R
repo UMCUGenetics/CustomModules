@@ -13,8 +13,13 @@ resol   <- as.numeric(cmd_args[4])
 ppm     <- as.numeric(cmd_args[5])
 outdir <- "./"
 
+print(peakgrouplist_file)
+
 if (grepl("_pos", peakgrouplist_file)) { scanmode = "positive" } else
     if (grepl("_neg", peakgrouplist_file)) { scanmode = "negative" }
+
+print(scanmode)
+print(scripts_dir)
 
 # load in function scripts
 source(paste0(scripts_dir, "AddOnFunctions/replaceZeros.R"))
@@ -31,12 +36,19 @@ source(paste0(scripts_dir, "AddOnFunctions/globalAssignments.HPC.R"))
 pattern_file <- paste0(scanmode, "_repl_pattern.RData")
 repl_pattern <- get(load(pattern_file))
 
+print(head(repl_pattern))
+
 # load peak group list and determine output file name
-load(peakgrouplist_file)
+outpgrlist_identified <- get(load(peakgrouplist_file))
+
+print(head(outpgrlist_identified))
+
 outputfile_name <- gsub(".RData", "_filled.RData", peakgrouplist_file)
 
+print(outputfile_name)
+
 # replace missing values (zeros) with random noise
-peakgrouplist_filled <- replaceZeros(outpgrlist.identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
+peakgrouplist_filled <- replaceZeros(outpgrlist_identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
 
 # save output 
 save(peakgrouplist_filled, file=paste0("./", outputfile_name))

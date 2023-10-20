@@ -1,11 +1,12 @@
 process SumAdducts {
+    tag "DIMS SumAdducts ${collect_file}"
     label 'SumAdducts'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(collect_file) // input files need to be linked, but called within R script
-       path(replication_pattern)
+       path(replication_pattern) // input files need to be linked, but called within R script
        path(HMDBpart_main_file)
 
     output:

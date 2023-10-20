@@ -1,10 +1,11 @@
 process AssignToBins {
+    tag "DIMS AssignToBins ${file_id}"
     label 'AssignToBins'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple(file_id, path(mzML_filename), path(breaks_file))
+       tuple val(file_id), path(mzML_filename) , path(breaks_file)
 
     output:
        path("${file_id}.RData")

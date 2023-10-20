@@ -7,7 +7,6 @@ suppressPackageStartupMessages(library("xcms"))
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
 filepath <- cmd_args[1] # 1 of the mzML files
 outdir   <- cmd_args[2] 

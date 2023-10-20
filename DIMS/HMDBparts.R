@@ -3,11 +3,11 @@
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n")
 
+#  Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.hmdb_parts_files $params.standard_run $params.ppm
 db_path <- cmd_args[1] # location of HMDB db file
 breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData
-standard_run  <- cmd_args[3] # "yes"
+standard_run  <- cmd_args[4] # "yes"
 
 # Cut up entire HMDB into small parts based on the new binning/breaks 
 load(breaks_filepath)
@@ -15,18 +15,20 @@ load(breaks_filepath)
 # In case of a standard run (m/z 69-606) use external HMDB parts
 min_mz <- round(breaks_fwhm[1])
 max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
+
 # test if standard mz range is used
-if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 600 & max_mz < 610) {
+if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 610) {
   # skip generating HMDB parts
-  hmdb_parts_dir <- cmd_args[6] # "/hpc/dbg_mz/production/DIMS/hmdb_preparts/"
-  hmdb_parts <- list.files(hmdb_parts_dir, pattern=hmdb) # all files containing hmdb in file name
+  hmdb_parts_files <- cmd_args[3] 
+
+  hmdb_parts <- list.files(hmdb_parts_files, pattern="hmdb") # all files containing hmdb in file name
   for (hmdb_file in hmdb_parts) {
-    file.copy(paste(hmdb_parts_dir, hmdb_file, sep="/"), "./", recursive = TRUE)
+    file.copy(paste(hmdb_parts_files, hmdb_file, sep="/"), "./", recursive = TRUE)
   }
 } else { 
   # generate HMDB parts in case of non-standard mz range
   load(db_path)
-  ppm <- as.numeric(cmd_args[4])
+  ppm <- as.numeric(cmd_args[5])
 
   scanmodes <- c("positive", "negative")
 
@@ -109,7 +111,7 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 600 & max_mz < 
         outlist_part <- outlist_i
         save(outlist_part, file = paste("./", scanmode, "_", paste("hmdb", i + 1, "RData", sep="."), sep=""))
         check <- check + dim(outlist_part)[1]
-        cat("\n", "Check", check == dim(outlist)[1])
+        # cat("\n", "Check", check == dim(outlist)[1])
 
       }
     }

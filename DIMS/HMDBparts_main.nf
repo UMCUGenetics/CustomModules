@@ -1,6 +1,6 @@
 process HMDBparts_main {
+    tag "DIMS HMDBparts_main"
     // Custom process to cut HMDB db into parts for main entry only, no adducts, no isotopes
-    tag {"DIMS HMDBparts_main"}
     label 'HMDBparts_main'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']

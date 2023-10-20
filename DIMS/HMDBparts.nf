@@ -1,16 +1,13 @@
 process HMDBparts {
-    // Custom process to cut HMDB db into parts
     tag {"DIMS HMDBparts"}
+    // Custom process to cut HMDB db into parts
     label 'HMDBparts'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-        // tuple(path(hmdb_db_file), path(breaks_file))
         path(hmdb_db_file)
         path(breaks_file)
-        // val(standard_run)
-        // val(ppm)
 
     output:
         path('*.RData')
@@ -18,6 +15,6 @@ process HMDBparts {
     script:
 
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.standard_run $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.hmdb_parts_files $params.standard_run $params.ppm
         """
 }

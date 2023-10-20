@@ -7,11 +7,8 @@ scanmodes <- c("positive", "negative")
 # Check whether all jobs terminated correct!
 notRun = NULL
 
-print("one")
-
 # collect spectrum peaks for each scanmode
 for (scanmode in scanmodes) {
-  print(scanmode)
   # load peak lists of all biological samples
   input_dir <- getwd() # "./"
   peaklist_files = list.files(input_dir, full.names=TRUE, pattern=paste("*_", scanmode, ".RData",sep=""))

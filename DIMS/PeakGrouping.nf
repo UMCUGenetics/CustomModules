@@ -1,4 +1,5 @@
 process PeakGrouping {
+    tag "DIMS PeakGrouping ${HMDBpart_file}"
     label 'PeakGrouping'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
@@ -9,7 +10,7 @@ process PeakGrouping {
        path(pattern_file)
 
     output:
-       // path '*_all.RData', emit: peaklist_all
+       path '*_peaks_used.RData', emit: peaks_used
        path '*_identified.RData', emit: grouped_identified
 
     script:

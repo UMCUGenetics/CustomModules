@@ -3,7 +3,6 @@
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n")
 
 db_path <- cmd_args[1] # location of HMDB db file
 breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData
@@ -12,10 +11,6 @@ load(db_path)
 load(breaks_filepath)
 
 # Cut up HMDB minus adducts minus isotopes into small parts 
-
-# load(paste(outdir, "breaks.fwhm.RData", sep = "/"))
-# outdir <- paste(outdir, "hmdb_part_adductSums", sep = "/")
-# dir.create(outdir, showWarnings = FALSE)
 
 scanmodes <- c("positive", "negative")
 
@@ -41,7 +36,7 @@ for (scanmode in scanmodes) {
 
   n <- dim(outlist)[1]
   # size of hmdb parts in lines:
-  sub <- 2000
+  sub <- 1000
   end <- 0
   check <- 0
 
@@ -57,8 +52,8 @@ for (scanmode in scanmodes) {
 }
 
 # finish last hmdb part
-start = end + 1
-end = n
+start <- end + 1
+end <- n
 
-outlist_part = outlist[c(start:end),]
-save(outlist_part, file=paste0(scanmode, "_hmdb.", i+1, ".RData"))
+outlist_part <- outlist[c(start:end),]
+save(outlist_part, file = paste0(scanmode, "_hmdb.", i+1, ".RData"))

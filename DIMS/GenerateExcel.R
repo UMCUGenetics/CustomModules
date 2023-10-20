@@ -3,7 +3,6 @@
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep = "")
 
 # outdir <- cmd_args[1] #"/Users/nunen/Documents/Metab/test_set"
 init_filepath <- cmd_args[1]
@@ -21,13 +20,15 @@ suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
 # Initialise and load data
-outdir <- "../../../"
 plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
 imagesize_multiplier <- 2
-# init <- paste0(outdir, "/logs/init.RData")
+# setting outdir to export files to the project directory
+outdir <- "../../../"
+# percentage of outliers to remove from calculation of robust scaler
+perc <- 5
 
 # load information on samples
 load(init_filepath)
@@ -43,15 +44,11 @@ dir.create(plotdir, showWarnings = F)
 
 options(digits=16)
 
-# setwd(outdir)
-
 # sum positive and negative adductsums
-
 # Load pos and neg adduct sums
-load("/AdductSums_negative.RData")
+load("AdductSums_negative.RData")
 outlist.neg.adducts.HMDB <- outlist.tot
-
-load("/AdductSums_positive.RData")
+load("AdductSums_positive.RData")
 outlist.pos.adducts.HMDB <- outlist.tot
 rm(outlist.tot)
 
@@ -113,7 +110,6 @@ if (z_score == 1) {
   # Statistics: Z-score
   outlist <- cbind(plots = NA, outlist)
   #outlist <- as.data.frame(outlist)
-  
   startcol <- dim(outlist)[2] + 3 
   
   # Get columns with control intensities 
@@ -123,12 +119,14 @@ if (z_score == 1) {
   # Get columns with patient intensities 
   patient_col_ids <- grep(case_label, colnames(outlist), fixed = TRUE)
   patient_columns <- outlist[, patient_col_ids]
-  
   intensity_col_ids <- c(control_col_ids, patient_col_ids)
   
   # set intensities of 0 to NA?
   outlist[,intensity_col_ids][outlist[,intensity_col_ids] == 0] <- NA
-  
+
+  # Extra output: save outlist as it is and use it to calculate robust scaler
+  outlist.noZ <- outlist
+
   # calculate mean and sd for Control group
   outlist$avg.ctrls <- apply(control_columns, 1, function(x) mean(as.numeric(x),na.rm = TRUE))
   outlist$sd.ctrls <- apply(control_columns, 1, function(x) sd(as.numeric(x),na.rm = TRUE))
@@ -142,13 +140,47 @@ if (z_score == 1) {
     outlist <- cbind(outlist, zscores.1col)
   }
   colnames(outlist)[startcol:ncol(outlist)] <- cnames.z
-  
+
+  # Extra output: calculate robust scaler (Zscores minus outliers in Controls)
+  # calculate mean and sd for Control group without outliers
+  outlist.noZ$avg.ctrls <- 0
+  outlist.noZ$sd.ctrls  <- 0
+
+  robust_scaler <- function(control_intensities, control_col_ids, perc=5) {
+    nr_toremove <- ceiling(length(control_col_ids)*perc/100)
+    sorted_control_intensities <- sort(as.numeric(control_intensities))
+    trimmed_control_intensities <- sorted_control_intensities[(nr_toremove+1):(length(sorted_control_intensities)-nr_toremove)]
+    return(trimmed_control_intensities)
+  }
+
+  # only calculate robust Z-scores if there are enough Controls
+  if (length(control_col_ids) > 10) {
+    for (metabolite_index in 1:nrow(outlist)) {
+      outlist.noZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist.noZ[metabolite_index, control_col_ids], control_col_ids, perc))
+      outlist.noZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist.noZ[metabolite_index, control_col_ids], control_col_ids, perc))
+    }
+  }
+
+  # Make and add columns with robust zscores
+  cnames.robust <- gsub("_Zscore", "_RobustZscore", cnames.z)
+  for (i in intensity_col_ids) {
+    zscores.1col <- (as.numeric(as.vector(unlist(outlist.noZ[ , i]))) - outlist.noZ$avg.ctrls) / outlist.noZ$sd.ctrls
+    outlist.noZ <- cbind(outlist.noZ, zscores.1col)
+  }
+  colnames(outlist.noZ)[startcol:ncol(outlist.noZ)] <- cnames.robust
+
+  # Extra output: metabolites filtered on relevance
+  save(outlist, file=paste0("AdductSums_filtered_Zscores.RData"))
+  write.table(outlist, file=paste0("AdductSums_filtered_Zscores.txt"), sep="\t", row.names = FALSE)
+  # Extra output: filtered metabolites with robust scaled Zscores
+  write.table(outlist.noZ, file=paste0("AdductSums_filtered_robustZ.txt"), sep="\t", row.names = FALSE)
+
+  # get the IDs of the patients 
   patient_ids <- unique(as.vector(unlist(lapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), function(x) x[1]))))
   patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)] # sorts 
   
-  temp_png <- NULL
-  
   # Iterate over every row, make boxplot, insert into excel, and make Zscore for every patient
+  temp_png <- NULL
   for (p in 1:nrow(outlist)) {
     # box plot 
     hmdb_name <- rownames(outlist[p,])
@@ -224,18 +256,18 @@ IS <- outlist[grep("Internal standard", outlist[,"relevance"], fixed = TRUE),]
 IS_codes <- rownames(IS)
 cat(IS_codes,"\n")
 
-# if all data from one samplename (for example P195.1) is filtered out in 3-averageTechReplicates because of too little data (threshold parameter) the init.RData (repl.pattern) will contain more sample_names then the peak data (IS), 
+# if all data from one samplename (for example P195.1) is filtered out in 3-averageTechReplicates because of too little data (threshold parameter) the init.RData (repl_pattern) will contain more sample_names then the peak data (IS), 
 # thus this data needs to be removed first, before the retrieval of the summed adducts. Write sample_names to a log file, to let user know that this sample_name contained no data.
-sample_names_nodata <- setdiff(names(repl.pattern),names(IS))
+sample_names_nodata <- setdiff(names(repl_pattern),names(IS))
 if (!is.null(sample_names_nodata)) {
   write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"), row.names = FALSE, col.names = FALSE, quote = FALSE)
   cat(sample_names_nodata,"\n")
   for (sample_name in sample_names_nodata) {
-    repl.pattern[[sample_name]] <- NULL
+    repl_pattern[[sample_name]] <- NULL
   }}
 
 # Retrieve IS summed adducts
-IS_summed <- IS[c(names(repl.pattern), "HMDB_code")]
+IS_summed <- IS[c(names(repl_pattern), "HMDB_code")]
 IS_summed$HMDB.name <- IS$name
 IS_summed <- reshape2::melt(IS_summed, id.vars=c('HMDB_code','HMDB.name'))
 colnames(IS_summed) <- c('HMDB.code','HMDB.name','Sample','Intensity')
@@ -268,10 +300,10 @@ IS_neg$Project <- project
 IS_neg$Intensity <- as.numeric(as.character(IS_neg$Intensity))
 
 # Save results
-save(IS_pos,IS_neg,IS_summed, file = paste0(outdir, "/", project, '_IS_results.RData'))
+save(IS_pos, IS_neg, IS_summed, file = paste0(outdir, "/", project, '_IS_results.RData'))
 
 # number of samples, for plotting length and width
-sample_count <- length(repl.pattern)
+sample_count <- length(repl_pattern)
 
 # change the order of the x-axis summed plots to a natural sorted one
 Sample_naturalorder <- unique(as.character(IS_summed$Sample))
@@ -280,9 +312,7 @@ IS_summed$Sample_level <- factor(IS_summed$Sample, levels = c(Sample_naturalorde
 IS_pos$Sample_level <- factor(IS_pos$Sample, levels = c(Sample_naturalorder))
 IS_neg$Sample_level <- factor(IS_neg$Sample, levels = c(Sample_naturalorder))
 
-##########
-##### bar plots with all IS
-##########
+## bar plots with all IS
 
 # function for ggplot theme
 # theme for all IS bar plots
@@ -290,28 +320,28 @@ theme_IS_bar <- function(myPlot) {
   myPlot + 
     scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
     theme(
-      legend.position='none',
-      axis.text.x=element_text(angle = 90, hjust = 1, vjust = 0.5, size=6),
-      axis.text.y=element_text(size=6))
+      legend.position = 'none',
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size=6),
+      axis.text.y = element_text(size=6))
 }
 
 # ggplot functions
 IS_neg_bar_plot <- ggplot(IS_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free_y')
 
 IS_pos_bar_plot <- ggplot(IS_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free_y')
 
 IS_sum_bar_plot <- ggplot(IS_summed, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Summed)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free_y')
 
 # add theme to ggplot functions
@@ -325,9 +355,7 @@ ggsave(paste0(outdir, "/plots/IS_bar_all_neg.png"), plot=IS_neg_bar_plot, height
 ggsave(paste0(outdir, "/plots/IS_bar_all_pos.png"), plot=IS_pos_bar_plot, height=plot_width/2.5, width=plot_width, units="in")
 ggsave(paste0(outdir, "/plots/IS_bar_all_sum.png"), plot=IS_sum_bar_plot, height=plot_width/2.5, width=plot_width, units="in")
 
-##########
-##### Line plots with all IS
-##########
+## Line plots with all IS
 
 # function for ggplot theme
 # add smaller legend in the "all IS line plots", otherwise out-of-range when more than 13 IS lines
@@ -348,7 +376,7 @@ IS_neg_line_plot <- ggplot(IS_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col=HMDB.name)) +
   geom_line(aes(col=HMDB.name, group=HMDB.name)) +
-  labs(x='',y='Intensity')
+  labs(x='', y='Intensity')
 
 IS_pos_line_plot <- ggplot(IS_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
@@ -373,9 +401,7 @@ ggsave(paste0(outdir,"/plots/IS_line_all_neg.png"), plot = IS_neg_line_plot, hei
 ggsave(paste0(outdir,"/plots/IS_line_all_pos.png"), plot = IS_pos_line_plot, height = plot_width/2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir,"/plots/IS_line_all_sum.png"), plot = IS_sum_line_plot, height = plot_width/2.5, width = plot_width, units = "in")
 
-##########
-##### bar plots with a selection of IS
-##########
+## bar plots with a selection of IS
 IS_neg_selection <- c('2H2-Ornithine (IS)', '2H3-Glutamate (IS)', '2H2-Citrulline (IS)', '2H4_13C5-Arginine (IS)', '13C6-Tyrosine (IS)')
 IS_pos_selection <- c('2H4-Alanine (IS)', '13C6-Phenylalanine (IS)', '2H4_13C5-Arginine (IS)', '2H3-Propionylcarnitine (IS)', '2H9-Isovalerylcarnitine (IS)')
 IS_sum_selection <- c('2H8-Valine (IS)', '2H3-Leucine (IS)', '2H3-Glutamate (IS)', '2H4_13C5-Arginine (IS)', '13C6-Tyrosine (IS)')
@@ -409,22 +435,22 @@ if (dims_matrix == "DBS"){
 # ggplot functions
 IS_neg_selection_barplot <- ggplot(subset(IS_neg, HMDB.name %in% IS_neg_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free', ncol = 2) + 
   if(exists("hline.data.neg")){geom_hline(aes(yintercept = z), subset(hline.data.neg, HMDB.name %in% IS_neg$HMDB.name))} #subset, if some IS have no data, no empty plots will be generated with a line)
 
 IS_pos_selection_barplot <- ggplot(subset(IS_pos, HMDB.name %in% IS_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free', ncol = 2) +
   if(exists("hline.data.pos")){geom_hline(aes(yintercept = z), subset(hline.data.pos, HMDB.name %in% IS_pos$HMDB.name))}
 
 IS_sum_selection_barplot <- ggplot(subset(IS_summed, HMDB.name %in% IS_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
-  geom_bar(aes(fill=HMDB.name),stat='identity') +
-  labs(x='',y='Intensity') +
+  geom_bar(aes(fill=HMDB.name), stat='identity') +
+  labs(x='', y='Intensity') +
   facet_wrap(~HMDB.name, scales='free', ncol = 2) +
   if(exists("hline.data.sum")){geom_hline(aes(yintercept = z), subset(hline.data.sum, HMDB.name %in% IS_summed$HMDB.name))}
 
@@ -439,9 +465,7 @@ ggsave(paste0(outdir, "/plots/IS_bar_select_neg.png"), plot = IS_neg_selection_b
 ggsave(paste0(outdir, "/plots/IS_bar_select_pos.png"), plot = IS_pos_selection_barplot, height = plot_width/2.0, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_bar_select_sum.png"), plot = IS_sum_selection_barplot, height = plot_width/2.0, width = plot_width, units = "in")
 
-##########
-##### line plots with a selection of IS
-##########
+## line plots with a selection of IS
 
 # function for ggplot theme
 # see line plots with all IS
@@ -451,19 +475,19 @@ IS_neg_selection_lineplot <- ggplot(subset(IS_neg, HMDB.name %in% IS_neg_selecti
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col=HMDB.name)) +
   geom_line(aes(col=HMDB.name, group=HMDB.name)) +
-  labs(x='',y='Intensity')
+  labs(x='', y='Intensity')
 
 IS_pos_selection_lineplot <- ggplot(subset(IS_pos, HMDB.name %in% IS_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_point(aes(col=HMDB.name)) +
   geom_line(aes(col=HMDB.name, group=HMDB.name)) +
-  labs(x='',y='Intensity')
+  labs(x='', y='Intensity')
 
 IS_sum_selection_lineplot <- ggplot(subset(IS_summed, HMDB.name %in% IS_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_point(aes(col=HMDB.name)) +
   geom_line(aes(col=HMDB.name, group=HMDB.name)) +
-  labs(x='',y='Intensity')
+  labs(x='', y='Intensity')
 
 # add theme to ggplot functions
 IS_neg_selection_lineplot <- theme_IS_line(IS_neg_selection_lineplot)
@@ -539,15 +563,14 @@ if (z_score == 1) {
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
-
+print("Nu in missing m/z check")
 # Load the outlist_identified files + remove the loaded files
-load(paste0(outdir,"/outlist_identified_negative.RData"))
+load(paste0(outdir, "RData/outlist_identified_negative.RData"))
 outlist.ident.neg <- outlist.ident
-load(paste0(outdir,"/outlist_identified_positive.RData"))
+load(paste0(outdir, "RData/outlist_identified_positive.RData"))
 outlist.ident.pos <- outlist.ident
 rm(outlist.ident)
 rm(outlist.not.ident)
-
 # check for missing m/z in negative and positive mode
 mode <- c("Negative", "Positive")
 index <- 1

@@ -3,6 +3,7 @@
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
+for (arg in cmd_args) cat("  ", arg, "\n")
 
 scripts_dir        <- cmd_args[1]
 ppm     <- as.numeric(cmd_args[2])
@@ -17,13 +18,11 @@ scanmodes <- c("positive", "negative")
 
 for (scanmode in scanmodes) {
   # get list of files
-  filled_files <- list.files("./", full.names=TRUE, pattern=scanmode)
-  # load files and combine into one object
-  outlist.tot <- NULL
-  for (i in 1:length(filled_files)) {
-    load(filled_files[i])
-    outlist.tot <- rbind(outlist.tot, peakgrouplist_filled)
-  }
+  # filled_files <- list.files("./", full.names=TRUE, pattern=scanmode)
+  filled_file <- paste0("./PeakGroupList_", scanmode, "_Unidentified_filled.RData")
+  print(filled_file)
+  # load file 
+  outlist.tot <- get(load(filled_file))
 
   # remove duplicates; peak groups with exactly the same m/z
   outlist.tot <- mergeDuplicatedRows(outlist.tot)
@@ -57,23 +56,12 @@ for (scanmode in scanmodes) {
     outlist.tot <- outlist.stats.more
   }
 
-  outlist.ident <- outlist.tot
-
-  if (z_score == 1) {
-    outlist.ident$ppmdev <- as.numeric(outlist.ident$ppmdev)
-    outlist.ident <- outlist.ident[which(outlist.ident["ppmdev"] >= -ppm & outlist.ident["ppmdev"] <= ppm),]
-  }
-  # take care of NAs in theormz_noise
-  outlist.ident$theormz_noise[which(is.na(outlist.ident$theormz_noise))] <- 0
-  outlist.ident$theormz_noise <- as.numeric(outlist.ident$theormz_noise)
-  outlist.ident$theormz_noise[which(is.na(outlist.ident$theormz_noise))] <- 0
-  outlist.ident$theormz_noise <- as.numeric(outlist.ident$theormz_noise)
+  outlist.not.ident = outlist.tot
 
   # Extra output in Excel-readable format:
   remove_columns <- c("fq.best", "fq.worst", "mzmin.pgrp", "mzmax.pgrp")
-  remove_colindex <- which(colnames(outlist.ident) %in% remove_columns)
-  outlist.ident <- outlist.ident[ , -remove_colindex]
-  write.table(outlist.ident, file=paste0("outlist_identified_", scanmode, ".txt"), sep="\t", row.names = FALSE)
-  save(outlist.ident, file=paste0("outlist_identified_", scanmode, ".RData"))
+  remove_colindex <- which(colnames(outlist.not.ident) %in% remove_columns)
+  outlist.not.ident <- outlist.not.ident[ , -remove_colindex]
+  write.table(outlist.not.ident, file=paste0("unidentified_outlist_", scanmode, ".txt"), sep="\t", row.names = FALSE)
 
 }

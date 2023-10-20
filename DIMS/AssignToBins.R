@@ -6,7 +6,6 @@ suppressPackageStartupMessages(library("xcms"))
 
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
 filepath        <- cmd_args[1] # location of mzML file
 breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData

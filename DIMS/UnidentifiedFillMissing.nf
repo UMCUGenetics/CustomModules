@@ -1,6 +1,6 @@
-process FillMissing {
-    tag "DIMS FillMissing ${GroupedList_file}"
-    label 'FillMissing'
+process UnidentifiedFillMissing {
+    tag "DIMS UnidentifiedFillMissing ${GroupedList_file}"
+    label 'UnidentifiedFillMissing'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
@@ -13,6 +13,6 @@ process FillMissing {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R $GroupedList_file $params.scripts_dir $params.thresh $params.resolution $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/UnidentifiedFillMissing.R $GroupedList_file $params.scripts_dir $params.thresh $params.resolution $params.ppm
         """
 }
