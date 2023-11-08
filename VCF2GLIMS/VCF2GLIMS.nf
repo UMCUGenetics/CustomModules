@@ -1,7 +1,7 @@
 process VCF2GLIMS {
     tag {"VCF2GLIMS ${identifier}"}
     label 'VCF2GLIMS'
-    container = 'docker.io/umcugenbioinf/vcf2glims:1.0.0'
+    container = 'ghcr.io/umcugenetics/vcf2glims:1.0.0'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
