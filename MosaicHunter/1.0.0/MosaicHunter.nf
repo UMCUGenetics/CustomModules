@@ -2,10 +2,10 @@
 nextflow.preview.dsl=2
 
 // Step 1: Process input files
-process MosaicHunterStepOne {
+process MosaicHunter_StepOne {
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
-    label = 'MosaicHunterStepOne'
-    tag = tag {"MosaicHunterStepOne $sample_id"}
+    label = 'MosaicHunter_StepOne'
+    tag = tag {"MosaicHunter_StepOne $sample_id"}
 
     /*
     Define inputs.
@@ -43,10 +43,10 @@ process MosaicHunterStepOne {
     '''
 }
 
-process MosaicHunterStepTwo {
+process MosaicHunter_StepTwo {
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
-    label = 'MosaicHunterStepTwo'
-    tag = tag {"MosaicHunterStepTwo $sample_id"}
+    label = 'MosaicHunter_StepTwo'
+    tag = tag {"MosaicHunter_StepTwo $sample_id"}
 
     publishDir "QC/MosaicHunter", saveAs: { filename -> "${sample_id}_$filename" }, mode: 'copy'
 
@@ -62,7 +62,7 @@ process MosaicHunterStepTwo {
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
     path(mh_config_file_two)
-    MosaicHunterStepOne.out
+    MosaicHunter_StepOne.out
     tuple(env(MHALPHA),env(MHBETA))
 
     // Final file, will be published to output directory
