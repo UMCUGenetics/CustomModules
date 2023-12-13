@@ -17,7 +17,7 @@ def get_gender_from_bam(args):
                       sum([is_valid_read(read, args.mapping_qual) for read in bam_file.fetch(region=args.locus_y)])
                   )
         total_reads = float(bam_file.mapped)
-        y_ratio_perc = (y_reads / total_reads) * 100 
+        y_ratio_perc = (y_reads / total_reads) * 100
     if y_ratio_perc <= args.ratio_y_female:
         return "female"
     elif y_ratio_perc >= args.ratio_y_male:
