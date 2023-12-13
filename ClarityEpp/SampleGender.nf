@@ -1,6 +1,6 @@
 process SampleGender {
     // Custom process to run clarity_epp export sample_gender
-    tag {"ClarityEpp SampleIndications ${sample_id}"}
+    tag {"ClarityEpp SampleGender ${sample_id}"}
     label 'ClarityEpp'
     label 'ClarityEpp_SampleGender'
     shell = ['/bin/bash', '-eo', 'pipefail']
@@ -15,7 +15,7 @@ process SampleGender {
     script:
         """
         source ${params.clarity_epp_path}/venv/bin/activate
-        python ${params.clarity_epp_path}/clarity_epp.py export sample_indications \
-        -a ${sample_id} | cut -f 2 | grep -v 'Indication' | tr -d '\n'
+        python ${params.clarity_epp_path}/clarity_epp.py export sample_gender \
+        -a ${sample_id} | cut -f 2 | grep -v 'Gender' | tr -d '\n'
         """
 }
