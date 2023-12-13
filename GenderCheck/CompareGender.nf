@@ -26,3 +26,4 @@ process CompareGender {
             $params.gendercheck_mapping_qual \
             $params.gendercheck_locus_y \
         """
+}
