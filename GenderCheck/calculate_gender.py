@@ -18,7 +18,6 @@ def get_gender_from_bam(args):
                   )
         total_reads = float(bam_file.mapped)
         y_ratio_perc = (y_reads / total_reads) * 100 
-    print("jrrp", y_ratio_perc)
     if y_ratio_perc <= args.ratio_y_female:
         return "female"
     elif y_ratio_perc >= args.ratio_y_male:
@@ -47,6 +46,7 @@ if __name__ == "__main__":
     parser.add_argument('analysis_id', help='analysis_id')
     parser.add_argument('bam', help='path to bam file')
     parser.add_argument('outputfolder', help='path to output folder')
+    parser.add_argument('true_gender', help='gender regarded as the truth')
     parser.add_argument(
         "ratio_y_male",
         type=float,
@@ -57,12 +57,10 @@ if __name__ == "__main__":
         type=float,
         help="maximum chromosome Y ratio threshold females [float]"
     )
-    parser.add_argument('true_gender', help='gender regarded as the truth')
     parser.add_argument('mapping_qual', type=int, help='minimum mapping quality of reads to be considered [int]')
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
     test_gender = get_gender_from_bam(args)
     comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, args.true_gender)
-    print(comparison)
     write_qc_file(args.sample_id, args.analysis_id, comparison, args.outputfolder)
