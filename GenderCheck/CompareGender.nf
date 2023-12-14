@@ -8,22 +8,22 @@ process CompareGender {
 
     input:
         tuple(sample_id, analysis_id, path(bam_file), path(bai_file))
-        val(gender_clarity)
+        val(true_gender)
 
     output:
-        path("*gendercheck.txt", emit: gendercheck_qc)
+        tuple(path("*gendercheck.txt"), emit: gendercheck_qc)
 
     script:
         """
         python ${baseDir}/CustomModules/GenderCheck/calculate_gender.py \
             ${sample_id} \
-            ${analysis_id}
+            ${analysis_id} \
             ${bam_file} \
             ./ \
-            ${gender_clarity} \
+            ${true_gender} \
             $params.gendercheck_ratio_y_male \
             $params.gendercheck_ratio_y_female \
             $params.gendercheck_mapping_qual \
-            $params.gendercheck_locus_y \
+            $params.gendercheck_locus_y
         """
 }
