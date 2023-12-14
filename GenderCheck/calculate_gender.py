@@ -27,16 +27,16 @@ def get_gender_from_bam(args):
 
 
 def compare_gender(sample_id, analysis_id, test_gender, true_gender):
-    if test_gender == true_gender:
-        qc = "pass"
-    else:
-        qc = "failed"
+    if test_gender == true_gender or true_gender == "unknown":  # if gender if unknown/onbekend in database, pass
+        qc = "PASS"
+    else:  # including not_detected in database
+        qc = "FAIL"
     return f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{qc}\n"
 
 
 def write_qc_file(sample_id, analysis_id, comparison, outputfolder):
     with open(f"{outputfolder}/{sample_id}_{analysis_id}_gendercheck.txt", 'w') as write_file:
-        write_file.write("sample_id\tanalysis_id\ttest_gender\ttrue_gender\tqc\n")
+        write_file.write("sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\n")
         write_file.write(comparison)
 
 
@@ -61,6 +61,11 @@ if __name__ == "__main__":
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
+    translation = {"Man": "male", "Vrouw", "female", "Onbekend": "unknown", "unknown": "not_detected"}
+    true_gender = args.true_gender
+    if true_gender in translation:
+        true_gender = translation[true_gender]
+
     test_gender = get_gender_from_bam(args)
-    comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, args.true_gender)
+    comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, true_gender)
     write_qc_file(args.sample_id, args.analysis_id, comparison, args.outputfolder)
