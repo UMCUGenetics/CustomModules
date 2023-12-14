@@ -29,7 +29,7 @@ def get_gender_from_bam(args):
 def compare_gender(sample_id, analysis_id, test_gender, true_gender):
     if test_gender == true_gender or true_gender == "unknown":  # if gender if unknown/onbekend in database, pass
         qc = "PASS"
-    else:  # including not_detected in database
+    else:  # not_detected in database considered failed
         qc = "FAIL"
     return f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{qc}\n"
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
-    translation = {"Man": "male", "Vrouw", "female", "Onbekend": "unknown", "unknown": "not_detected"}
+    translation = {"Man": "male", "Vrouw": "female", "Onbekend": "unknown", "unknown": "not_detected"}
     true_gender = args.true_gender
     if true_gender in translation:
         true_gender = translation[true_gender]
