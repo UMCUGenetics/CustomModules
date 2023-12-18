@@ -72,7 +72,8 @@ def check_required_keys_metrics(qc_settings):
 def select_metrics(filename, input_files):
     metrics = list(filter(re.compile(f".*{filename}").match, input_files))
     if not metrics:
-        raise ValueError(f"No input file provided with filename pattern {filename}")
+        return None
+        # raise ValueError(f"No input file provided with filename pattern {filename}")
     return metrics
 
 
@@ -169,6 +170,28 @@ def create_and_write_output(qc_output, output_path, output_prefix):
     qc_output.to_csv(output_path + output_prefix + "_summary.csv", index=False, header=True)
 
 
+def get_output_metrics(qc, metrics):
+    # TODO: raise warning if multiple metrics files with same sample id (test with single and multi sample cols)
+    # TODO: test if multiple metrics files with same sample id are merged or overriden. (test with single and multi sample cols)
+    for qc_file in metrics:
+        qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
+        report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
+        qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
+        failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
+        qc_metric_subset, qc_metric_judged = add_failed_samples_metric(
+            qc_metric_edit, failed_rows, report_cols, qc["sample_cols"]
+            )
+        qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, qc["sample_cols"])
+        # Rename columns
+        suffix = f"_{qc['title'].lower()}"
+        qc_judged_renamed = qc_metric_judged.add_suffix(suffix).rename(columns={f"sample{suffix}": "sample"})
+        # Concatenate/merge metric output
+        if "output" not in locals():  # First time
+            output = DataFrame(qc_metric_judged['sample'], columns=["sample"])
+        output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
+    return output
+
+
 def check_qc(input_files, settings, output_path, output_prefix):
     # A single qc metric file can be used multiple times, by defining a metric section for each check in the qc settings.
     qc_settings = read_yaml(settings)
@@ -176,29 +199,14 @@ def check_qc(input_files, settings, output_path, output_prefix):
     for qc in qc_settings["metrics"]:
         check_allowed_operators(qc["operator"])
         metrics = select_metrics(qc["filename"], input_files)
-        for qc_file in metrics:
-            qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
-            report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
-            qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
-            failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
-            qc_metric_subset, qc_metric_judged = add_failed_samples_metric(
-                qc_metric_edit, failed_rows, report_cols, qc["sample_cols"]
-            )
-            qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, qc["sample_cols"])
-            # Rename columns
-            suffix = f"_{qc['title'].lower()}"
-            qc_judged_renamed = qc_metric_judged.add_suffix(suffix).rename(columns={f"sample{suffix}": "sample"})
-            # Concatenate/merge metric output
-            try:
-                output = merge(output, qc_judged_renamed, on="sample", how="outer")
-            except NameError:  # First time:
-                output = merge(
-                    DataFrame(qc_metric_judged['sample'], columns=["sample"]),
-                    qc_judged_renamed,
-                    on="sample",
-                    how="outer"
-                )
-    create_and_write_output(output, output_path, output_prefix)
+        if not metrics:
+            continue
+        output = get_output_metrics(qc, metrics)  # join multiple metrices files into single table.
+        if "final_out" not in locals():
+            final_out = output
+        else:
+            final_out = merge(final_out, output, on="sample", how="outer")  # join metrics output to final output.
+    create_and_write_output(final_out, output_path, output_prefix)
 
 
 if __name__ == "__main__":
