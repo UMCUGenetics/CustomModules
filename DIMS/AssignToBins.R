@@ -35,6 +35,11 @@ neg_results     <- NULL
 # read in the data for 1 sample
 raw_data <- suppressMessages(xcmsRaw(filepath))
 
+# generate TIC plots. Prepare txt files with data for plots
+TIC_intensity_persample <- cbind(round(raw_data@scantime, 2), raw_data@tic)
+colnames(TIC_intensity_persample) <- c("retentionTime", "TIC")
+write.table(TIC_intensity_persample, file = paste0("./", sample_name, "_TIC.txt"))
+
 # load breaks_fwhm
 load(breaks_filepath)
 

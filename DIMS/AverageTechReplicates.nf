@@ -5,8 +5,11 @@ process AverageTechReplicates {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(RData_file)
+       path(RData_file)     // input files need to be linked, but called within R script
+       path(TIC_txt_files)  // input files need to be linked, but called within R script
        path(init_filepath)
+       val(analysis_id)
+       val(matrix)
 
     output:
        path('*_repl_pattern.RData'), emit: patterns
@@ -16,7 +19,7 @@ process AverageTechReplicates {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates
+        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates $analysis_id $matrix
         """
 }
 

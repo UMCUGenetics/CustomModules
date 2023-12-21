@@ -1,5 +1,5 @@
 process ConvertRawFile {
-    tag {"DIMS ConvertRawFile ${file_id}"}
+    tag "DIMS ConvertRawFile ${file_id}"
     // Custom process to convert raw file to mzML format
     label 'ThermoRawFileParser_1_1_11'
     shell = ['/bin/bash', '-euo', 'pipefail']

@@ -1,5 +1,5 @@
 process GenerateExcel {
-    tag {"DIMS GenerateExcel"}
+    tag "DIMS GenerateExcel"
     label 'GenerateExcel'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
@@ -12,6 +12,7 @@ process GenerateExcel {
 
     output:
        path('AdductSums_*.RData')
+       path('*.xlsx'), emit: excel_file 
 
     script:
         """

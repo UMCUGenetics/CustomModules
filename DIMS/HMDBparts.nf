@@ -1,5 +1,5 @@
 process HMDBparts {
-    tag {"DIMS HMDBparts"}
+    tag "DIMS HMDBparts"
     // Custom process to cut HMDB db into parts
     label 'HMDBparts'
     container = 'docker://umcugenbioinf/dims:1.3'

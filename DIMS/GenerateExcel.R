@@ -243,13 +243,11 @@ if (z_score == 1) {
 }
 writeData(wb, sheet = 1, outlist, startCol = 1)
 xlsx_name <- paste0(outdir, "/", project, ".xlsx")
-saveWorkbook(wb,
-             xlsx_name,
-             overwrite = TRUE)
+saveWorkbook(wb, xlsx_name, overwrite = TRUE)
+# save a local copy in work directory as well
+saveWorkbook(wb, paste0("./", project, ".xlsx"), overwrite = TRUE)
 cat(xlsx_name)
 rm(wb)
-
-write.table(outlist, file = paste(outdir, "allpgrps_stats.txt", sep = "/"))
 
 # INTERNE STANDAARDEN
 IS <- outlist[grep("Internal standard", outlist[,"relevance"], fixed = TRUE),]
@@ -570,26 +568,26 @@ outlist.ident.neg <- outlist.ident
 load(paste0(outdir, "RData/outlist_identified_positive.RData"))
 outlist.ident.pos <- outlist.ident
 rm(outlist.ident)
-rm(outlist.not.ident)
 # check for missing m/z in negative and positive mode
 mode <- c("Negative", "Positive")
 index <- 1
 results_ident <- c() #empty results list
 outlist_ident_list <- list(outlist.ident.neg, outlist.ident.pos)
-for(outlist.ident in outlist_ident_list){
+for (outlist.ident in outlist_ident_list) {
   current_mode <- mode[index]
   # retrieve all unique m/z values in whole numbers and check if all are available
   mz_values <- as.numeric(unique(format(outlist.ident$mzmed.pgrp, digits=0)))
-  mz_range = seq(70, 599, by=1) #change accordingly to the machine m/z range. default = 70-600
-  mz_missing = c()
-  for (mz in mz_range){
+  mz_range <- seq(70, 599, by=1) #change accordingly to the machine m/z range. default = 70-600
+  mz_missing <- c()
+  for (mz in mz_range) {
     if (!mz %in% mz_values) {
       mz_missing <- c(mz_missing, mz)
-    } }
+    } 
+  }
   y <- mz_missing
   # check if m/z are missing and make an .txt file with information
   group_ident <- cumsum(c(1, abs(y[-length(y)] - y[-1]) > 1))
-  if(length(group_ident) > 1){
+  if (length(group_ident) > 1) {
     results_ident <- c(results_ident, paste0("Missing m/z values ", current_mode, " mode"))
     results_ident <- c(results_ident, by(y, group_ident, identity))
   } else {

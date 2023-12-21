@@ -5,14 +5,15 @@
 # 1. Excel file in which metabolites are listed with their intensities for
 #    controls (with C in samplename) and patients (with P in samplename) and their
 #    corresponding Z-scores. 
-# 2. All files from github: https://github.com/UMCUGenetics/dIEM
+# 2. All files from github: https://github.com/UMCUGenetics/DIMS
+
+## adapted from 15-dIEM_violin.R
 
 library(dplyr) # tidytable is for other_isobaric.R (left_join)
 library(reshape2) # used in prepare_data.R
-library(data.table) # for function setDT
 library(openxlsx) # for opening Excel file
 library(ggplot2) # for plotting
-#library(gridExtra) # for table top highest/lowest
+library(gridExtra) # for table top highest/lowest
 
 # define parameters - check after addition to run.sh
 cmd_args <- commandArgs(trailingOnly = TRUE)
@@ -20,50 +21,56 @@ for (arg in cmd_args) {
   cat("  ", arg, "\n", sep = "")
 }
 
-scripts_dir <- cmd_args[1] 
-run_name <- cmd_args[2] # run_name <- "Test_run_5"
-z_score <- as.numeric(cmd_args[3]) # calculate Z-scores or not? z_score <- 1
+run_name <- cmd_args[1] 
+scripts_dir <- cmd_args[2]
+z_score <- as.numeric(cmd_args[3])
 
 # load functions
-source(paste0(scripts_dir, "AddOnFunctions/same_samplename.R"))
+source(paste0(scripts_dir, "AddOnFunctions/check_same_samplename.R"))
 source(paste0(scripts_dir, "AddOnFunctions/prepare_data.R"))
 source(paste0(scripts_dir, "AddOnFunctions/prepare_data_perpage.R"))
 source(paste0(scripts_dir, "AddOnFunctions/prepare_toplist.R"))
-source(paste0(scripts_dir, "AddOnFunctions/violin_plots.R"))
+source(paste0(scripts_dir, "AddOnFunctions/create_violin_plots.R"))
 source(paste0(scripts_dir, "AddOnFunctions/prepare_alarmvalues.R"))
 
 # The list of parameters can be shortened for HPC. Leave for now.
-top_nr_IEM <- 5 # number of diseases that score highest in algorithm to plot
-integer_list <- c(1:top_nr_IEM) # indices of top diseases
-threshold_IEM <- 5 # probability score cut-off for plotting the top diseases
-ratios_cutoff <- -5 # z-score cutoff of axis on the left for top diseases
+top_nr_IEM       <- 5 # number of diseases that score highest in algorithm to plot
+threshold_IEM    <- 5 # probability score cut-off for plotting the top diseases
+ratios_cutoff    <- -5 # z-score cutoff of axis on the left for top diseases
 nr_plots_perpage <- 20 # number of violin plots per page in PDF
 
 # Settings from config.R
 # binary variable: run function, yes(1) or no(0). Can be removed at later stage
-if (z_score == 1) { algorithm <- ratios <- violin <- 1 } # ? Or put if statement in run.sh?
+if (z_score == 1) { 
+	algorithm <- ratios <- violin <- 1 
+} 
 # integer: are the sample names headers on row 1 or row 2 in the DIMS excel? (default 1)
-header_row = 1
+header_row <- 1
 # column name where the data starts (default B)
-col_start <- "B"
+col_start     <- "B"
 zscore_cutoff <- 5
-xaxis_cutoff <- 20
+xaxis_cutoff  <- 20
 
 # path to DIMS excel file
-# path_DIMSfile = "/Users/ihoek3/Documents/dIEM/voorbeeld_PL_Diagn17_RUN10.xlsx"
-path_DIMSfile <- paste0("./", run_name, ".xlsx") 
+path_DIMSfile <- paste0("./", run_name, ".xlsx")
 
-# path: output folder 
-output_dir <- paste0("./dIEM") 
+# path: output folder for dIEM and violin plots 
+output_dir <- paste0("../../../dIEM")
 dir.create(output_dir, showWarnings = F) 
+print(getwd())
+print(path_DIMSfile)
 
 # folder in which all metabolite lists are (.txt)
 path_metabolite_groups <- "/hpc/dbg_mz/tools/db/metabolite_groups"
-### file for ratios step 3
+# file for ratios step 3
 file_ratios_metabolites <- "/hpc/dbg_mz/tools/db/dIEM/Ratios_between_metabolites.csv"
-### file for algorithm step 4
+# file for algorithm step 4
 file_expected_biomarkers_IEM <- "/hpc/dbg_mz/tools/db/dIEM/Expected_biomarkers_IEM.csv"
+# explanation: file with text to be included in violin plots
+file_explanation <- "/hpc/dbg_mz/tools/Explanation_violin_plots.txt"
 
+# copy list of isomers to project folder.
+file.copy("/hpc/dbg_mz/tools/isomers.txt", output_dir)
 
 #### STEP 1: Preparation #### 
 # in: run_name, path_DIMSfile, header_row ||| out: output_dir, DIMS
@@ -84,7 +91,7 @@ if (exists("dims_xls")) {
 
 # Determine the number of Contols and Patients in column names:
 nr_contr <- length(grep("C",names(dims_xls)))/2   # Number of control samples
-nr_pat <- length(grep("P",names(dims_xls)))/2     # Number of patient samples
+nr_pat   <- length(grep("P",names(dims_xls)))/2   # Number of patient samples
 # total number of samples
 nrsamples <- nr_contr + nr_pat
 # check whether the number of intensity columns equals the number of Zscore columns
@@ -95,11 +102,11 @@ cat(paste0("\n\n------------\n", nr_contr, " controls \n", nr_pat, " patients\n-
 
 # Move the columns HMDB_code and HMDB_name to the beginning. 
 HMDB_info_cols <- c(which(colnames(dims_xls) == "HMDB_code"), which(colnames(dims_xls) == "HMDB_name"))
-other_cols <- seq_along(1:ncol(dims_xls))[-HMDB_info_cols]
-dims_xls_copy <- dims_xls[ , c(HMDB_info_cols, other_cols)]
+other_cols     <- seq_along(1:ncol(dims_xls))[-HMDB_info_cols]
+dims_xls_copy  <- dims_xls[ , c(HMDB_info_cols, other_cols)]
 # Remove the columns from 'name' to 'pathway'
-from_col <- which(colnames(dims_xls_copy) == "name")
-to_col   <- which(colnames(dims_xls_copy) == "pathway")
+from_col      <- which(colnames(dims_xls_copy) == "name")
+to_col        <- which(colnames(dims_xls_copy) == "pathway")
 dims_xls_copy <- dims_xls_copy[ , -c(from_col:to_col)]
 # in case the excel had an empty "plots" column, remove it
 if ("plots" %in% colnames(dims_xls_copy)) { 
@@ -143,13 +150,13 @@ if (ratios == 1) {
     ncol=ncol(dims_xls_copy),
     nrow=nrow(ratio_input)
   )), colnames(dims_xls_copy))
-
+  
   # put HMDB info into first two columns of ratio_list
   ratio_list[ ,1:2] <- ratio_input[ ,1:2]
 
   # look for intensity columns (exclude Zscore columns)
-  control_cols <- grep("C", colnames(ratio_list)[1:which(colnames(ratio_list) == "Mean_controls")])
-  patient_cols <- grep("P", colnames(ratio_list)[1:which(colnames(ratio_list) == "Mean_controls")])
+  control_cols   <- grep("C", colnames(ratio_list)[1:which(colnames(ratio_list) == "Mean_controls")])
+  patient_cols   <- grep("P", colnames(ratio_list)[1:which(colnames(ratio_list) == "Mean_controls")])
   intensity_cols <- c(control_cols, patient_cols)
   # calculate each of the ratios of intensities 
   for (ratio_index in 1:nrow(ratio_input)) {
@@ -163,15 +170,23 @@ if (ratios == 1) {
       sel_numerator <- c(sel_numerator, which(dims_xls_copy[ , "HMDB.code"] == ratio_numerator[numerator_index])) 
     }
     for (denominator_index in 1:length(ratio_denominator)) { 
-      sel_denominator <- c(sel_denominator, which(dims_xls_copy[ , "HMDB.code"] == ratio_denominator[denominator_index])) 
+      # special case for sum of metabolites (dividing by one)  
+      if (ratio_denominator[denominator_index] != "one") {
+        sel_denominator <- c(sel_denominator, which(dims_xls_copy[ , "HMDB.code"] == ratio_denominator[denominator_index])) 
+      }
     }
     # calculate ratio
-    ratio_list[ratio_index, intensity_cols] <- apply(dims_xls_copy[sel_numerator, intensity_cols], 2, sum) /
-      apply(dims_xls_copy[sel_denominator, intensity_cols], 2, sum)
+    if (ratio_denominator[denominator_index] != "one") {
+      ratio_list[ratio_index, intensity_cols] <- apply(dims_xls_copy[sel_numerator, intensity_cols], 2, sum) /
+        apply(dims_xls_copy[sel_denominator, intensity_cols], 2, sum)
+    } else {
+      # special case for sum of metabolites (dividing by one)
+      ratio_list[ratio_index, intensity_cols] <- apply(dims_xls_copy[sel_numerator, intensity_cols], 2, sum)
+    }
     # calculate log of ratio
     ratio_list[ratio_index, intensity_cols]<- log2(ratio_list[ratio_index, intensity_cols])
   }
-
+  
   # Calculate means and SD's of the calculated ratios for Controls
   ratio_list[ , "Mean_controls"] <- apply(ratio_list[ , control_cols], 1, mean)
   ratio_list[ , "SD_controls"]   <- apply(ratio_list[ , control_cols], 1, sd)
@@ -182,13 +197,13 @@ if (ratios == 1) {
     zscore_col <- zscore_cols[sample_index] 
     # matching intensity column
     int_col <- intensity_cols[sample_index]
-    # add test on column names
-    if (same_samplename(colnames(ratio_list)[int_col], colnames(ratio_list)[zscore_col])) {
+    # test on column names
+    if (check_same_samplename(colnames(ratio_list)[int_col], colnames(ratio_list)[zscore_col])) {
       # calculate Z-scores
       ratio_list[ , zscore_col] <- (ratio_list[ , int_col] - ratio_list[ , "Mean_controls"]) / ratio_list[ , "SD_controls"]
     }
   }
-
+  
   # Add rows of the ratio hmdb codes to the data of zscores from the pipeline.
   dims_xls_ratios <- rbind(ratio_list, dims_xls_copy)
 
@@ -196,9 +211,10 @@ if (ratios == 1) {
   # HMDB_code patientname1  patientname2
   names(dims_xls_ratios) <- gsub("HMDB.code","HMDB_code", names(dims_xls_ratios))
   names(dims_xls_ratios) <- gsub("HMDB.name", "HMDB_name", names(dims_xls_ratios))
-  # remove the string "_Zscore" from column names; this causes problems in step 4
-  # names(dims_xls_ratios) <- gsub("_Zscore", "", names(dims_xls_ratios)) 
-  
+
+  # for debugging:
+  write.table(dims_xls_ratios, file=paste0(output_dir, "/ratios.txt"), sep="\t")
+
   # Select only the cols with zscores of the patients 
   zscore_patients <- dims_xls_ratios[ , c(1, 2, zscore_cols[grep("P", colnames(dims_xls_ratios)[zscore_cols])])]
   # Select only the cols with zscores of the controls
@@ -231,12 +247,11 @@ if (algorithm == 1) {
     # Rank all negative zscores lowest to highest
     rank_patients[(pos+1):nrow(rank_patients), patient_index] <- as.numeric(ordered(rank_patients[(pos+1):nrow(rank_patients), patient_index]))
   }
-  # NB: Warning message: In xtfrm.data.frame(x) : cannot xtfrm data frames. Ignore for now.
-
+  
   # Calculate metabolite score, using the dataframes with only values, and later add the cols without values (1&2).
   expected_zscores <- merge(x=expected_biomarkers, y=zscore_patients, by.x = c("HMDB_code"), by.y = c("HMDB_code"))
   expected_zscores_original <- expected_zscores # necessary copy?
-
+  
   # determine which columns contain Z-scores and which contain disease info
   select_zscore_cols <- grep("_Zscore", colnames(expected_zscores))
   select_info_cols <- 1:(min(select_zscore_cols) -1)
@@ -251,18 +266,18 @@ if (algorithm == 1) {
   rank_scores <- expected_zscores[order(expected_zscores$HMDB_code), select_zscore_cols]/(expected_ranks[order(expected_ranks$HMDB_code), select_zscore_cols]*0.9)
   # combine disease info with rank scores
   expected_metabscore <- cbind(expected_ranks[order(expected_zscores$HMDB_code), select_info_cols], rank_scores)
-
+  
   # multiply weight score and rank score
   weight_score <- expected_zscores
   weight_score[ , select_zscore_cols] <- expected_metabscore$Total_Weight * expected_metabscore[ , select_zscore_cols]
-
+  
   # sort table on Disease and Absolute_Weight
   weight_score <- weight_score[order(weight_score$Disease, weight_score$Absolute_Weight, decreasing = TRUE), ]
 
   # select columns to check duplicates
   dup <- weight_score[ , c('Disease', 'M.z')] 
   uni <- weight_score[!duplicated(dup) | !duplicated(dup, fromLast=FALSE),]
-
+  
   # calculate probability score
   prob_score <-  aggregate(uni[ , select_zscore_cols], uni["Disease"], sum)
 
@@ -277,7 +292,7 @@ if (algorithm == 1) {
     # set the probability score of these diseases to 0 
     prob_score[which(prob_score$Disease %in% disease_zero), patient_index]<- 0
   }
-
+  
   # determine disease rank per patient
   disease_rank <- prob_score 
   # rank diseases in decreasing order
@@ -285,7 +300,7 @@ if (algorithm == 1) {
   # modify column names, Zscores have now been converted to probability scores
   colnames(prob_score) <- gsub("_Zscore","_prob_score", colnames(prob_score)) # redundant?
   colnames(disease_rank) <- gsub("_Zscore","", colnames(disease_rank))
-
+  
   # Create conditional formatting for output excel sheet. Colors according to values.
   wb <- createWorkbook()
   addWorksheet(wb, "Probability Scores")
@@ -326,6 +341,12 @@ if (violin == 1) { # make violin plots
   # remove duplicates
   expected_biomarkers_select <- expected_biomarkers_select[!duplicated(expected_biomarkers_select[ , c(1,2)]), ]
   
+  # load file with explanatory information to be included in PDF.
+  explanation <- readLines(file_explanation)
+  
+  # for debugging:
+  #write.table(explanation, file=paste0(outdir, "explanation_read_in.txt"), sep="\t")
+
   # first step: normal violin plots
   # Find all text files in the given folder, which contain metabolite lists of which
   # each file will be a page in the pdf with violin plots.
@@ -367,15 +388,80 @@ if (violin == 1) { # make violin plots
       # for category Other, make list of top highest and lowest Z-scores for this patient
       if (grepl("Diagnost", pdf_dir)) {
         top_metab_pt <- prepare_alarmvalues(pt_name, metab_interest_sorted)
+        # save(top_metab_pt, file=paste0(outdir, "/start_15_prepare_alarmvalues.RData"))
       } else {
         top_metab_pt <- prepare_toplist(pt_name, zscore_patients)
+        # save(top_metab_pt, file=paste0(outdir, "/start_15_prepare_toplist.RData"))
       }
 
       # generate normal violin plots
-      violin_plots(pdf_dir, pt_name, metab_perpage, top_metab_pt)
+      create_violin_plots(pdf_dir, pt_name, metab_perpage, top_metab_pt)
       
     } # end for pt_nr
 
   } # end for metabolite_dir
    
+  # Second step: dIEM plots in separate directory
+  dIEM_plot_dir <- paste(output_dir, "dIEM_plots", sep="/")
+  dir.create(dIEM_plot_dir)
+
+  # Select the metabolites that are associated with the top highest scoring IEM, for each patient
+  # disease_rank is from step 4: the dIEM algorithm. The lower the value, the more likely.
+  for (pt_nr in 1:length(patient_list)) {
+    pt_name <- patient_list[pt_nr]
+    # get top diseases for this patient
+    pt_colnr <- which(colnames(disease_rank) == pt_name)
+    pt_top_indices <- which(disease_rank[ , pt_colnr] <= top_nr_IEM)
+    pt_IEMs <- disease_rank[pt_top_indices, "Disease"]
+    pt_top_IEMs <- pt_prob_score_top_IEMs <- c()
+    for (single_IEM in pt_IEMs) {
+      # get the probability score
+      prob_score_IEM <- prob_score[which(prob_score$Disease == single_IEM), pt_colnr]
+      # use only diseases for which probability score is above threshold
+      if (prob_score_IEM >= threshold_IEM) {
+        pt_top_IEMs <- c(pt_top_IEMs, single_IEM)
+        pt_prob_score_top_IEMs <- c(pt_prob_score_top_IEMs, prob_score_IEM)
+      }
+    }
+
+    # prepare data for plotting dIEM violin plots
+    # If prob_score_top_IEM is an empty list, don't make a plot
+    if (length(pt_top_IEMs) > 0) {
+      # Sorting from high to low, both prob_score_top_IEMs and pt_top_IEMs.
+      pt_prob_score_order <- order(-pt_prob_score_top_IEMs)
+      pt_prob_score_top_IEMs <- round(pt_prob_score_top_IEMs, 1)
+      pt_prob_score_top_IEM_sorted <- pt_prob_score_top_IEMs[pt_prob_score_order]
+      pt_top_IEM_sorted <- pt_top_IEMs[pt_prob_score_order]
+      # getting metabolites for each top_IEM disease exactly like in metab_list_all
+      metab_IEM_all <- list()
+      metab_IEM_names <- c()
+      for (single_IEM_index in 1:length(pt_top_IEM_sorted)) {
+        single_IEM <- pt_top_IEM_sorted[single_IEM_index]
+        single_prob_score <- pt_prob_score_top_IEM_sorted[single_IEM_index]
+        select_rows <- which(expected_biomarkers_select$Disease == single_IEM)
+        metab_list <- expected_biomarkers_select[select_rows, ]
+        metab_IEM_names <- c(metab_IEM_names, paste0(single_IEM, ", probability score ", single_prob_score))
+        metab_list <- metab_list[ , -1]
+        metab_IEM_all[[single_IEM_index]] <- metab_list
+      }
+      # put all metabolites into one list
+      names(metab_IEM_all) <- metab_IEM_names
+
+      # get Zscore information from zscore_patients_copy, similar to normal violin plots
+      metab_IEM_sorted <- prepare_data(metab_IEM_all, zscore_patients_copy)
+      metab_IEM_controls <- prepare_data(metab_IEM_all, zscore_controls)
+      # make sure every page has 20 metabolites
+      dIEM_metab_perpage <- prepare_data_perpage(metab_IEM_sorted, metab_IEM_controls, nr_plots_perpage, nr_pat)
+
+      # generate dIEM violin plots
+      create_violin_plots(dIEM_plot_dir, pt_name, dIEM_metab_perpage, top_metab_pt)
+
+    } else {
+      cat(paste0("\n\n**** This patient had no prob_scores higher than ", threshold_IEM,".
+                   Therefore, this pdf was not made:\t ", pt_name ,"_IEM \n"))
+    }
+
+  } # end for pt_nr
+
 } # end if violin = 1
+

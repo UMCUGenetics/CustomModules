@@ -8,7 +8,8 @@ process AssignToBins {
        tuple val(file_id), path(mzML_filename) , path(breaks_file)
 
     output:
-       path("${file_id}.RData")
+       path("${file_id}.RData"), emit: RData_files
+       path("${file_id}_TIC.txt"), emit: TIC_txt_files
 
     script:
         """
