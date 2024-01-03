@@ -9,7 +9,7 @@ process MipsTrimDedup {
         tuple(val(sample_id), val(rg_id), path(r1_fastqs), path(r2_fastqs))
 
     output:
-        tuple(sample_id, rg_id, path('*_LMergedTrimmedDedup_R1_*.fastq.gz'), path('*_LMergedTrimmedDedup_R2_*.fastq.gz'), emit: fastq_files)
+        tuple(val(sample_id), val(rg_id), path('*_LMergedTrimmedDedup_R1_*.fastq.gz'), path('*_LMergedTrimmedDedup_R2_*.fastq.gz'), emit: fastq_files)
 
     script:
         def r1_args = r1_fastqs.collect{ "$it" }.join(" ")

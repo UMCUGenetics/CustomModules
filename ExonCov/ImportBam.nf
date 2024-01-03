@@ -9,7 +9,7 @@ process ImportBam {
         tuple(val(analysis_id), val(sample_id), path(bam_file), path(bai_file))
 
     output:
-        tuple(sample_id, stdout)
+        tuple(val(sample_id), val(stdout))
 
     script:
         """
