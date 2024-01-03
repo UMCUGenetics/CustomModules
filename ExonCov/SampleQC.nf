@@ -6,7 +6,7 @@ process SampleQC {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(val(analysis_id), val(sample_ids), val(indications)
+        tuple(val(analysis_id), val(sample_ids), val(indications))
 
     output:
         path("${analysis_id}.ExonCovQC_check.out")
