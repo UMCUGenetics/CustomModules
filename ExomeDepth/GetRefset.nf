@@ -7,7 +7,7 @@ process GetRefset {
     cache = false
 
     input:
-        tuple(sample_id, path(bam_file))
+        tuple(val(sample_id), path(bam_file))
 
     output:
         tuple(sample_id, stdout)
