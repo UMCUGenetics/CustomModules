@@ -6,7 +6,7 @@ process IGV {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(output_name, path(vcf_files), path(vcf_idx_files))
+        tuple(val(output_name), path(vcf_files), path(vcf_idx_files))
 
     output:
         path("${output_name}_baf.igv", emit: BAF_IGV_files)
