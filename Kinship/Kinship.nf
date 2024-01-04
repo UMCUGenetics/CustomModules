@@ -9,7 +9,7 @@ process Kinship {
         path(ped_file)
 
     output:
-        tuple(analysis_id, path("${analysis_id}.kinship"), path("${analysis_id}.kinship_check.out"))
+        tuple(val(analysis_id), path("${analysis_id}.kinship"), path("${analysis_id}.kinship_check.out"))
 
     script:
         """
