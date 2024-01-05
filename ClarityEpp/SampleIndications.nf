@@ -10,7 +10,7 @@ process SampleIndications {
         val(sample_id)
 
     output:
-        tuple(val(sample_id), val(stdout))
+        tuple(val(sample_id), stdout)
 
     script:
         """

@@ -10,7 +10,7 @@ process GetRefset {
         tuple(val(sample_id), path(bam_file))
 
     output:
-        tuple(val(sample_id), val(stdout))
+        tuple(val(sample_id), stdout)
 
     script:
         """
