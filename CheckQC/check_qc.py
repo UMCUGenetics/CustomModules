@@ -218,7 +218,8 @@ def check_qc(input_files, settings, output_path, output_prefix):
         metric_files = select_metrics(qc_metric_settings["filename"], input_files)
         if not metric_files:
             continue
-        metric_out = read_and_judge_metrics(qc_metric_settings, metric_files)  # Join multiple metrices files into single table.
+        # Join multiple metrices files into single table
+        metric_out = read_and_judge_metrics(qc_metric_settings, metric_files)
         if any(metric_out.duplicated(subset="sample")):
             duplicated_sample_file.append(qc_metric_settings["filename"])
             continue
@@ -228,7 +229,7 @@ def check_qc(input_files, settings, output_path, output_prefix):
             merged_out = merge(merged_out, metric_out, on="sample", how="outer")  # Join all metrics output to single table.
 
     if "metric_out" not in locals():
-        raise ValueError(f"No input files found to match any qc metric pattern.")
+        raise ValueError("No input files found to match any qc metric pattern.")
     if duplicated_sample_file:
         raise ValueError(f"Duplicated samples with different values found in files matching {duplicated_sample_file}.")
     create_and_write_output(merged_out, output_path, output_prefix)

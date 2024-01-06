@@ -111,6 +111,7 @@ class TestSelectMetrics():
         assert "test" in warn_msg
         assert not return_val
 
+
 class TestGetColumnsToReport():
     @pytest.mark.parametrize("report_cols,metric_cols,qc_col,expected", [
         (["col1"], ["col1"], "col1", ["qc_title", "qc_value"]),
@@ -281,7 +282,7 @@ class TestGetOutputMetrics():
         assert df_output.shape[0] == nr_rows  # shape results in tuple with no. rows and no. cols
         assert len(observed_cols) == 5
         assert observed_cols == ['sample', 'qc_check_fc', 'qc_status_fc', 'qc_msg_fc', 'qc_value_fc']
-        
+
     @pytest.mark.parametrize("data_in,nr_rows,exp_warn_msg", [
         # single sample duplicate
         (["sample1_fake_check.txt"]*2, 1, "Sample IDs occur multiple times in input:"),
@@ -341,7 +342,7 @@ class TestCheckQc():
     def test_duplicate_samples_error(self, datadir, mocker, mock_settings):
         mock_pandas_merge = mocker.patch("pandas.merge")
         with pytest.raises(ValueError) as duplicate_error:
-            check_qc.check_qc(input_files=[f"{datadir}/240101_fake_check.txt", f"{datadir}/240101_v2_fake_check.txt"], 
+            check_qc.check_qc(input_files=[f"{datadir}/240101_fake_check.txt", f"{datadir}/240101_v2_fake_check.txt"],
                               settings="", output_path="", output_prefix="")
         assert "Duplicated samples with different values found in files matching" in str(duplicate_error.value)
         assert "fake_check.txt" in str(duplicate_error.value)
