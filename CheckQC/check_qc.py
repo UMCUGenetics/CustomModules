@@ -6,6 +6,7 @@ from os import strerror as os_strerror
 from pathlib import Path
 import re
 import sys
+import warnings
 
 # Third party libraries alphabetic order of main package.
 from pandas import DataFrame, merge, read_csv
@@ -72,7 +73,8 @@ def check_required_keys_metrics(qc_settings):
 def select_metrics(filename, input_files):
     metrics = list(filter(re.compile(f".*{filename}").match, input_files))
     if not metrics:
-        raise ValueError(f"No input file provided with filename pattern {filename}")
+        warnings.warn(UserWarning(f"No input file provided with filename pattern {filename}"))
+        return None
     return metrics
 
 
