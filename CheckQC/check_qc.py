@@ -9,7 +9,7 @@ import sys
 import warnings
 
 # Third party libraries alphabetic order of main package.
-from pandas import DataFrame, merge, read_csv
+from pandas import concat, DataFrame, merge, read_csv
 import yaml
 
 
@@ -130,7 +130,8 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
         # A single qc metric could have multiple sample columns
         # If a qc check fails for a 'multiple sample check', each individual sample is flagged as "failed"
         for sample_col in sample_cols:
-            qc_metric_out = qc_metric_out.append(
+            qc_metric_out = concat([
+                qc_metric_out,
                 (
                     qc_metric
                     .rename(columns={sample_col: "sample"})
@@ -139,7 +140,7 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
                     .agg(lambda val: ';'.join(val.astype(str)))  # Or .agg(lambda val: val.to_list())
                     .reset_index()
                 )
-            )
+            ])
         # Drop failed samples current metric
         for sample_col in sample_cols:
             drop_index = qc_metric[qc_metric[sample_col].isin(set(failed_samples))].index
@@ -151,13 +152,14 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
 def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
     # Add passed samples to output
     for sample_col in sample_cols:
-        qc_metric_out = qc_metric_out.append(
+        qc_metric_out = concat([
+            qc_metric_out,
             (
                 qc_metric
                 .rename(columns={sample_col: "sample"})
                 .loc[:, qc_metric_out.columns]
             )
-        )
+        ])
     # In case 'multiple sample qc check',
     # output could contain duplicate rows for individual samples used in multiple comparisons.
     return qc_metric_out.sort_values(by=["qc_check", "qc_status"]).drop_duplicates(keep="first")
