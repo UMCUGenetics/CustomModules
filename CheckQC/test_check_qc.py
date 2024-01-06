@@ -21,6 +21,11 @@ def setup_test_path(tmp_path_factory):
     return test_tmp_path
 
 
+@pytest.fixture(scope="class")
+def mock_settings(class_mocker, dataset_class):
+    return class_mocker.patch("check_qc.read_yaml", return_value=dataset_class["settings_single_metric"])
+
+
 class TestNonEmptyExistingPath():
     def test_existing_dir(self, setup_test_path):
         file_or_dir = check_qc.non_empty_existing_path(setup_test_path)
@@ -252,3 +257,93 @@ class TestCreateAndWriteOutput():
         out = read_csv(expected_output)
         assert "qc_summary" in out.columns.to_list()
         assert out["qc_summary"].values == exp_summary
+
+
+class TestGetOutputMetrics():
+    @pytest.mark.parametrize("data_in,nr_rows", [
+        # single sample
+        (["sample1_fake_check.txt"], 1),
+        # multiple single samples
+        (["sample1_fake_check.txt", "sample2_fake_check.txt"], 2),
+        # single multi samples
+        (["240101_fake_check.txt"], 2),
+        # multiple multi samples
+        (["240101_fake_check.txt", "240102_fake_check.txt"], 4),
+        # multi and single sample
+        (["sample1_fake_check.txt", "240101_fake_check.txt"], 3),
+    ])
+    def test_input_ok(self, data_in, nr_rows, dataset, datadir):
+        datadir_files = [f"{datadir}/{filename}" for filename in data_in]
+        # input1 = datadir / "sample1_fake_check.txt"
+        df_output = check_qc.read_and_judge_metrics(dataset["settings"]["metrics"][0], datadir_files)
+        assert not df_output.empty
+        observed_cols = df_output.columns.to_list()
+        assert df_output.shape[0] == nr_rows  # shape results in tuple with no. rows and no. cols
+        assert len(observed_cols) == 5
+        assert observed_cols == ['sample', 'qc_check_fc', 'qc_status_fc', 'qc_msg_fc', 'qc_value_fc']
+        
+    @pytest.mark.parametrize("data_in,nr_rows,exp_warn_msg", [
+        # single sample duplicate
+        (["sample1_fake_check.txt"]*2, 1, "Sample IDs occur multiple times in input:"),
+        # single multi samples duplicate
+        (["240101_fake_check.txt"]*2, 2, "Sample IDs occur multiple times in input:"),
+        # multiple multi samples, duplicate samples
+        (["240101_fake_check.txt", "240101_v2_fake_check.txt"], 4, "Different qc values for duplicated sample IDs in input:"),
+    ])
+    def test_input_warn(self, data_in, nr_rows, exp_warn_msg, dataset, datadir):
+        datadir_files = [f"{datadir}/{filename}" for filename in data_in]
+        # input1 = datadir / "sample1_fake_check.txt"
+        with pytest.warns(UserWarning) as match_warning:
+            df_output = check_qc.read_and_judge_metrics(dataset["settings"]["metrics"][0], datadir_files)
+        warn_msg = match_warning[0].message.args[0]
+        assert exp_warn_msg in warn_msg
+        assert not df_output.empty
+        observed_cols = df_output.columns.to_list()
+        assert df_output.shape[0] == nr_rows  # Shape: tuple with no. rows and no. cols
+        assert len(observed_cols) == 5
+        assert observed_cols == ['sample', 'qc_check_fc', 'qc_status_fc', 'qc_msg_fc', 'qc_value_fc']
+
+
+class TestCheckQc():
+    @pytest.mark.parametrize("settings,data_in,exp_shape", [
+        # single metric, single sample input
+        ("settings_single_metric", ["sample1_fake_check.txt"], (1, 5)),
+        # two metrics, single sample input
+        ("settings_two_metrics", ["sample1_fake_check.txt"], (1, 9)),
+        # single metric, multiple samples input
+        ("settings_single_metric", ["240101_fake_check.txt"], (2, 5)),
+        ("settings_single_metric", ["240101_fake_check.txt", "240102_fake_check.txt"], (4, 5)),
+        # two metrics, multiple sample input
+        ("settings_two_metrics", ["240101_fake_check.txt", "240102_fake_check.txt"], (4, 9)),
+        # two metric, multi and single sample input
+        ("settings_two_metrics", ["sample1_fake_check.txt", "240101_fake_check.txt"], (3, 9)),
+    ])
+    def test_ok(self, settings, data_in, exp_shape, datadir, dataset, mocker, ):
+        datadir_files = [f"{datadir}/{filename}" for filename in data_in]
+        mocker.patch("check_qc.read_yaml", return_value=dataset[settings])
+        mock_write_output = mocker.patch("check_qc.create_and_write_output")
+        check_qc.check_qc(input_files=datadir_files, settings="", output_path="", output_prefix="")
+        mock_write_output.assert_called_once()
+        # Shape: tuple with no. rows and no. cols
+        assert mock_write_output.call_args[0][0].shape == exp_shape
+        mock_write_output.reset_mock()
+
+    def test_no_match_input_error(self, mocker, mock_settings):
+        mock_select_metrics = mocker.patch("check_qc.select_metrics", return_value=None)
+        mock_get_output = mocker.patch("check_qc.read_and_judge_metrics")
+        with pytest.raises(ValueError) as no_match_error:
+            check_qc.check_qc(input_files=[], settings="", output_path="", output_prefix="")
+        mock_select_metrics.assert_called_once()
+        assert not mock_get_output.called
+        assert "No input files found to match any qc metric pattern." == str(no_match_error.value)
+        mock_settings.reset_mock()
+
+    def test_duplicate_samples_error(self, datadir, mocker, mock_settings):
+        mock_pandas_merge = mocker.patch("pandas.merge")
+        with pytest.raises(ValueError) as duplicate_error:
+            check_qc.check_qc(input_files=[f"{datadir}/240101_fake_check.txt", f"{datadir}/240101_v2_fake_check.txt"], 
+                              settings="", output_path="", output_prefix="")
+        assert "Duplicated samples with different values found in files matching" in str(duplicate_error.value)
+        assert "fake_check.txt" in str(duplicate_error.value)
+        assert not mock_pandas_merge.called
+        mock_settings.reset_mock()
