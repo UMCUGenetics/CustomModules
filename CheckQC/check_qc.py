@@ -173,36 +173,65 @@ def create_and_write_output(qc_output, output_path, output_prefix):
     qc_output.to_csv(output_path + output_prefix + "_summary.csv", index=False, header=True)
 
 
+def read_and_judge_metrics(qc, metrics):
+    for qc_file in metrics:
+        qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
+        report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
+        qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
+        failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
+        qc_metric_subset, qc_metric_judged = add_failed_samples_metric(
+            qc_metric_edit, failed_rows, report_cols, qc["sample_cols"]
+            )
+        qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, qc["sample_cols"])
+        # Rename columns
+        suffix = f"_{qc['title'].lower()}"
+        qc_judged_renamed = qc_metric_judged.add_suffix(suffix).rename(columns={f"sample{suffix}": "sample"})
+        # Concatenate/merge metric output
+        if "output" not in locals():  # First time
+            output = qc_judged_renamed
+        else:
+            duplicate = False
+            # Check for duplicate sampleIDs before merge.
+            if any(qc_judged_renamed["sample"].isin(output["sample"])):
+                duplicate = True
+            output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
+            if duplicate:
+                dup_sampleIDs = output[output['sample'].duplicated()]['sample'].to_list()
+                # Duplicate sampleIDs with different column values
+                if output["sample"].nunique() != output.shape[0]:
+                    # Warning to parse all qc values / samples.
+                    msg = f"Different qc values for duplicated sample IDs in input: {dup_sampleIDs}"
+                # Duplicate sampleIDs same column values
+                else:
+                    msg = f"Sample IDs occur multiple times in input: {dup_sampleIDs}"
+                warnings.warn(UserWarning(msg))
+    return output
+
+
 def check_qc(input_files, settings, output_path, output_prefix):
     # A single qc metric file can be used multiple times, by defining a metric section for each check in the qc settings.
     qc_settings = read_yaml(settings)
     check_required_keys_metrics(qc_settings)
-    for qc in qc_settings["metrics"]:
-        check_allowed_operators(qc["operator"])
-        metrics = select_metrics(qc["filename"], input_files)
-        for qc_file in metrics:
-            qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
-            report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
-            qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
-            failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
-            qc_metric_subset, qc_metric_judged = add_failed_samples_metric(
-                qc_metric_edit, failed_rows, report_cols, qc["sample_cols"]
-            )
-            qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, qc["sample_cols"])
-            # Rename columns
-            suffix = f"_{qc['title'].lower()}"
-            qc_judged_renamed = qc_metric_judged.add_suffix(suffix).rename(columns={f"sample{suffix}": "sample"})
-            # Concatenate/merge metric output
-            try:
-                output = merge(output, qc_judged_renamed, on="sample", how="outer")
-            except NameError:  # First time:
-                output = merge(
-                    DataFrame(qc_metric_judged['sample'], columns=["sample"]),
-                    qc_judged_renamed,
-                    on="sample",
-                    how="outer"
-                )
-    create_and_write_output(output, output_path, output_prefix)
+    duplicated_sample_file = []
+    for qc_metric_settings in qc_settings["metrics"]:
+        check_allowed_operators(qc_metric_settings["operator"])
+        metric_files = select_metrics(qc_metric_settings["filename"], input_files)
+        if not metric_files:
+            continue
+        metric_out = read_and_judge_metrics(qc_metric_settings, metric_files)  # Join multiple metrices files into single table.
+        if any(metric_out.duplicated(subset="sample")):
+            duplicated_sample_file.append(qc_metric_settings["filename"])
+            continue
+        if "merged_out" not in locals():
+            merged_out = metric_out
+        else:
+            merged_out = merge(merged_out, metric_out, on="sample", how="outer")  # Join all metrics output to single table.
+
+    if "metric_out" not in locals():
+        raise ValueError(f"No input files found to match any qc metric pattern.")
+    if duplicated_sample_file:
+        raise ValueError(f"Duplicated samples with different values found in files matching {duplicated_sample_file}.")
+    create_and_write_output(merged_out, output_path, output_prefix)
 
 
 if __name__ == "__main__":
