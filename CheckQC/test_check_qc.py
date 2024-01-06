@@ -99,12 +99,12 @@ class TestSelectMetrics():
         assert metrics == expected
 
     def test_no_match(self):
-        with pytest.raises(ValueError) as match_error:
-            check_qc.select_metrics("test", ["fake1.txt", "fake2.txt"])
-        error_val = str(match_error.value)
-        assert "No input file provided with filename pattern" in error_val
-        assert "test" in error_val
-
+        with pytest.warns(UserWarning) as match_warning:
+            return_val = check_qc.select_metrics("test", ["fake1.txt", "fake2.txt"])
+        warn_msg = match_warning[0].message.args[0]
+        assert "No input file provided with filename pattern" in warn_msg
+        assert "test" in warn_msg
+        assert not return_val
 
 class TestGetColumnsToReport():
     @pytest.mark.parametrize("report_cols,metric_cols,qc_col,expected", [
