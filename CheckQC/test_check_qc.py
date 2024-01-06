@@ -275,7 +275,7 @@ class TestGetOutputMetrics():
     def test_input_ok(self, data_in, nr_rows, dataset, datadir):
         datadir_files = [f"{datadir}/{filename}" for filename in data_in]
         # input1 = datadir / "sample1_fake_check.txt"
-        df_output = check_qc.read_and_judge_metrics(dataset["settings"]["metrics"][0], datadir_files)
+        df_output = check_qc.read_and_judge_metrics(dataset["settings_single_metric"]["metrics"][0], datadir_files)
         assert not df_output.empty
         observed_cols = df_output.columns.to_list()
         assert df_output.shape[0] == nr_rows  # shape results in tuple with no. rows and no. cols
@@ -294,7 +294,7 @@ class TestGetOutputMetrics():
         datadir_files = [f"{datadir}/{filename}" for filename in data_in]
         # input1 = datadir / "sample1_fake_check.txt"
         with pytest.warns(UserWarning) as match_warning:
-            df_output = check_qc.read_and_judge_metrics(dataset["settings"]["metrics"][0], datadir_files)
+            df_output = check_qc.read_and_judge_metrics(dataset["settings_single_metric"]["metrics"][0], datadir_files)
         warn_msg = match_warning[0].message.args[0]
         assert exp_warn_msg in warn_msg
         assert not df_output.empty
