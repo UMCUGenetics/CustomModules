@@ -86,8 +86,10 @@ def get_columns_to_report(qc_report_cols, qc_metric_cols, qc_col):
         raise TypeError(f"{qc_report_cols} not string, list or '@all'")
     elif not_existing_cols:
         raise ValueError(f"Some column names provided as report_cols do not exists: {not_existing_cols}")
-    qc_report_cols = list(map(lambda x: x.replace(qc_col, "qc_value"), qc_report_cols))  # Rename qc_col with qc_value
-    qc_report_cols.insert(0, "qc_title")  # Add column qc_title
+    # Rename qc_col with qc_value
+    qc_report_cols = list(map(lambda x: x.replace(qc_col, "qc_value"), qc_report_cols))
+    # Add column qc_title
+    qc_report_cols.insert(0, "qc_title")
     return qc_report_cols
 
 
@@ -137,7 +139,7 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
                     .rename(columns={sample_col: "sample"})
                     .loc[failed_rows, qc_metric_out.columns.to_list()]
                     .groupby(["sample", "qc_check", "qc_status"], dropna=False)
-                    .agg(lambda val: ';'.join(val.astype(str)))  # Or .agg(lambda val: val.to_list())
+                    .agg(lambda val: ';'.join(val.astype(str)))
                     .reset_index()
                 )
             ])
@@ -226,7 +228,8 @@ def check_qc(input_files, settings, output_path, output_prefix):
         if "merged_out" not in locals():
             merged_out = metric_out
         else:
-            merged_out = merge(merged_out, metric_out, on="sample", how="outer")  # Join all metrics output to single table.
+            # Join all metrics output to single table.
+            merged_out = merge(merged_out, metric_out, on="sample", how="outer")
 
     if "metric_out" not in locals():
         raise ValueError("No input files found to match any qc metric pattern.")
