@@ -10,6 +10,7 @@ process AverageTechReplicates {
        path(init_filepath)
        val(analysis_id)
        val(matrix)
+       val(highest_mz)
 
     output:
        path('*_repl_pattern.RData'), emit: patterns

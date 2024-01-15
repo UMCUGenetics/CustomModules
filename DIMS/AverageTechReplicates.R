@@ -10,12 +10,17 @@ thresh2remove <- 1000000000
 dimsThresh    <- 100
 run_name      <- cmd_args[3]
 dims_matrix   <- cmd_args[4]
+highest_mz    <- as.numeric(cmd_args[5])
 
 print(run_name)
 print(dims_matrix)
+print(highest_mz)
 
 if (dims_matrix == "DBS") {
-	thresh2remove <- 50000000
+    thresh2remove <- 50000000
+}
+if (highest_mz > 700) {
+    thresh2remove <- 1000000
 }
 
 library("ggplot2")
@@ -133,17 +138,25 @@ tic_plot_list <- list()
 k = 0
 for (i in c(1:length(repl_pattern))) { # change after test-phase !!!
   tech_reps <- as.vector(unlist(repl_pattern[i]))
-  sampleName <- names(repl_pattern)[i]
+  sample_name <- names(repl_pattern)[i]
   for (j in 1:length(tech_reps)) {
     k = k + 1
     repl1_nr <- read.table(TIC_files[j])
     bad_color_pos <- tech_reps[j] %in% remove_pos[[1]]
     bad_color_neg <- tech_reps[j] %in% remove_neg[[1]]
-    if (bad_color_neg & bad_color_pos) {plotcolor = '#F8766D'} else if (bad_color_pos) {plotcolor = "#ED8141"} else if (bad_color_neg) {plotcolor = "#BF80FF"} else {plotcolor = 'white'}
+    if (bad_color_neg & bad_color_pos) {
+	plotcolor = '#F8766D'
+    } else if (bad_color_pos) {
+	plotcolor = "#ED8141"
+    } else if (bad_color_neg) {
+	plotcolor = "#BF80FF"
+    } else {
+	plotcolor = 'white'
+    }
     tic_plot <- ggplot(repl1_nr, aes(retentionTime, TIC)) +
       geom_line(linewidth = 0.3) +
       geom_hline(yintercept = highest_tic_max, col = "grey", linetype = 2, linewidth = 0.3) +
-      labs(x = 't (s)', y = 'TIC', title = paste0(tech_reps[j], "  ||  ", sampleName)) +
+      labs(x = 't (s)', y = 'TIC', title = paste0(tech_reps[j], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plotcolor), axis.text = element_text(size = 4), axis.title = element_text(size = 4), plot.title = element_text(size = 6))
     tic_plot_list[[k]] <- tic_plot
   }
