@@ -52,4 +52,4 @@ for (i in 1:nsegment) {
 
 # generate output file
 save(breaks_fwhm, breaks_fwhm_avg, trimLeft, trimRight, file="./breaks.fwhm.RData")
-
+write(highMZ, file="./highest_mz.txt")
