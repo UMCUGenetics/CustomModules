@@ -192,12 +192,12 @@ def read_and_judge_metrics(qc, metrics):
         if "output" not in locals():  # First time
             output = qc_judged_renamed
         else:
-            duplicate = False
+            is_duplicate_sample = False
             # Check for duplicate sampleIDs before merge.
             if any(qc_judged_renamed["sample"].isin(output["sample"])):
-                duplicate = True
+                is_duplicate_sample = True
             output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
-            if duplicate:
+            if is_duplicate_sample:
                 dup_sampleIDs = output[output['sample'].duplicated()]['sample'].to_list()
                 # Duplicate sampleIDs with different column values
                 if output["sample"].nunique() != output.shape[0]:
