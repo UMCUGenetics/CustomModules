@@ -14,7 +14,7 @@ process MosaicHunter_StepOne {
     - input_sex_string -> a string (must be "M" or "F") for the sex of the patient
     */
     input:
-    tuple(sample_id, path(bam_files), path(bai_files))
+    tuple(val(sample_id), path(bam_files), path(bai_files))
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
     path(mh_config_file_one)
@@ -55,10 +55,11 @@ process MosaicHunter_StepTwo {
     - input_bam_file -> a path to the .bam file
     - input_bai_file -> a path to the .bam.bai file
     - input_sex_string -> a string (must be "M" or "F") for the sex of the patient
-    - tuple val(env(MHALPHA),env(MHBETA)) -> a tuple containing respectively the number for the alpha and beta found in the sample, which are stored in an enivroment variable.
+    - tuple val(env(MHALPHA),env(MHBETA)) -> a tuple containing respectively the number for the alpha and beta found in the
+      sample, which are stored in an enivroment variable.
     */
     input:
-    tuple(sample_id, path(bam_files), path(bai_files))
+    tuple(val(sample_id), path(bam_files), path(bai_files))
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
     path(mh_config_file_two)
