@@ -1,0 +1,2 @@
+sample_id	value
+sample1	1
