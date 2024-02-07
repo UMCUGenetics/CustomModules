@@ -8,7 +8,7 @@ class MyObject:
         self.reference_end = end
 
 
-def test_is_valid_read_1a():
+def test_is_valid_read():
     assert calculate_gender.is_valid_read(MyObject(19, True, True), 20) is False
     assert calculate_gender.is_valid_read(MyObject(20, True, True), 20) is True
     assert calculate_gender.is_valid_read(MyObject(20, True, True), 19) is True
