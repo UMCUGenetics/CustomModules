@@ -11,16 +11,16 @@ def is_valid_read(read, mapping_qual):
     return False
 
 
-def get_gender_from_bam(args):
-    with pysam.AlignmentFile(args.bam, "rb") as bam_file:
+def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y_female, ratio_y_male):
+    with pysam.AlignmentFile(bam, "rb") as bam_file:
         y_reads = float(
-                      sum([is_valid_read(read, args.mapping_qual) for read in bam_file.fetch(region=args.locus_y)])
+                      sum([is_valid_read(read, mapping_qual) for read in bam_file.fetch(region=locus_y)])
                   )
         total_reads = float(bam_file.mapped)
         y_ratio_perc = (y_reads / total_reads) * 100
-    if y_ratio_perc <= args.ratio_y_female:
+    if y_ratio_perc <= ratio_y_female:
         return "female"
-    elif y_ratio_perc >= args.ratio_y_male:
+    elif y_ratio_perc >= ratio_y_male:
         return "male"
     else:
         return "unknown"
@@ -66,6 +66,6 @@ if __name__ == "__main__":
     if true_gender in translation:
         true_gender = translation[true_gender]
 
-    test_gender = get_gender_from_bam(args)
+    test_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y_female, args.ratio_y_male)
     comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, true_gender)
     write_qc_file(args.sample_id, args.analysis_id, comparison, args.outputfolder)
