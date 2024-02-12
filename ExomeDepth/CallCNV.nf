@@ -6,7 +6,7 @@ process CallCNV {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(analysis_id, sample_id, path(bam_file), path(bai_file))
+        tuple(val(analysis_id), val(sample_id), path(bam_file), path(bai_file))
 
     output:
         path("*.log", emit: ED_log)

@@ -6,7 +6,7 @@ process SingleIGV {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(sample_id, analysis_id, refset)
+        tuple(val(sample_id), val(analysis_id), val(refset))
 
     output:
         path("*.xml", emit: Single_IGV_file)
