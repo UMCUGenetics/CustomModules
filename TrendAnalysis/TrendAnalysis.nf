@@ -5,7 +5,7 @@ process TrendAnalysis {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(analysis_id, path(input_files))
+        tuple(val(analysis_id), path(input_files))
 
     script:
         """
