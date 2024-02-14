@@ -9,9 +9,10 @@ process MosaicHunterQualityCorrection {
 
     /*
     Define inputs.
-    - input_bam_file -> a path to the .bam file
-    - input_bai_file -> a path to the .bam.bai file
-    - input_sex_string -> a string (must be "M" or "F") for the sex of the patient
+    - Tuple consisting of a sample_id, a path to the .bam file, a path to the .bai file
+    - Path to the reference file
+    - Path to the MosaicHunter common site filter bed file
+    - Path to the MosaicHunter config file for the Quality Correction step
     */
     input:
     tuple(val(sample_id), path(bam_files), path(bai_files))
@@ -21,7 +22,7 @@ process MosaicHunterQualityCorrection {
 
     /*
     Define outputs.
-    - a tuple containing respectively the number for the alpha and beta found in the sample.
+    - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
     tuple(env(MHALPHA), env(MHBETA))
@@ -52,10 +53,12 @@ process MosaicHunterMosaicVariantCalculation {
 
     /*
     Define inputs.
-    - input_bam_file -> a path to the .bam file
-    - input_bai_file -> a path to the .bam.bai file
-    - input_sex_string -> a string (must be "M" or "F") for the sex of the patient
-    - tuple val(env(MHALPHA),env(MHBETA)) -> a tuple containing respectively the number for the alpha and beta found in the
+    - Tuple consisting of a sample_id, a path to the .bam file, a path to the .bai file
+    - Path to the reference file
+    - Path to the MosaicHunter common site filter bed file
+    - Path to the MosaicHunter config file for the Mosaic Variant Calculation step
+    - The output of the MosaicHunterQualityCorrection step. This makes the enviroment variables available in this process
+    - A tuple containing respectively the number for the alpha and beta found in the
       sample, which are stored in an enivroment variable.
     */
     input:
@@ -66,7 +69,7 @@ process MosaicHunterMosaicVariantCalculation {
     MosaicHunter_StepOne.out
     tuple(env(MHALPHA),env(MHBETA))
 
-    // Final file, will be published to output directory
+    // Final file, will be renamed to include sample_id and published to output directory
     output:
     path('final.passed.tsv')
 
