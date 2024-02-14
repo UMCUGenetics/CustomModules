@@ -66,7 +66,7 @@ process MosaicHunterMosaicVariantCalculation {
     path(mh_reference_file)
     path(mh_common_site_filter_bed_file)
     path(mh_config_file_two)
-    MosaicHunter_StepOne.out
+    MosaicHunterQualityCorrection.out
     tuple(env(MHALPHA),env(MHBETA))
 
     // Final file, will be renamed to include sample_id and published to output directory
