@@ -1,8 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.preview.dsl=2
 
-// Step 1: Process input files
 process MosaicHunterQualityCorrection {
+    // Step 1: Process input files
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterQualityCorrection'
     tag = "MosaicHunterQualityCorrection $sample_id"
@@ -45,6 +45,7 @@ process MosaicHunterQualityCorrection {
 }
 
 process MosaicHunterMosaicVariantCalculation {
+    // Caclulate the Mosaic Variants
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterMosaicVariantCalculation'
     tag = "MosaicHunterMosaicVariantCalculation $sample_id"
