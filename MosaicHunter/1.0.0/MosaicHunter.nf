@@ -3,9 +3,10 @@ nextflow.preview.dsl=2
 
 process MosaicHunterQualityCorrection {
     // Step 1: Process input files
+    tag {"MosaicHunterQualityCorrection ${sample_id}"}
+    label 'MosaicHunterQualityCorrection'
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
-    label = 'MosaicHunterQualityCorrection'
-    tag = "MosaicHunterQualityCorrection $sample_id"
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     /*
     Define inputs.
@@ -46,9 +47,10 @@ process MosaicHunterQualityCorrection {
 
 process MosaicHunterMosaicVariantCalculation {
     // Caclulate the Mosaic Variants
+    tag {"MosaicHunterMosaicVariantCalculation ${sample_id}"}
+    label 'MosaicHunterMosaicVariantCalculation'
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
-    label = 'MosaicHunterMosaicVariantCalculation'
-    tag = "MosaicHunterMosaicVariantCalculation $sample_id"
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     publishDir "QC/MosaicHunter", saveAs: { filename -> "${sample_id}_$filename" }, mode: 'copy'
 
