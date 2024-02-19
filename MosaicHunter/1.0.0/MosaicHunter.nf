@@ -60,9 +60,9 @@ process MosaicHunterMosaicVariantCalculation {
     - Path to the reference file
     - Path to the MosaicHunter common site filter bed file
     - Path to the MosaicHunter config file for the Mosaic Variant Calculation step
-    - The output of the MosaicHunterQualityCorrection step. This makes the enviroment variables available in this process
+    - The output of the MosaicHunterQualityCorrection step. This makes the environment variables available in this process
     - A tuple containing respectively the number for the alpha and beta found in the
-      sample, which are stored in an enivroment variable.
+      sample, which are stored in an environment variable.
     */
     input:
         tuple(val(sample_id), path(bam_files), path(bai_files))
