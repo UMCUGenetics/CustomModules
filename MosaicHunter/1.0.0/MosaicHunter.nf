@@ -5,7 +5,7 @@ nextflow.preview.dsl=2
 process MosaicHunterQualityCorrection {
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterQualityCorrection'
-    tag = tag {"MosaicHunterQualityCorrection $sample_id"}
+    tag = "MosaicHunterQualityCorrection $sample_id"
 
     /*
     Define inputs.
@@ -47,7 +47,7 @@ process MosaicHunterQualityCorrection {
 process MosaicHunterMosaicVariantCalculation {
     container = 'docker://umcugenbioinf/mosaic_hunter:1.0.0'
     label = 'MosaicHunterMosaicVariantCalculation'
-    tag = tag {"MosaicHunterMosaicVariantCalculation $sample_id"}
+    tag = "MosaicHunterMosaicVariantCalculation $sample_id"
 
     publishDir "QC/MosaicHunter", saveAs: { filename -> "${sample_id}_$filename" }, mode: 'copy'
 
