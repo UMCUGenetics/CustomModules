@@ -15,17 +15,17 @@ process MosaicHunterQualityCorrection {
     - Path to the MosaicHunter config file for the Quality Correction step
     */
     input:
-    tuple(val(sample_id), path(bam_files), path(bai_files))
-    path(mh_reference_file)
-    path(mh_common_site_filter_bed_file)
-    path(mh_config_file_one)
+        tuple(val(sample_id), path(bam_files), path(bai_files))
+        path(mh_reference_file)
+        path(mh_common_site_filter_bed_file)
+        path(mh_config_file_one)
 
     /*
     Define outputs.
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-    tuple(env(MHALPHA), env(MHBETA))
+        tuple(env(MHALPHA), env(MHBETA))
 
     // The command to execute MosaicHunter
     shell:
@@ -62,16 +62,16 @@ process MosaicHunterMosaicVariantCalculation {
       sample, which are stored in an enivroment variable.
     */
     input:
-    tuple(val(sample_id), path(bam_files), path(bai_files))
-    path(mh_reference_file)
-    path(mh_common_site_filter_bed_file)
-    path(mh_config_file_two)
-    MosaicHunterQualityCorrection.out
-    tuple(env(MHALPHA),env(MHBETA))
+        tuple(val(sample_id), path(bam_files), path(bai_files))
+        path(mh_reference_file)
+        path(mh_common_site_filter_bed_file)
+        path(mh_config_file_two)
+        MosaicHunterQualityCorrection.out
+        tuple(env(MHALPHA),env(MHBETA))
 
     // Final file, will be renamed to include sample_id and published to output directory
     output:
-    path('final.passed.tsv')
+        path('final.passed.tsv')
 
     // The command to execute step two of MosaicHunter
     shell:
