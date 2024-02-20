@@ -6,7 +6,7 @@ process CheckQC {
 
     input:
         val(identifier)
-        path(input_files)
+        path(input_files, stageAs: "?/*")
      
     output:
         path("${identifier}_summary.csv", emit: qc_output)
