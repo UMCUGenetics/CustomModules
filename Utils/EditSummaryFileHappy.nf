@@ -16,7 +16,7 @@ process EditSummaryFileHappy {
     script:
         """
         # Add samplenames as columns (header and row values) at start of line
-        sed '1s/^/sample_query,sample_truth,/; 2,\$s/^/${meta.query},${meta.truth},/' ${summary_csv} > ${summary_csv}.tmp
+        sed '1s/^/samples,sample_truth,sample_query,/; 2,\$s/^/${meta.truth}_${meta.query},${meta.truth},${meta.query},/' ${summary_csv} > ${summary_csv}.tmp
         
         # Split file including header (first line)
         awk -F',' 'FNR==1{hdr=\$0;next} {print hdr>\$3"_"\$4"_summary.csv"; print \$0>>\$3"_"\$4"_summary.csv"}' ${summary_csv}.tmp
