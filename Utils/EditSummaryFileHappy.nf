@@ -1,5 +1,5 @@
 process EditSummaryFileHappy {
-    tag {"EditSummaryFileHappy"}
+    tag "$meta.id"
     label 'EditSummaryFileHappy'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
