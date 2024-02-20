@@ -19,7 +19,7 @@ process EditSummaryFileHappy {
         sed '1s/^/samples,sample_truth,sample_query,/; 2,\$s/^/${meta.truth}_${meta.query},${meta.truth},${meta.query},/' ${summary_csv} > ${summary_csv}.tmp
         
         # Split file including header (first line)
-        awk -F',' 'FNR==1{hdr=\$0;next} {print hdr>\$3"_"\$4"_summary.csv"; print \$0>>\$3"_"\$4"_summary.csv"}' ${summary_csv}.tmp
+        awk -F',' 'FNR==1{hdr=\$0;next} {print hdr>\$4"_"\$5"_summary.csv"; print \$0>>\$4"_"\$5"_summary.csv"}' ${summary_csv}.tmp
         
         # Remove tmp files
         rm ${summary_csv}.tmp     
