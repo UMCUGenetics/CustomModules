@@ -1,15 +1,14 @@
 #!/usr/bin/Rscript
 # adapted from 4-peakFinding.R
 
-# define parameters 
+# define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 filepath        <- cmd_args[1]
 breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData
 resol           <- as.numeric(cmd_args[3])
 scripts_dir     <- cmd_args[4]
-
-thresh <- 2000
+thresh          <- 2000
 
 # load in function scripts
 source(paste0(scripts_dir, "AddOnFunctions/findPeaks.Gauss.HPC.R"))
@@ -38,15 +37,18 @@ load(breaks_filepath)
 
 # Load output of AverageTechReplicates for a sample
 sample_avgtechrepl <- get(load(filepath))
-if (grepl("_pos", filepath)) { scanmode = "positive" } else
-  if (grepl("_neg", filepath)) { scanmode = "negative" }
+if (grepl("_pos", filepath)) {
+  scanmode <- "positive"
+} else if (grepl("_neg", filepath)) {
+  scanmode <- "negative"
+}
 
 # Initialize
 options(digits = 16)
-int.factor <- 1*10^5 # Number of x used to calc area under Gaussian (is not analytic)
+int_factor <- 1 * 10^5 # Number used to calculate area under Gaussian curve
 scale      <- 2 # Initial value used to estimate scaling parameter
 width      <- 1024
 height     <- 768
 
 # run the findPeaks function
-findPeaks.Gauss.HPC(sample_avgtechrepl, breaks.fwhm, int.factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
+findPeaks.Gauss.HPC(sample_avgtechrepl, breaks.fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)

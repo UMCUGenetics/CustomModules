@@ -4,10 +4,9 @@
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-#  Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.hmdb_parts_files $params.standard_run $params.ppm
-db_path <- cmd_args[1] # location of HMDB db file
-breaks_filepath <- cmd_args[2] # location of breaks.fwhm.RData
-standard_run  <- cmd_args[4] # "yes"
+db_path <- cmd_args[1] 
+breaks_filepath <- cmd_args[2] 
+standard_run  <- cmd_args[4] 
 
 # Cut up entire HMDB into small parts based on the new binning/breaks 
 load(breaks_filepath)
@@ -19,11 +18,11 @@ max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
 # test if standard mz range is used
 if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 610) {
   # skip generating HMDB parts
-  hmdb_parts_files <- cmd_args[3] 
-
-  hmdb_parts <- list.files(hmdb_parts_files, pattern="hmdb") # all files containing hmdb in file name
+  hmdb_parts_path <- cmd_args[3] 
+  # find all files containing hmdb in file name
+  hmdb_parts <- list.files(hmdb_parts_path, pattern = "hmdb") 
   for (hmdb_file in hmdb_parts) {
-    file.copy(paste(hmdb_parts_files, hmdb_file, sep="/"), "./", recursive = TRUE)
+    file.copy(paste(hmdb_parts_path, hmdb_file, sep = "/"), "./", recursive = TRUE)
   }
 } else { 
   # generate HMDB parts in case of non-standard mz range
@@ -31,7 +30,6 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
   ppm <- as.numeric(cmd_args[5])
 
   scanmodes <- c("positive", "negative")
-
   for (scanmode in scanmodes) {
     if (scanmode == "negative") {
       column_label <- "MNeg"
@@ -42,48 +40,49 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
     }
 
     # filter mass range meassured!!!
-    HMDB_add_iso = HMDB_add_iso[which(HMDB_add_iso[ ,column_label] >= breaks_fwhm[1] &
-                                      HMDB_add_iso[ ,column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
+    HMDB_add_iso = HMDB_add_iso[which(HMDB_add_iso[ , column_label] >= breaks_fwhm[1] &
+                                      HMDB_add_iso[ , column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
 
     # sort on mass
-    outlist <- HMDB_add_iso[order(as.numeric(HMDB_add_iso[,column_label])),]
+    outlist <- HMDB_add_iso[order(as.numeric(HMDB_add_iso[ , column_label])),]
 
-    n            <- dim(outlist)[1]
-    sub          <- 20000 # max rows per file
+    nr_rows      <- dim(outlist)[1]
+    # maximum number of rows per file
+    sub          <- 20000 
     end          <- 0
-    min_1_last   <- sub
+    last_line    <- sub
     check        <- 0
     outlist_part <- NULL
 
 
-    if (n < sub) {
+    if (nr_rows < sub) {
       outlist_part <- outlist
       save(outlist_part, file = paste0("./", scanmode, "_hmdb.1.RData"))
     } else {
 
-        if (n >= sub & (floor(n/sub) - 1) >= 2){
-          for (i in 2:floor(n/sub) - 1){
-            start <- -(sub - 1) + i*sub
-            end <- i*sub
+        if (nr_rows >= sub & (floor(nr_rows / sub) - 1) >= 2) {
+          for (i in 2:floor(nr_rows / sub) - 1) {
+            start <- -(sub - 1) + i * sub
+            end <- i * sub
 
             if (i > 1){
               outlist_i = outlist[c(start:end),]
 
-              n_moved = 0
+              nr_moved = 0
 
-              # Calculate 3ppm and replace border, avoid cut within peakgroup!
-              while ((as.numeric(outlist_i[1,column_label]) - as.numeric(outlist_part[min_1_last,column_label]))*1e+06/as.numeric(outlist_i[1,column_label]) < ppm) {
-                outlist_part <- rbind(outlist_part, outlist_i[1,])
-                outlist_i <- outlist_i[-1,]
-                n_moved <- n_moved + 1
+              # Use ppm to replace border to avoid cut within peakgroup!
+              while ((as.numeric(outlist_i[1, column_label]) - as.numeric(outlist_part[last_line, column_label])) * 1e+06 / 
+                      as.numeric(outlist_i[1, column_label]) < ppm) {
+                outlist_part <- rbind(outlist_part, outlist_i[1, ])
+                outlist_i <- outlist_i[-1, ]
+                nr_moved <- nr_moved + 1
               }
 
-              # message(paste("Process", i-1,":", dim(outlist_part)[1]))
-              save(outlist_part, file = paste("./", scanmode, "_", paste("hmdb", i-1, "RData", sep="."), sep=""))
+              save(outlist_part, file = paste("./", scanmode, "_", paste("hmdb", i-1, "RData", sep = "."), sep = ""))
               check <- check + dim(outlist_part)[1]
 
               outlist_part <- outlist_i
-              min_1_last <- dim(outlist_part)[1]
+              last_line <- dim(outlist_part)[1]
 
             } else {
               outlist_part <- outlist[c(start:end),]
@@ -92,27 +91,26 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
         }
 
         start <- end + 1
-        end <- n
+        end <- nr_rows
         outlist_i <- outlist[c(start:end),]
-        n_moved <- 0
+        nr_moved <- 0
 
         if (!is.null(outlist_part)) {
           # Calculate ppm and replace border, avoid cut within peakgroup!
-          while ((as.numeric(outlist_i[1,column_label]) - as.numeric(outlist_part[min_1_last,column_label]))*1e+06/as.numeric(outlist_i[1,column_label]) < ppm) {
+          while ((as.numeric(outlist_i[1, column_label]) - as.numeric(outlist_part[last_line, column_label])) * 1e+06 / 
+                  as.numeric(outlist_i[1, column_label]) < ppm) {
             outlist_part <- rbind(outlist_part, outlist_i[1,])
             outlist_i <- outlist_i[-1,]
-            n_moved <- n_moved + 1
+            nr_moved <- nr_moved + 1
           }
 
-          save(outlist_part, file = paste("./", scanmode, "_", paste("hmdb", i, "RData", sep = "."), sep = ""))
+          save(outlist_part, file = paste0("./", scanmode, "_hmdb_", i, ".RData"))
           check <- check + dim(outlist_part)[1]
         }
 
         outlist_part <- outlist_i
-        save(outlist_part, file = paste("./", scanmode, "_", paste("hmdb", i + 1, "RData", sep="."), sep=""))
+        save(outlist_part, file = paste0("./", scanmode, "_hmdb_", i + 1, ".RData"))
         check <- check + dim(outlist_part)[1]
-        # cat("\n", "Check", check == dim(outlist)[1])
-
       }
     }
 }

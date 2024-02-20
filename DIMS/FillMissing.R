@@ -3,9 +3,9 @@
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep="")
+for (arg in cmd_args) cat("  ", arg, "\n", sep = "")
 
-# define parameters 
+# define parameters
 peakgrouplist_file <- cmd_args[1]
 scripts_dir        <- cmd_args[2]
 thresh  <- as.numeric(cmd_args[3])
@@ -13,13 +13,11 @@ resol   <- as.numeric(cmd_args[4])
 ppm     <- as.numeric(cmd_args[5])
 outdir <- "./"
 
-print(peakgrouplist_file)
-
-if (grepl("_pos", peakgrouplist_file)) { scanmode = "positive" } else
-    if (grepl("_neg", peakgrouplist_file)) { scanmode = "negative" }
-
-print(scanmode)
-print(scripts_dir)
+if (grepl("_pos", peakgrouplist_file)) {
+  scanmode <- "positive"
+} else if (grepl("_neg", peakgrouplist_file)) {
+  scanmode <- "negative"
+}
 
 # load in function scripts
 source(paste0(scripts_dir, "AddOnFunctions/replaceZeros.R"))
@@ -41,14 +39,10 @@ print(head(repl_pattern))
 # load peak group list and determine output file name
 outpgrlist_identified <- get(load(peakgrouplist_file))
 
-print(head(outpgrlist_identified))
-
 outputfile_name <- gsub(".RData", "_filled.RData", peakgrouplist_file)
-
-print(outputfile_name)
 
 # replace missing values (zeros) with random noise
 peakgrouplist_filled <- replaceZeros(outpgrlist_identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
 
-# save output 
-save(peakgrouplist_filled, file=paste0("./", outputfile_name))
+# save output
+save(peakgrouplist_filled, file = paste0("./", outputfile_name))
