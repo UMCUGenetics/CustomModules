@@ -162,6 +162,12 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
                 .loc[:, qc_metric_out.columns]
             )
         ])
+    # Try to convert column qc_value to float.
+    # If ValueError is raised, probably because column is a string, continue.    
+    try:
+        qc_metric_out["qc_value"] = qc_metric_out["qc_value"].astype("float")
+    except ValueError:
+        pass
     # In case 'multiple sample qc check',
     # output could contain duplicate rows for individual samples used in multiple comparisons.
     return qc_metric_out.sort_values(by=["qc_check", "qc_status"]).drop_duplicates(keep="first")
