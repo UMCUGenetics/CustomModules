@@ -66,29 +66,29 @@ class TestCheckAllowedOperators():
 
 class TestCheckRequiredKeysMetrics():
     def test_required_keys_present(self):
-        qc_settings = {"metrics": [
+        qc_metrics = [
             {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake",  "report_cols": "fake"},
-        ]}
-        check_qc.check_required_keys_metrics(qc_settings)
+        ]
+        check_qc.check_required_keys_metrics(qc_metrics)
         assert True
 
     @pytest.mark.parametrize(
-        "incomplete_qc_settings",
+        "incomplete_qc_metrics",
         [
-            {"metrics": [{"filename": "fakename"}]},
-            {"metrics": [
+            [{"filename": "fakename"}],
+            [
                 {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake",  "report_cols": "fake"},
                 {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
-            ]},
-            {"metrics": [
+            ],
+            [
                 {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
                 {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
-            ]}
+            ]
         ]
     )
-    def test_missing_keys(self, incomplete_qc_settings):
+    def test_missing_keys(self, incomplete_qc_metrics):
         with pytest.raises(KeyError) as required_error:
-            check_qc.check_required_keys_metrics(incomplete_qc_settings)
+            check_qc.check_required_keys_metrics(incomplete_qc_metrics)
         error_val = str(required_error.value)
         assert "not in all metrics settings." in error_val
         assert error_val.split(" ")[2] in ["filename", "qc_col", "threshold", "operator", "report_cols"]

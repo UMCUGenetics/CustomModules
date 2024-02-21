@@ -64,9 +64,9 @@ def check_allowed_operators(qc_operator):
         raise ValueError(f"Unsupported operator provided: {qc_operator}. Please select from: {operators}")
 
 
-def check_required_keys_metrics(qc_settings):
+def check_required_keys_metrics(qc_metrics):
     for req_key in ["filename", "qc_col", "threshold", "operator", "report_cols"]:
-        if any([req_key not in setting.keys() for setting in qc_settings["metrics"]]):
+        if any([req_key not in setting.keys() for setting in qc_metrics]):
             raise KeyError(f"Required key {req_key} not in all metrics settings.")
 
 
@@ -219,7 +219,7 @@ def read_and_judge_metrics(qc, metrics):
 def check_qc(input_files, settings, output_path, output_prefix):
     # A single qc metric file can be used multiple times, by defining a metric section for each check in the qc settings.
     qc_settings = read_yaml(settings)
-    check_required_keys_metrics(qc_settings)
+    check_required_keys_metrics(qc_settings["metrics"])
     duplicated_sample_file = []
     for qc_metric_settings in qc_settings["metrics"]:
         check_allowed_operators(qc_metric_settings["operator"])
