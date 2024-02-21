@@ -95,12 +95,45 @@ class TestCheckRequiredKeysMetrics():
 
 
 class TestSelectMetrics():
-    @pytest.mark.parametrize("input_files,expected", [
-        (["test1.txt", "test2.txt"], ["test1.txt", "test2.txt"]),  # multi match
-        (["test1.txt", "fake2.txt"],  ["test1.txt"]),  # single match
+    @pytest.mark.parametrize("filename_or_regex,input_files,expected", [
+        # multi match
+        ("test", ["test1.txt", "test2.txt"], ["test1.txt", "test2.txt"]),
+        # single match
+        ("test", ["test1.txt", "fake2.txt"],  ["test1.txt"]),
+        # # match with relative path
+        ("test", ["./random/path/to/test1.txt"],  ["./random/path/to/test1.txt"]),
+        # match with absolute path
+        ("test", ["/random/path/to/test1.txt"],  ["/random/path/to/test1.txt"]),
+        # match regex: kinship file suffix
+        (
+            ".*.kinship_check.out$",
+            ["240101_A00295_0001_AHWCFKDSX7_CREv4_1.kinship_check.out"],
+            ["240101_A00295_0001_AHWCFKDSX7_CREv4_1.kinship_check.out"]
+        ),
+        # match on word truth and SNP
+        (
+            ".*truth.*SNP",
+            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
+        ),
+        # match on word truth and SNP
+        (
+            ".*truth.*SNP",
+            ['U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', 'U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            ['U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
+        ),
+        # match if 'truth' is absent and contains 'SNP'
+        # ?: Match expression but do not capture it
+        # ?! Match if 'truth' is absent.
+        (
+            "(?:(?!truth).)*SNP.*$",
+            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            ['12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv']
+        ),
+
     ])
-    def test_select_metric(self, input_files, expected):
-        metrics = check_qc.select_metrics("test", input_files)
+    def test_select_metric(self, filename_or_regex, input_files, expected):
+        metrics = check_qc.select_metrics(filename_or_regex, input_files)
         assert metrics == expected
 
     def test_no_match(self):

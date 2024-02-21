@@ -126,8 +126,11 @@ def select_metrics(filename, input_files):
 
     Returns:
         list: Input files matching the given filename.
-    """    
-    metrics = list(filter(re.compile(f".*{filename}").match, input_files))
+    """
+    # If filename is string, change into regex to match absolute and relative paths in input_files.
+    if filename.isalpha():
+        filename=".*" + filename
+    metrics = list(filter(re.compile(f"{filename}").match, input_files))
     if not metrics:
         warnings.warn(UserWarning(f"No input file provided with filename pattern {filename}"))
         return None
