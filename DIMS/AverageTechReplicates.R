@@ -169,5 +169,5 @@ tic_plot_pdf <- marrangeGrob(
   ))
 )
 # save to file
-ggsave(filename = paste0("./../../../Bioinformatics/", run_name, "_TICplots.pdf"),
+ggsave(filename = paste0("./", run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")
