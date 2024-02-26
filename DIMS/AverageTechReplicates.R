@@ -4,13 +4,14 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-init_filepath <- cmd_args[1]
-nr_replicates <- as.numeric(cmd_args[2])
-thresh2remove <- 1000000000
-dims_thresh    <- 100
-run_name      <- cmd_args[3]
-dims_matrix   <- cmd_args[4]
-highest_mz    <- as.numeric(cmd_args[5])
+init_filepath   <- cmd_args[1]
+nr_replicates   <- as.numeric(cmd_args[2])
+thresh2remove   <- 1000000000
+dims_thresh     <- 100
+run_name        <- cmd_args[3]
+dims_matrix     <- cmd_args[4]
+highest_mz_file <- cmd_args[5]
+highest_mz <- get(load(highest_mz_file))
 
 # lower the threshold below which a sample will be removed for DBS and for high m/z
 if (dims_matrix == "DBS") {
@@ -147,7 +148,7 @@ for (sample_nr in c(1:length(repl_pattern))) {
     tic_plot <- ggplot(repl1_nr, aes(retention_time, tic_intensity)) +
       geom_line(linewidth = 0.3) +
       geom_hline(yintercept = highest_tic_max, col = "grey", linetype = 2, linewidth = 0.3) +
-      labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[j], "  ||  ", sample_name)) +
+      labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_name], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
             axis.title = element_text(size = 4),
@@ -169,5 +170,5 @@ tic_plot_pdf <- marrangeGrob(
   ))
 )
 # save to file
-ggsave(filename = paste0("./../../../Bioinformatics/", run_name, "_TICplots.pdf"),
+ggsave(filename = paste0("./", run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")

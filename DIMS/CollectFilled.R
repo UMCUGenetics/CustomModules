@@ -16,11 +16,11 @@ scanmodes <- c("positive", "negative")
 
 for (scanmode in scanmodes) {
   # get list of files
-  filled_files <- list.files("./", full.names = TRUE, pattern = scanmode)
+  filled_files <- list.files("./", full.names = TRUE, pattern = paste0(scanmode, "_identified_filled"))
   # load files and combine into one object
   outlist_total <- NULL
   for (file_nr in 1:length(filled_files)) {
-    load(filled_files[file_nr])
+    peakgrouplist_filled <- get(load(filled_files[file_nr]))
     outlist_total <- rbind(outlist_total, peakgrouplist_filled)
   }
 
@@ -45,10 +45,10 @@ for (scanmode in scanmodes) {
       outlist_stats[, (length(repl_pattern) - nr_removed_samples + 5 + 10):ncol(outlist_stats)]
     )
 
-    tmp_index <- grep("_Zscore", colnames(outlist_stats.more), fixed = TRUE)
-    tmp_index_order <- order(colnames(outlist_stats.more[, tmp_index]))
-    tmp <- outlist_stats.more[, tmp_index[tmp_index_order]]
-    outlist_stats_more <- outlist_stats.more[, -tmp_index]
+    tmp_index <- grep("_Zscore", colnames(outlist_stats_more), fixed = TRUE)
+    tmp_index_order <- order(colnames(outlist_stats_more[, tmp_index]))
+    tmp <- outlist_stats_more[, tmp_index[tmp_index_order]]
+    outlist_stats_more <- outlist_stats_more[, -tmp_index]
     outlist_stats_more <- cbind(outlist_stats_more, tmp)
     outlist_total <- outlist_stats_more
   }

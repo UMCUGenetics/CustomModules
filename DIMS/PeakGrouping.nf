@@ -6,8 +6,8 @@ process PeakGrouping {
 
     input:
        path(HMDBpart_file)
-       path(SpectrumPeak_file) // input files need to be linked, but called within R script
-       path(pattern_file)
+       each path(SpectrumPeak_file) // input files need to be linked, but called within R script
+       each path(pattern_file)      // Execute the process for each element in the input collection (HMDBpart_file)
 
     output:
        path '*_peaks_used.RData', emit: peaks_used

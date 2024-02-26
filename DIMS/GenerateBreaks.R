@@ -8,17 +8,17 @@ suppressPackageStartupMessages(library("xcms"))
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-filepath <- cmd_args[1] # 1 of the mzML files
+filepath <- cmd_args[1]
 outdir   <- cmd_args[2]
-trim     <- as.numeric(cmd_args[3]) # 0.1
-resol    <- as.numeric(cmd_args[4]) # 140000
+trim     <- as.numeric(cmd_args[3])
+resol    <- as.numeric(cmd_args[4])
 
 # initialize
 trim_left        <- NULL
 trim_right       <- NULL
-breaks_fwhm     <- NULL
-breaks_fwhm_avg <- NULL
-bins            <- NULL
+breaks_fwhm      <- NULL
+breaks_fwhm_avg  <- NULL
+bins             <- NULL
 
 # read in mzML file
 raw_data <- suppressMessages(xcmsRaw(filepath))
@@ -39,7 +39,7 @@ segment  <- seq(from = low_mz, to = high_mz, length.out = nr_segments + 1)
 for (i in 1:nr_segments) {
   start_segment   <- segment[i]
   end_segment     <- segment[i+1]
-  resol_mz        <- resol*(1 / sqrt(2) ^ (log2(start_segment / 200)))
+  resol_mz        <- resol * (1 / sqrt(2) ^ (log2(start_segment / 200)))
   fwhm_segment    <- start_segment / resol_mz
   breaks_fwhm     <- c(breaks_fwhm, seq(from = (start_segment + fwhm_segment), to = end_segment, by = 0.2 * fwhm_segment))
   # average the m/z instead of start value
@@ -50,4 +50,4 @@ for (i in 1:nr_segments) {
 
 # generate output file
 save(breaks_fwhm, breaks_fwhm_avg, trim_left, trim_right, file = "./breaks.fwhm.RData")
-write(high_mz, file = "./highest_mz.txt")
+save(high_mz, file = "./highest_mz.RData")

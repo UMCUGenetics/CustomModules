@@ -8,9 +8,10 @@ process AverageTechReplicates {
        path(RData_file)     // input files need to be linked, but called within R script
        path(TIC_txt_files)  // input files need to be linked, but called within R script
        path(init_filepath)
+       val(nr_replicates)
        val(analysis_id)
        val(matrix)
-       val(highest_mz)
+       path(highest_mz)
 
     output:
        path('*_repl_pattern.RData'), emit: patterns
@@ -20,7 +21,7 @@ process AverageTechReplicates {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates $analysis_id $matrix
+        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates $analysis_id $matrix $highest_mz
         """
 }
 

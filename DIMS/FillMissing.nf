@@ -6,7 +6,7 @@ process FillMissing {
 
     input:
        path(GroupedList_file)
-       path(replication_pattern) // input files need to be linked, but called within R script
+       each path(replication_pattern) // input files need to be linked, but called within R script
 
     output:
        path('*_filled.RData')

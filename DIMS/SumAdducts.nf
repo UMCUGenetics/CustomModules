@@ -5,8 +5,8 @@ process SumAdducts {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(collect_file) // input files need to be linked, but called within R script
-       path(replication_pattern) // input files need to be linked, but called within R script
+       each path(collect_file) // input files need to be linked, but called within R script
+       each path(replication_pattern) // input files need to be linked, but called within R script
        path(HMDBpart_main_file)
 
     output:

@@ -3,7 +3,6 @@
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
-for (arg in cmd_args) cat("  ", arg, "\n", sep = "")
 
 # define parameters
 peakgrouplist_file <- cmd_args[1]

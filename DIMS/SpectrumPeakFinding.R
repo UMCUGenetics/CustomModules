@@ -10,13 +10,13 @@ not_run <- NULL
 # collect spectrum peaks for each scanmode
 for (scanmode in scanmodes) {
   # load peak lists of all biological samples
-  peaklist_files <- list.files("/.", full.names = TRUE, pattern = paste0("*_", scanmode, ".RData"))
+  peaklist_files <- list.files(pattern = paste0("_", scanmode, ".RData"))
 
   # get sample names
   load(paste0("./", scanmode, "_repl_pattern", ".RData"))
   group_names <- names(repl_pattern_filtered)
   for (sample_nr in 1:length(group_names)) {
-    group <- paste0(input_dir, "/", paste0(paste(group_names[sample_nr], scanmode, sep = "_"), ".RData"))
+    group <- paste0("./", group_names[sample_nr], "_", scanmode, ".RData")
     if (!(group %in% peaklist_files)) {
       not_run <- c(not_run, group)
     }

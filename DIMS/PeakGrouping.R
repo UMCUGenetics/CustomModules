@@ -25,8 +25,8 @@ batch_number <- strsplit(basename(hmdb_part_file), ".", fixed = TRUE)[[1]][2]
 # load file with spectrum peaks
 spec_peaks_file <- paste0("SpectrumPeaks_", scanmode, ".RData")
 load(spec_peaks_file)
-outlist_copy <- outlist_tot
-rm(outlist_tot)
+outlist_copy <- outlist_total
+rm(outlist_total)
 
 # load replication pattern
 pattern_file <- paste0(scanmode, "_repl_pattern.RData")
@@ -169,9 +169,10 @@ while (dim(hmdb_add_iso)[1] > 0) {
 
     # combine all information
     peakgrouplist_identified <- rbind(peakgrouplist_identified, cbind(
-      data.frame(mzmed_pgrp, "fq.best" = fq_best_pgrp, "fq.worst" = fq_worst_pgrp, nrsamples, mzmin_pgrp, mzmax_pgrp),
+      data.frame("mzmed.pgrp" = mzmed_pgrp, "fq.best" = fq_best_pgrp, "fq.worst" = fq_worst_pgrp, nrsamples, 
+		 "mzmin.pgrp" = mzmin_pgrp, "mzmax.pgrp" = mzmax_pgrp),
       t(as.matrix(ints_allsamps)),
-      data.frame(assi_hmdb, iso_hmdb, hmdb_code, theormz_hmdb)
+      data.frame("assi_HMDB" = assi_hmdb, "iso_HMDB" = iso_hmdb, "HMDB_code" = hmdb_code, "theormz_HMDB" = theormz_hmdb)
     ))
   }
 
