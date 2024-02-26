@@ -3,14 +3,16 @@ import calculate_gender
 import pytest
 
 
-class MyObject:
-    def __init__(self, qual, start, end):
-        self.mapping_quality = qual
-        self.reference_start = start
-        self.reference_end = end
-
-
 class TestIsValidRead():
+
+
+    class MyObject:
+        def __init__(self, qual, start, end):
+            self.mapping_quality = qual
+            self.reference_start = start
+            self.reference_end = end
+
+
     @pytest.mark.parametrize("read,mapping_qual,expected", [
         (MyObject(19, True, True), 20, False),  # mapping quality is below the threshold
         (MyObject(20, True, True), 20, True),  # mapping quality is equal to the threshold
