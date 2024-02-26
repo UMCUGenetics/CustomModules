@@ -7,8 +7,7 @@ process CompareGender {
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        tuple(sample_id, analysis_id, path(bam_file), path(bai_file))
-        val(true_gender)
+        tuple(sample_id, analysis_id, path(bam_file), path(bai_file), val(true_gender))
 
     output:
         tuple(path("*gendercheck.txt"), emit: gendercheck_qc)
