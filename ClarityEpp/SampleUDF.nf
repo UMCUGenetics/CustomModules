@@ -1,5 +1,5 @@
 process SampleUDF {
-    // Custom process to run clarity_epp export sample_upd
+    // Custom process to run clarity_epp export sample_udf
     tag {"ClarityEpp SampleUDF ${sample_id}"}
     label 'ClarityEpp'
     label 'ClarityEpp_SampleUDF'
