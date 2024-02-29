@@ -20,8 +20,7 @@ process CompareGender {
             ${bam_file} \
             ./ \
             ${true_gender} \
-            $params.gendercheck_ratio_y_male \
-            $params.gendercheck_ratio_y_female \
+            $params.gendercheck_ratio_y \
             $params.gendercheck_mapping_qual \
             $params.gendercheck_locus_y
         """

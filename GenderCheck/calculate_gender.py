@@ -11,19 +11,17 @@ def is_valid_read(read, mapping_qual):
     return False
 
 
-def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y_female, ratio_y_male):
+def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
     with pysam.AlignmentFile(bam, "rb") as bam_file:
         y_reads = float(
                       sum([is_valid_read(read, mapping_qual) for read in bam_file.fetch(region=locus_y)])
                   )
         total_reads = float(bam_file.mapped)
         y_ratio_perc = (y_reads / total_reads) * 100
-    if y_ratio_perc <= ratio_y_female:
+    if y_ratio_perc <= ratio_y:
         return "female"
-    elif y_ratio_perc >= ratio_y_male:
-        return "male"
     else:
-        return "unknown"
+        return "male"
 
 
 def compare_gender(sample_id, analysis_id, test_gender, true_gender):
@@ -48,14 +46,9 @@ if __name__ == "__main__":
     parser.add_argument('outputfolder', help='path to output folder')
     parser.add_argument('true_gender', help='gender regarded as the truth')
     parser.add_argument(
-        "ratio_y_male",
+        "ratio_y",
         type=float,
-        help="minimum chromosome Y ratio threshold males [float]"
-    )
-    parser.add_argument(
-        "ratio_y_female",
-        type=float,
-        help="maximum chromosome Y ratio threshold females [float]"
+        help="maximunum chromosome Y ratio for females [float]"
     )
     parser.add_argument('mapping_qual', type=int, help='minimum mapping quality of reads to be considered [int]')
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
@@ -66,6 +59,6 @@ if __name__ == "__main__":
     if true_gender in translation:
         true_gender = translation[true_gender]
 
-    test_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y_female, args.ratio_y_male)
+    test_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y)
     comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, true_gender)
     write_qc_file(args.sample_id, args.analysis_id, comparison, args.outputfolder)

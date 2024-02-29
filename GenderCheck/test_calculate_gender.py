@@ -25,13 +25,12 @@ class TestIsValidRead():
 
 
 class TestGetGenderFromBam():
-    @pytest.mark.parametrize("bam,mapping_qual,locus_y,ratio_y_female,ratio_y_male,expected", [
-        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.02, 0.12, "male"),  # output male
-        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.22, 0.32, "female"),  # output female
-        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.02, 0.32, "unknown"),  # output unknown
+    @pytest.mark.parametrize("bam,mapping_qual,locus_y,ratio_y,expected", [
+        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.02, "male"),  # output male below
+        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.22, "female"),  # output female
     ])
-    def test_get_gender_from_bam(self, bam, mapping_qual, locus_y, ratio_y_female, ratio_y_male, expected):
-        assert expected == calculate_gender.get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y_female, ratio_y_male)
+    def test_get_gender_from_bam(self, bam, mapping_qual, locus_y, ratio_y, expected):
+        assert expected == calculate_gender.get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y)
 
 
 class TestCompareGender():
