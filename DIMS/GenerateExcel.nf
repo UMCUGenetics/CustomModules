@@ -6,12 +6,13 @@ process GenerateExcel {
 
     input:
        path(collect_file) // input files need to be linked, but called within R script
+       path(identified_file) // input files need to be lined, but called within R script
        path(init_filepath) 
        val(analysis_id) 
        path(relevance_file)
 
     output:
-       path('AdductSums_*.RData')
+       path('AdductSums_*.txt')
        path('*.xlsx'), emit: excel_file 
 
     script:

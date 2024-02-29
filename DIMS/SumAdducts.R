@@ -27,7 +27,7 @@ load(repl_file)
 outlist_part <- get(load(hmdbpart_main_file))
 
 # get the number from the file name
-batch_number <- strsplit(strsplit(basename(hmdbpart_main_file), "main_", fixed = TRUE)[[1]][2], ".RData")[[1]]
+batch_number <- strsplit(basename(hmdbpart_main_file), ".", fixed = TRUE)[[1]][2]
 
 outlist_total <- unique(outlist_ident)
 

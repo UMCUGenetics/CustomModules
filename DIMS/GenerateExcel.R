@@ -591,21 +591,22 @@ if (z_score == 1) {
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
 print("Nu in missing m/z check")
 # Load the outlist_identified files + remove the loaded files
-load(paste0(outdir, "RData/outlist_identified_negative.RData"))
-outlist.ident.neg <- outlist.ident
-load(paste0(outdir, "RData/outlist_identified_positive.RData"))
-outlist.ident.pos <- outlist.ident
-rm(outlist.ident)
+load(paste0(outdir, "/outlist_identified_negative.RData"))
+outlist_ident_neg <- outlist_ident
+load(paste0(outdir, "/outlist_identified_positive.RData"))
+outlist_ident_pos <- outlist_ident
+rm(outlist_ident)
 # check for missing m/z in negative and positive mode
-mode <- c("Negative", "Positive")
+scanmode <- c("Negative", "Positive")
 index <- 1
-results_ident <- c() # empty results list
-outlist_ident_list <- list(outlist.ident.neg, outlist.ident.pos)
-for (outlist.ident in outlist_ident_list) {
-  current_mode <- mode[index]
+results_ident <- c() 
+outlist_ident_list <- list(outlist_ident_neg, outlist_ident_pos)
+for (outlist_ident in outlist_ident_list) {
+  current_mode <- scanmode[index]
   # retrieve all unique m/z values in whole numbers and check if all are available
-  mz_values <- as.numeric(unique(format(outlist.ident$mzmed.pgrp, digits = 0)))
-  mz_range <- seq(70, 599, by = 1) # change accordingly to the machine m/z range. default = 70-600
+  mz_values <- as.numeric(unique(format(outlist_ident$mzmed.pgrp, digits = 0)))
+  # m/z range for a standard run = 70-600
+  mz_range <- seq(70, 599, by = 1)
   mz_missing <- c()
   for (mz in mz_range) {
     if (!mz %in% mz_values) {
@@ -621,8 +622,7 @@ for (outlist.ident in outlist_ident_list) {
   } else {
     results_ident <- c(results_ident, paste0(current_mode, " mode did not have missing mz values"))
   }
-  index <- index + 1 # change to new mode in for loop
+  # change to other scanmode
+  index <- index + 1
 }
-lapply(results_ident, write, file = paste(outdir, "missing_mz_warning.txt", sep = "/"), append = TRUE, ncolumns = 1000)
-
-cat("Ready excelExport.R")
+lapply(results_ident, write, file = paste0(outdir, "/missing_mz_warning.txt"), append = TRUE, ncolumns = 1000)

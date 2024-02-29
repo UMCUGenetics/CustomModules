@@ -45,7 +45,7 @@ for (scanmode in scanmodes) {
       start <- -(sub-1) + i * sub
       end <- i * sub
       outlist_part <- outlist[c(start:end), ]
-      save(outlist_part, file=paste0(scanmode, "_hmdb_main_", i, ".RData"))
+      save(outlist_part, file=paste0(scanmode, "_hmdb_main.", i, ".RData"))
     }
   }
 }
@@ -55,4 +55,4 @@ start <- end + 1
 end <- nr_rows
 
 outlist_part <- outlist[c(start:end),]
-save(outlist_part, file = paste0(scanmode, "_hmdb.", i+1, ".RData"))
+save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i+1, ".RData"))

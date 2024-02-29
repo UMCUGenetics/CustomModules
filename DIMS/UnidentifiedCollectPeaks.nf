@@ -5,7 +5,7 @@ process UnidentifiedCollectPeaks {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(SpectrumPeaks_file)
+       path(SpectrumPeaks_file)  // input files need to be linked, but called within R script
        path(PeakList_identified)
 
     output:
