@@ -5,11 +5,11 @@ process Kinship {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-        tuple(analysis_id, path(vcf_file), path(vcf_index))
+        tuple(val(analysis_id), path(vcf_file), path(vcf_index))
         path(ped_file)
 
     output:
-        tuple(analysis_id, path("${analysis_id}.kinship"), path("${analysis_id}.kinship_check.out"))
+        tuple(val(analysis_id), path("${analysis_id}.kinship"), path("${analysis_id}.kinship_check.out"))
 
     script:
         """

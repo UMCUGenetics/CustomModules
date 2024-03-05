@@ -1,0 +1,15 @@
+metrics:
+  - filename: ".*fake_check.txt$"
+    qc_col: "value"
+    threshold: 0
+    operator: ">"
+    report_cols: ["sample_id", "value"]
+    sample_cols: ["sample_id"]
+    title: "FC"
+  - filename: ".*fake_check.txt$"
+    qc_col: "value"
+    threshold: 0
+    operator: ">"
+    report_cols: ["sample_id", "value"]
+    sample_cols: ["sample_id"]
+    title: "FC2"
