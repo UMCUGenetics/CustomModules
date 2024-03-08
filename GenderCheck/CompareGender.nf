@@ -14,7 +14,7 @@ process CompareGender {
 
     script:
         """
-        python ${baseDir}/CustomModules/GenderCheck/calculate_gender.py \
+        python ${projectDir}/CustomModules/GenderCheck/calculate_gender.py \
             ${sample_id} \
             ${analysis_id} \
             ${bam_file} \
