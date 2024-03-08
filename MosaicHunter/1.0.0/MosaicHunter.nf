@@ -20,7 +20,7 @@ process MosaicHunterGetGender {
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-        path('gender_data_${sample_id}.tsv')
+        path('gender_data_${sample_id}.tsv') into gender_data
 
     // The command to execute MosaicHunter Get Gender
     script:
@@ -56,7 +56,7 @@ process MosaicHunterQualityCorrection {
         path(mh_reference_file)
         path(mh_common_site_filter_bed_file)
         path(mh_config_file_one)
-
+        path(gender_data) from gender_data
 
     /*
     Define outputs.
@@ -68,7 +68,7 @@ process MosaicHunterQualityCorrection {
     // The command to execute MosaicHunter
     shell:
     '''
-    SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
+    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id})
 
     java -Xmx!{task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
 -C !{mh_config_file_one} \
@@ -108,6 +108,7 @@ process MosaicHunterMosaicVariantCalculation {
         path(mh_config_file_two)
         MosaicHunterQualityCorrection.out
         tuple(env(MHALPHA),env(MHBETA))
+        path(gender_data) from gender_data
 
     // Final file, will be renamed to include sample_id and published to output directory
     output:
@@ -117,7 +118,7 @@ process MosaicHunterMosaicVariantCalculation {
     // First get the SEX_STRING from the sample
     shell:
     '''
-    SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
+    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id})
 
     java -Xmx!{task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
 -C !{mh_config_file_two} \
