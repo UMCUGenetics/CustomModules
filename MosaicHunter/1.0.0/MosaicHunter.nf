@@ -5,7 +5,7 @@ process MosaicHunterGetGender {
     // Step 1: Process input files
     tag {"MosaicHunterGetGender ${sample_id}"}
     label 'MosaicHunterGetGender'
-    container = 'quay.io/biocontainers/pysam:0.22.0--py38h15b938a_0'
+    container = 'ghcr.io/umcugenetics/gendercheck_pysam22:1.0.0'
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     /*
