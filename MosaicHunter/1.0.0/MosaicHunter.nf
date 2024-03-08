@@ -25,7 +25,7 @@ process MosaicHunterGetGender {
     // The command to execute MosaicHunter Get Gender
     script:
     '''
-    python ${baseDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
+    python ${projectDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
             ${sample_id} \
             ${bam_files} \
             ./ \
