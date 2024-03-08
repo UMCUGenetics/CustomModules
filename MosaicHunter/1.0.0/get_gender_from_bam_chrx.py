@@ -50,6 +50,14 @@ def get_gender_from_bam_chrx(bam_file_path, mapping_qual, locus_x, ratio_x_thres
 
 
 def write_to_file(sample_id, gender_data, output_folder):
+    """
+    Write the gender data to a tsv file
+
+    Args:
+        sample_id (str): the id of the sample
+        gender_data (tuple): the gender and the forced value as a tuple
+        output_folder (str): the output folder
+    """
     with open(f"{output_folder}/gender_data_{sample_id}.tsv", "w") as csv_file:
         gender, forced = gender_data
         csv_file.write("sample_id\tgender\tforced\n")
