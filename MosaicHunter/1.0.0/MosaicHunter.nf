@@ -1,6 +1,42 @@
 #!/usr/bin/env nextflow
 nextflow.preview.dsl=2
 
+process MosaicHunterGetGender {
+    // Step 1: Process input files
+    tag {"MosaicHunterGetGender ${sample_id}"}
+    label 'MosaicHunterGetGender'
+    container = 'quay.io/biocontainers/pysam:0.22.0--py38h15b938a_0'
+    shell = ['/bin/bash', '-eo', 'pipefail']
+
+    /*
+    Define inputs.
+    - Tuple consisting of a sample_id, a path to the .bam file, a path to the .bai file
+    */
+    input:
+        tuple(val(sample_id), path(bam_files), path(bai_files))
+
+    /*
+    Define outputs.
+    - A tuple containing respectively the number for the alpha and beta found in the sample.
+    */
+    output:
+        path('gender_data_${sample_id}.tsv')
+
+    // The command to execute MosaicHunter Get Gender
+    script:
+    '''
+    python ${baseDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
+            ${sample_id} \
+            ${bam_files} \
+            ./ \
+            ${mh_gender_mapping_qual} \
+            $params.mh_gender_ratio_x_threshold_male \
+            $params.mh_gender_ratio_x_threshold_female \
+            $params.mh_gender_mapping_qual \
+            $params.mh_gender_locus_x
+    '''
+}
+
 process MosaicHunterQualityCorrection {
     // Step 1: Process input files
     tag {"MosaicHunterQualityCorrection ${sample_id}"}
@@ -20,6 +56,7 @@ process MosaicHunterQualityCorrection {
         path(mh_reference_file)
         path(mh_common_site_filter_bed_file)
         path(mh_config_file_one)
+
 
     /*
     Define outputs.
@@ -77,6 +114,7 @@ process MosaicHunterMosaicVariantCalculation {
         path('final.passed.tsv')
 
     // The command to execute step two of MosaicHunter
+    // First get the SEX_STRING from the sample
     shell:
     '''
     SEX_STRING=$(echo "!{sample_id}" | egrep -o '[MF]')
