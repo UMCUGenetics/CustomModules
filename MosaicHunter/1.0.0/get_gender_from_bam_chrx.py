@@ -20,18 +20,19 @@ def get_gender_from_bam_chrx(bam_file_path, mapping_qual, locus_x, ratio_x_thres
 
     # Check ratios
     if ratio_perc <= ratio_x_threshold_male:
-        return "M"
+        return "F", False
     elif ratio_perc >= ratio_x_threshold_female:
-        return "F"
+        return "F", False
     else:
         # Force Female if unknown
-        return "F"
+        return "F", True
 
 
-def write_to_file(sample_id, gender, output_folder):
+def write_to_file(sample_id, gender_data, output_folder):
     with open(f"{output_folder}/gender_data_{sample_id}.tsv", "w") as csv_file:
-        csv_file.write("sample_id\tgender\n")
-        csv_file.write(f"{sample_id}\t{gender}\n")
+        gender, forced = gender_data
+        csv_file.write("sample_id\tgender\tforced\n")
+        csv_file.write(f"{sample_id}\t{gender}\t{forced}\n")
 
 
 if __name__ == "__main__":
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument('locus_x', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
-    gender = get_gender_from_bam_chrx(
+    gender_data = get_gender_from_bam_chrx(
         args.bam,
         args.mapping_qual,
         args.locus_x,
@@ -61,4 +62,4 @@ if __name__ == "__main__":
         args.ratio_x_threshold_female,
     )
 
-    write_to_file(args.sample_id, gender, args.output_folder)
+    write_to_file(args.sample_id, gender_data, args.output_folder)
