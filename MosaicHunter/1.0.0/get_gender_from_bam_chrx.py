@@ -49,7 +49,7 @@ def get_gender_from_bam_chrx(bam_file_path, mapping_qual, locus_x, ratio_x_thres
         return "F", True
 
 
-def write_to_file(sample_id, gender_data, output_folder):
+def write_genderdata_to_file(sample_id, gender_data, output_folder):
     """
     Write the gender data to a tsv file
 
@@ -91,4 +91,4 @@ if __name__ == "__main__":
         args.ratio_x_threshold_female,
     )
 
-    write_to_file(args.sample_id, gender_data, args.output_folder)
+    write_genderdata_to_file(args.sample_id, gender_data, args.output_folder)
