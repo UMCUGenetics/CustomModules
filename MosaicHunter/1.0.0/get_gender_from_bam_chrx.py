@@ -41,7 +41,7 @@ def get_gender_from_bam_chrx(bam_file_path, mapping_qual, locus_x, ratio_x_thres
 
     # Check ratios
     if ratio_perc <= ratio_x_threshold_male:
-        return "F", False
+        return "M", False
     elif ratio_perc >= ratio_x_threshold_female:
         return "F", False
     else:
