@@ -3,14 +3,11 @@ import pytest
 
 
 class TestIsValidRead():
-
-
     class ValidReadObject:
         def __init__(self, qual, start, end):
             self.mapping_quality = qual
             self.reference_start = start
             self.reference_end = end
-
 
     @pytest.mark.parametrize("read,mapping_qual,expected", [
         (ValidReadObject(19, True, True), 20, False),  # mapping quality is below the threshold
