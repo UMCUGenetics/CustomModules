@@ -25,14 +25,14 @@ process MosaicHunterGetGender {
     script:
     '''
     python ${projectDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
-            ${sample_id} \
-            ${bam_files} \
-            ./ \
-            ${mh_gender_mapping_qual} \
-            $params.mh_gender_ratio_x_threshold_male \
-            $params.mh_gender_ratio_x_threshold_female \
-            $params.mh_gender_mapping_qual \
-            $params.mh_gender_locus_x
+        ${sample_id} \
+        ${bam_files} \
+        ./ \
+        ${mh_gender_mapping_qual} \
+        $params.mh_gender_ratio_x_threshold_male \
+        $params.mh_gender_ratio_x_threshold_female \
+        $params.mh_gender_mapping_qual \
+        $params.mh_gender_locus_x
     '''
 }
 
