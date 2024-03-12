@@ -2,7 +2,6 @@
 nextflow.preview.dsl=2
 
 process MosaicHunterGetGender {
-    // Step 1: Process input files
     tag {"MosaicHunterGetGender ${sample_id}"}
     label 'MosaicHunterGetGender'
     container = 'ghcr.io/umcugenetics/gendercheck_pysam22:1.0.0'
