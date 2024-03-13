@@ -109,7 +109,6 @@ process MosaicHunterMosaicVariantCalculation {
         tuple(env(MHALPHA),env(MHBETA))
         path(gender_data) from gender_data
 
-    // Final file, will be renamed to include sample_id and published to output directory
     output:
         path('final.passed.tsv')
 
