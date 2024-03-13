@@ -3,7 +3,7 @@ process CompareGender {
     tag {"CompareGender ${sample_id}"}
     label 'CompareGender'
     label 'CompareGender_Pysam'
-    container = 'ghcr.io/umcugenetics/gendercheck_pysam22:1.0.0'
+    container = 'ghcr.io/umcugenetics/custommodules_gendercheck:1.0.0'
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:

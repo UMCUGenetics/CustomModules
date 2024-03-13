@@ -4,7 +4,7 @@ nextflow.preview.dsl=2
 process MosaicHunterGetGender {
     tag {"MosaicHunterGetGender ${sample_id}"}
     label 'MosaicHunterGetGender'
-    container = 'ghcr.io/umcugenetics/gendercheck_pysam22:1.0.0'
+    container = 'ghcr.io/umcugenetics/custommodules_gendercheck:1.0.0'
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     /*
