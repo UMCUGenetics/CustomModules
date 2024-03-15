@@ -66,7 +66,7 @@ process MosaicHunterQualityCorrection {
     // The command to execute MosaicHunter
     shell:
     '''
-    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id})
+    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id}.tsv)
 
     java -Xmx!{task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
 -C !{mh_config_file_one} \
@@ -115,7 +115,7 @@ process MosaicHunterMosaicVariantCalculation {
     // First get the SEX_STRING from the sample
     shell:
     '''
-    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id})
+    SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id}.tsv)
 
     java -Xmx!{task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
 -C !{mh_config_file_two} \
