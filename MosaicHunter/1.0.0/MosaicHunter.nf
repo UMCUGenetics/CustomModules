@@ -19,7 +19,7 @@ process MosaicHunterGetGender {
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-        path('gender_data_${sample_id}.tsv') into gender_data
+        path("gender_data_${sample_id}.tsv", emit: mh_gender)
 
     // The command to execute MosaicHunter Get Gender
     script:
@@ -28,7 +28,6 @@ process MosaicHunterGetGender {
             ${sample_id} \
             ${bam_files} \
             ./ \
-            ${mh_gender_mapping_qual} \
             $params.mh_gender_ratio_x_threshold_male \
             $params.mh_gender_ratio_x_threshold_female \
             $params.mh_gender_mapping_qual \
@@ -55,7 +54,7 @@ process MosaicHunterQualityCorrection {
         path(mh_reference_file)
         path(mh_common_site_filter_bed_file)
         path(mh_config_file_one)
-        path(gender_data) from gender_data
+        path(gender_data)
 
     /*
     Define outputs.
