@@ -19,12 +19,12 @@ process MosaicHunterGetGender {
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-        path("gender_data_${sample_id}.tsv", emit: mh_gender)
+        tuple(val(sample_id), path("gender_data_${sample_id}.tsv"))
 
     // The command to execute MosaicHunter Get Gender
     script:
         """
-        python ${projectDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
+        python ${workflow.projectDir}/CustomModules/MosaicHunter/1.0.0/get_gender_from_bam_chrx.py \
             ${sample_id} \
             ${bam_files} \
             ./ \
@@ -50,18 +50,17 @@ process MosaicHunterQualityCorrection {
     - Path to the MosaicHunter config file for the Quality Correction step
     */
     input:
-        tuple(val(sample_id), path(bam_files), path(bai_files))
+        tuple(val(sample_id), path(bam_files), path(bai_files), path(gender_data))
         path(mh_reference_file)
         path(mh_common_site_filter_bed_file)
         path(mh_config_file_one)
-        path(gender_data)
 
     /*
     Define outputs.
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-        tuple(env(MHALPHA), env(MHBETA))
+        tuple(sample_id, env(MHALPHA), env(MHBETA))
 
     // The command to execute MosaicHunter
     shell:
@@ -100,13 +99,10 @@ process MosaicHunterMosaicVariantCalculation {
       sample, which are stored in an environment variable.
     */
     input:
-        tuple(val(sample_id), path(bam_files), path(bai_files))
+        tuple(val(sample_id), path(bam_files), path(bai_files), path(gender_data), env(MHALPHA), env(MHBETA))
         path(mh_reference_file)
         path(mh_common_site_filter_bed_file)
         path(mh_config_file_two)
-        MosaicHunterQualityCorrection.out
-        tuple(env(MHALPHA),env(MHBETA))
-        path(gender_data) from gender_data
 
     output:
         path('final.passed.tsv')
