@@ -68,12 +68,12 @@ process MosaicHunterQualityCorrection {
     SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id}.tsv)
 
     java -Xmx!{task.memory.toGiga()-4}G -jar /MosaicHunter/build/mosaichunter.jar \
--C !{mh_config_file_one} \
--P input_file=!{bam_files} \
--P mosaic_filter.sex=$SEX_STRING \
--P reference_file=!{mh_reference_file} \
--P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
--P output_dir=./
+    -C !{mh_config_file_one} \
+    -P input_file=!{bam_files} \
+    -P mosaic_filter.sex=$SEX_STRING \
+    -P reference_file=!{mh_reference_file} \
+    -P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
+    -P output_dir=./
     export MHALPHA="\$(grep -Po "(?<=alpha:\\s)\\w+" ./stdout*)"
     export MHBETA="\$(grep -Po "(?<=beta:\\s)\\w+" ./stdout*)"
     '''
@@ -114,12 +114,12 @@ process MosaicHunterMosaicVariantCalculation {
     SEX_STRING=$(awk 'NR>1 {print $2}' gender_data_!{sample_id}.tsv)
 
     java -Xmx!{task.memory.toGiga()-8}G -jar /MosaicHunter/build/mosaichunter.jar \
--C !{mh_config_file_two} \
--P mosaic_filter.alpha_param=$MHALPHA -P mosaic_filter.beta_param=$MHBETA \
--P input_file=!{bam_files} \
--P mosaic_filter.sex=$SEX_STRING \
--P reference_file=!{mh_reference_file} \
--P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
--P output_dir=./
+    -C !{mh_config_file_two} \
+    -P mosaic_filter.alpha_param=$MHALPHA -P mosaic_filter.beta_param=$MHBETA \
+    -P input_file=!{bam_files} \
+    -P mosaic_filter.sex=$SEX_STRING \
+    -P reference_file=!{mh_reference_file} \
+    -P common_site_filter.bed_file=!{mh_common_site_filter_bed_file} \
+    -P output_dir=./
     '''
 }
