@@ -19,7 +19,7 @@ process VersionLog {
             echo "\${git_dir}" >> repository_version.log
             git --git-dir=\${git_dir}/.git log --pretty=oneline --decorate -n 2 >> repository_version.log
             described_tags=\$(git describe --tags)
-            echo "\${git_dir}: \"${described_tags}\"" >> versions.yml
+            echo "\${git_dir}: \"\${described_tags}\"" >> versions.yml
         done
         """
 }
