@@ -1,12 +1,12 @@
 ## adapted from fitGaussianInit.R
 # variables with fixed values will be removed from function parameters
-# int_factor, scale, outdir, plot, thresh, width, height
+# scale, outdir, plot, width, height
 # mz_index, start_index, end_index, sample_name not used.
 # fit_gaussian should be defined before this function is called.
 fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
                      outdir, sample_name, scanmode, plot, width, height,
                      mz_index, start_index, end_index) {
-  #' Initial fit of Gaussian curve to small region of m/z
+  #' Determine initial fit of Gaussian curve to small region of m/z
   #'
   #' @param mass_vector: Vector of m/z values for a region of interest (float)
   #' @param int_vector: Vector of intensities for a region of interest (float)
@@ -37,7 +37,7 @@ fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
   roi_values <- fit_gaussian(mass_vector2, mass_vector, int_vector, max_index,
                              scale, resol, outdir, force = length(max_index),
                              useBounds = FALSE, plot, scanmode, int_factor, width, height)
-
+  # put all values for this region of interest into a list
   roi_value_list <- list("mean" = roi_values$mean,
                          "area" = roi_values$area,
                          "qual" = roi_values$qual,
