@@ -13,6 +13,6 @@ process CheckQC {
 
     script:
         """
-        python ${baseDir}/CustomModules/CheckQC/check_qc.py ${params.qc_settings_path} '.' ${identifier} ${input_files} 
+        python ${projectDir}/CustomModules/CheckQC/check_qc.py ${params.qc_settings_path} '.' ${identifier} ${input_files}
         """
 }
