@@ -5,16 +5,14 @@ process UnidentifiedCollectPeaks {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(SpectrumPeaks_file)  // input files need to be linked, but called within R script
-       path(PeakList_identified)
+       path(spectrumpeaks_file)
+       path(peaklist_identified)
 
     output:
        path('SpectrumPeaks_*_Unidentified.RData')
-       // path('SpectrumPeaks_negative_Unidentified.RData')
-       // path('SpectrumPeaks_positive_Unidentified.RData')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/UnidentifiedCollectPeaks.R $SpectrumPeaks_file $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/UnidentifiedCollectPeaks.R $spectrumpeaks_file $params.ppm
         """
 }

@@ -5,23 +5,26 @@ process AverageTechReplicates {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(RData_file)     // input files need to be linked, but called within R script
-       path(TIC_txt_files)  // input files need to be linked, but called within R script
-       path(init_filepath)
+       path(rdata_file)
+       path(tic_txt_files)
+       path(init_file)
        val(nr_replicates)
        val(analysis_id)
        val(matrix)
-       path(highest_mz)
+       path(highest_mz_file)
 
     output:
-       path('*_repl_pattern.RData'), emit: patterns
-       path('*_avg.RData'), emit: binned
+       path('*_repl_pattern.RData'), emit: pattern_files
+       path('*_avg.RData'), emit: binned_files
        path('miss_infusions_negative.txt')
        path('miss_infusions_positive.txt')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_filepath $params.nr_replicates $analysis_id $matrix $highest_mz
+        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_file \
+                                                                      $params.nr_replicates \
+                                                                      $analysis_id $matrix \
+                                                                      $highest_mz_file
         """
 }
 

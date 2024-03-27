@@ -56,8 +56,8 @@ while (dim(hmdb_add_iso)[1] > 0) {
   selp <- which((mzmed > (reference_mass - mass_tolerance)) & (mzmed < (reference_mass + mass_tolerance)))
   tmplist <- outlist_copy[selp, , drop = FALSE]
   list_of_peaks_used_in_peak_groups_identified <- rbind(list_of_peaks_used_in_peak_groups_identified, tmplist)
-
   nrsamples <- length(selp)
+  # if peaks have been found, create a peak group
   if (nrsamples > 0) {
     mzmed_pgrp <- mean(as.numeric(outlist_copy[selp, "mzmed.pkt"]))
     mzmin_pgrp <- reference_mass - mass_tolerance
@@ -81,7 +81,7 @@ while (dim(hmdb_add_iso)[1] > 0) {
     assi_hmdb <- iso_hmdb <- hmdb_code <- NA
     tmplist_mass_iso <- tmplist_mass_adduct <- NULL
 
-    # Identification: find all entries in HMDB part with mass within ppm range
+    # find all entries in HMDB part with mass within ppm range
     mass_all <- as.numeric(hmdb_add_iso[, column_label])
     index <- which((mass_all > (reference_mass - mass_tolerance)) & (mass_all < (reference_mass + mass_tolerance)))
     tmplist_mass <- hmdb_add_iso[index, , drop = FALSE]
@@ -103,24 +103,30 @@ while (dim(hmdb_add_iso)[1] > 0) {
         }
       }
 
-      # Compose a list compounds, adducts or isotopes with corresponding m/z
+      # Compose a list of compounds, adducts or isotopes with corresponding m/z
       if (dim(tmplist_mass)[1] > 0) {
         # metabolites
-        assi_hmdb <- as.character(paste(as.character(tmplist_mass[, "CompoundName"]), collapse = ";"))
-        hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass)), collapse = ";"))
+        assi_hmdb <- as.character(paste(as.character(tmplist_mass[, "CompoundName"]), 
+					collapse = ";"))
+        hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass)), 
+					collapse = ";"))
         theormz_hmdb <- as.numeric(tmplist_mass[1, column_label])
 
         # adducts of metabolites
         if (!is.null(tmplist_mass_adduct)) {
           if (dim(tmplist_mass_adduct)[1] > 0) {
             if (is.na(assi_hmdb)) {
-              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), collapse = ";"))
-              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), collapse = ";"))
+              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+					      collapse = ";"))
+              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+					      collapse = ";"))
             } else {
               assi_hmdb <- paste(assi_hmdb,
-                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), collapse = ";")), sep = ";")
+                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+						    collapse = ";")), sep = ";")
               hmdb_code <- paste(hmdb_code,
-                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), collapse = ";")), sep = ";")
+                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+						    collapse = ";")), sep = ";")
             }
           }
         }
@@ -128,7 +134,8 @@ while (dim(hmdb_add_iso)[1] > 0) {
         # isotopes of metabolites
         if (!is.null(tmplist_mass_iso)) {
           if (dim(tmplist_mass_iso)[1] > 0) {
-            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), collapse = ";"))
+            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), 
+					   collapse = ";"))
           }
         }
 
@@ -140,13 +147,17 @@ while (dim(hmdb_add_iso)[1] > 0) {
         if (!is.null(tmplist_mass_adduct)) {
           if (dim(tmplist_mass_adduct)[1] > 0) {
             if (is.na(assi_hmdb)) {
-              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), collapse = ";"))
-              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), collapse = ";"))
+              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+					      collapse = ";"))
+              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+					      collapse = ";"))
             } else {
               assi_hmdb <- paste(assi_hmdb,
-                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), collapse = ";")), sep = ";")
+                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+						    collapse = ";")), sep = ";")
               hmdb_code <- paste(hmdb_code,
-                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), collapse = ";")), sep = ";")
+                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+						    collapse = ";")), sep = ";")
             }
           }
         }
@@ -154,7 +165,8 @@ while (dim(hmdb_add_iso)[1] > 0) {
         # isotopes of metabolites
         if (!is.null(tmplist_mass_iso)) {
           if (dim(tmplist_mass_iso)[1] > 0) {
-            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), collapse = ";"))
+            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), 
+					   collapse = ";"))
           }
         }
 
@@ -162,7 +174,8 @@ while (dim(hmdb_add_iso)[1] > 0) {
       } else if (!is.null(tmplist_mass_iso)) {
         if (dim(tmplist_mass_iso)[1] > 0) {
           theormz_hmdb <- as.numeric(tmplist_mass_iso[1, column_label])
-          iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), collapse = ";"))
+          iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), 
+					 collapse = ";"))
         }
       }
     }
@@ -179,7 +192,6 @@ while (dim(hmdb_add_iso)[1] > 0) {
   # remove index metabolite from HMDB part and continue while loop
   hmdb_add_iso <- hmdb_add_iso[-index, ]
 }
-
 
 # save peak list corresponding to masses in HMDB part
 save(list_of_peaks_used_in_peak_groups_identified, file = paste0(batch_number, "_", scanmode, "_peaks_used.RData"))

@@ -4,19 +4,19 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-scripts_dir        <- cmd_args[1]
-ppm     <- as.numeric(cmd_args[2])
+scripts_dir <- cmd_args[1]
+ppm <- as.numeric(cmd_args[2])
 z_score <- as.numeric(cmd_args[3])
 
-source(paste0(scripts_dir, "AddOnFunctions/mergeDuplicatedRows.R"))
-source(paste0(scripts_dir, "AddOnFunctions/statistics_z.R"))
+source(paste0(scripts_dir, "mergeDuplicatedRows.R"))
+source(paste0(scripts_dir, "statistics_z.R"))
 
 # for each scan mode, collect all filled peak group lists
 scanmodes <- c("positive", "negative")
 
 for (scanmode in scanmodes) {
   # get list of files
-  filled_file <- paste0("./PeakGroupList_", scanmode, "_Unidentified_filled.RData")
+  filled_file <- paste0("PeakGroupList_", scanmode, "_Unidentified_filled.RData")
   # load file
   outlist_total <- get(load(filled_file))
 
@@ -36,7 +36,8 @@ for (scanmode in scanmodes) {
     nr_removed_samples <- length(which(repl_pattern[] == "character(0)"))
     order_index_int <- order(colnames(outlist_stats)[8:(length(repl_pattern) - nr_removed_samples + 7)])
     outlist_stats_more <- cbind(outlist_stats[, 1:7],
-                                outlist_stats[, (length(repl_pattern) - nr_removed_samples + 8):(length(repl_pattern) - nr_removed_samples + 8 + 6)],
+                                outlist_stats[, (length(repl_pattern) - nr_removed_samples + 8):
+					      (length(repl_pattern) - nr_removed_samples + 8 + 6)],
                                 outlist_stats[, 8:(length(repl_pattern) - nr_removed_samples + 7)][order_index_int],
                                 outlist_stats[, (length(repl_pattern) - nr_removed_samples + 5 + 10):ncol(outlist_stats)])
 
@@ -50,10 +51,9 @@ for (scanmode in scanmodes) {
 
   outlist_not_ident <- outlist_total
 
-  # Extra output in Excel-readable format:
+  # Save output
   remove_columns <- c("fq.best", "fq.worst", "mzmin.pgrp", "mzmax.pgrp")
   remove_colindex <- which(colnames(outlist_not_ident) %in% remove_columns)
   outlist_not_ident <- outlist_not_ident[, -remove_colindex]
-  write.table(outlist_not_ident, file = paste0("unidentified_outlist_", scanmode, ".txt"), sep = "\t", row.names = FALSE)
-
+  save(outlist_not_ident, file = paste0("unidentified_outlist_", scanmode, ".RData"))
 }

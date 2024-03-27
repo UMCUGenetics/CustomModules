@@ -5,7 +5,7 @@ process CollectSumAdducts {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(collect_file) // input files need to be linked, but called within R script
+       path(collect_files)
 
     output:
        path('AdductSums_*.RData')

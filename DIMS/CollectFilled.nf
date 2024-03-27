@@ -6,7 +6,7 @@ process CollectFilled {
 
     input:
        path(filled_files)
-       each path(replication_pattern)  // input files need to be linked, but called within R script
+       each path(replication_pattern)
 
     output:
        path('outlist*.txt')

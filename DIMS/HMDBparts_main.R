@@ -4,11 +4,11 @@
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-db_path <- cmd_args[1]
-breaks_filepath <- cmd_args[2]
+db_file <- cmd_args[1]
+breaks_file <- cmd_args[2]
 
-load(db_path)
-load(breaks_filepath)
+load(db_file)
+load(breaks_file)
 
 # Cut up HMDB minus adducts minus isotopes into small parts 
 scanmodes <- c("positive", "negative")
@@ -26,14 +26,14 @@ for (scanmode in scanmodes) {
              HMDB_add_iso[ ,column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
 
   # remove adducts and isotopes, put internal standard at the beginning
-  outlist_IS <- outlist[grep("IS", outlist[ , "CompoundName"], fixed = TRUE), ]
+  outlist_is <- outlist[grep("IS", outlist[ , "CompoundName"], fixed = TRUE), ]
   outlist <- outlist[grep("HMDB", rownames(outlist), fixed = TRUE), ]
   outlist <- outlist[-grep("_", rownames(outlist), fixed = TRUE), ]
-  outlist <- rbind(outlist_IS, outlist)
+  outlist <- rbind(outlist_is, outlist)
   # sort on m/z value
   outlist <- outlist[order(outlist[ , column_label]), ]
-
   nr_rows <- dim(outlist)[1]
+
   # size of hmdb parts in lines:
   sub <- 1000
   end <- 0
@@ -42,7 +42,7 @@ for (scanmode in scanmodes) {
   # generate hmdb parts
   if (nr_rows >= sub & (floor(nr_rows / sub)) >= 2) {
     for (i in 1:floor(nr_rows / sub)) {
-      start <- -(sub-1) + i * sub
+      start <- -(sub - 1) + i * sub
       end <- i * sub
       outlist_part <- outlist[c(start:end), ]
       save(outlist_part, file=paste0(scanmode, "_hmdb_main.", i, ".RData"))
@@ -54,5 +54,5 @@ for (scanmode in scanmodes) {
 start <- end + 1
 end <- nr_rows
 
-outlist_part <- outlist[c(start:end),]
-save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i+1, ".RData"))
+outlist_part <- outlist[c(start:end), ]
+save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i + 1, ".RData"))

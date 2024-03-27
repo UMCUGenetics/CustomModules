@@ -1,15 +1,6 @@
 #!/usr/bin/Rscript
 ## adapted from 13-excelExport.R
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
-
-init_filepath <- cmd_args[1]
-project       <- cmd_args[2]
-dims_matrix   <- cmd_args[3]
-hmdb          <- cmd_args[4]
-z_score       <- as.numeric(cmd_args[5])
-
 # load required packages
 library("ggplot2")
 library("reshape2")
@@ -18,55 +9,65 @@ library("loder")
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
+# define parameters
+cmd_args <- commandArgs(trailingOnly = TRUE)
+
+init_file <- cmd_args[1]
+project <- cmd_args[2]
+dims_matrix <- cmd_args[3]
+hmdb_file <- cmd_args[4]
+z_score <- as.numeric(cmd_args[5])
+
 round_df <- function(df, digits) {
-  #' function for rounding numbers to x digits for numeric values
+  #' Round numbers to a set number of digits for numeric values
   #'
-  #' @param df dataframe
-  #' @param digits integer number of digits to round off to
+  #' @param df: Dataframe containing numeric values
+  #' @param digits: Number of digits to round off to (integer)
   #'
-  #' @return df
+  #' @return df: Dataframe with rounded numbers
   numeric_columns <- sapply(df, mode) == "numeric"
   df[numeric_columns] <- round(df[numeric_columns], digits)
   return(df)
 }
 
 robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
-  #' calculate robust scaler: Z-score based on controls without outliers
+  #' Calculate robust scaler: Z-score based on controls without outliers
   #'
-  #' @param control_intensities matrix with intensities for control samples
-  #' @param control_col_ids vector with column names for control samples
-  #' @param perc float percentage of outliers which will be removed from controls
+  #' @param control_intensities: Matrix with intensities for control samples
+  #' @param control_col_ids: Vector with column names for control samples
+  #' @param perc: Percentage of outliers which will be removed from controls (float)
   #'
-  #' @return trimmed_control_intensities
+  #' @return trimmed_control_intensities: Intensities trimmed for outliers
   nr_toremove <- ceiling(length(control_col_ids) * perc / 100)
   sorted_control_intensities <- sort(as.numeric(control_intensities))
-  trimmed_control_intensities <- sorted_control_intensities[(nr_toremove + 1) : (length(sorted_control_intensities) - nr_toremove)]
+  trimmed_control_intensities <- sorted_control_intensities[(nr_toremove + 1) : 
+							    (length(sorted_control_intensities) - nr_toremove)]
   return(trimmed_control_intensities)
 }
 
-# Initialise and load data
-plot   <- TRUE
+# Initialise
+plot <- TRUE
 export <- TRUE
 control_label <- "C"
-case_label    <- "P"
+case_label <- "P"
 imagesize_multiplier <- 2
-# setting outdir to export files to the project directory
+# setting outdir to export files to the working directory
 outdir <- "./"
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 
 # load information on samples
-load(init_filepath)
+load(init_file)
 # load the HMDB file with info on biological relevance of metabolites
-load(hmdb)
+load(hmdb_file)
 
 # get current date
 rundate <- Sys.Date()
 
 # create a directory for plots in project directory
-plotdir <- paste0(outdir, "/plots/adducts")
 dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
-dir.create(plotdir, showWarnings = FALSE)
+plot_dir <- paste0(outdir, "/plots/adducts")
+dir.create(plot_dir, showWarnings = FALSE)
 
 # set the number of digits for floats
 options(digits = 16)
@@ -128,11 +129,14 @@ if (z_score == 1) {
 
   # Get columns with control intensities
   control_col_ids <- grep(control_label, colnames(outlist), fixed = TRUE)
-  control_columns <- outlist[, control_col_ids]
+  control_columns <- as.data.frame(outlist[, control_col_ids])
+  colnames(control_columns) <- colnames(outlist)[control_col_ids]
 
   # Get columns with patient intensities
   patient_col_ids <- grep(case_label, colnames(outlist), fixed = TRUE)
-  patient_columns <- outlist[, patient_col_ids]
+  patient_columns <- as.data.frame(outlist[, patient_col_ids])
+  colnames(patient_columns) <- colnames(outlist)[patient_col_ids]
+
   intensity_col_ids <- c(control_col_ids, patient_col_ids)
 
   # if there are any intensities of 0 left, set them to NA for stats
@@ -198,7 +202,13 @@ if (z_score == 1) {
     for (i in 1:length(patient_ids)) {
       id <- patient_ids[i]
       # combine all intensities that start with the same string for patients
-      patient_int <- as.numeric(as.vector(unlist(outlist[p, names(patient_columns[1, ])[startsWith(names(patient_columns[1, ]), paste0(id, "."))]])))
+      # exception: if there is only one patient id, skip this step; nothing to combine
+      if (ncol(patient_columns) > 1) {
+        patient_int <- as.numeric(as.vector(unlist(outlist[p, names(patient_columns[1, ])
+  						 [startsWith(names(patient_columns[1, ]), paste0(id, "."))]])))
+      } else {
+	patient_int <- as.numeric(unlist(as.vector(patient_columns)))
+      }
       intensities[[i + 1]] <- patient_int
     }
     intensities <- setNames(intensities, labels)
@@ -207,7 +217,7 @@ if (z_score == 1) {
 
     plot.new()
     if (export) {
-      png(filename = paste0(plotdir, "/", hmdb_name, "_box.png"),
+      png(filename = paste0(plot_dir, "/", hmdb_name, "_box.png"),
           width = plot_width,
           height = 280)
     }
@@ -220,7 +230,7 @@ if (z_score == 1) {
             main = hmdb_name)
     dev.off()
 
-    file_png <- paste0(plotdir, "/", hmdb_name, "_box.png")
+    file_png <- paste0(plot_dir, "/", hmdb_name, "_box.png")
     if (is.null(temp_png)) {
       temp_png <- readPng(file_png)
       img_dim <- dim(temp_png)[c(1, 2)]
@@ -248,23 +258,25 @@ if (z_score == 1) {
   setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
   setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
 }
+
 # write Excel file
 writeData(wb, sheet = 1, outlist, startCol = 1)
 xlsx_name <- paste0(outdir, "/", project, ".xlsx")
 saveWorkbook(wb, xlsx_name, overwrite = TRUE)
-cat(xlsx_name)
 rm(wb)
 
-#### INTERNE STANDAARDEN ####
-IS <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
-IS_codes <- rownames(IS)
-cat(IS_codes, "\n")
+#### INTERNAL STANDARDS ####
+is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
+is_codes <- rownames(is_list)
 
-# if all data from one samplename (for example P195.1) is filtered out in 3-averageTechReplicates because of too little data (threshold parameter) the init.RData (repl_pattern) will contain more sample_names then the peak data (IS),
-# thus this data needs to be removed first, before the retrieval of the summed adducts. Write sample_names to a log file, to let user know that this sample_name contained no data.
-sample_names_nodata <- setdiff(names(repl_pattern), names(IS))
+# if all data from one samplename (for example P195.1) is filtered out in 3-averageTechReplicates 
+# because of too little data (threshold parameter)i, the init.RData (repl_pattern) will contain more sample_names 
+# than the peak data (IS), so this data needs to be removed first, before the retrieval of the summed adducts. 
+# Write sample_names to a log file, to let user know that this sample_name contained no data.
+sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
 if (!is.null(sample_names_nodata)) {
-  write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"), row.names = FALSE, col.names = FALSE, quote = FALSE)
+  write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"), 
+	      row.names = FALSE, col.names = FALSE, quote = FALSE)
   cat(sample_names_nodata, "\n")
   for (sample_name in sample_names_nodata) {
     repl_pattern[[sample_name]] <- NULL
@@ -272,324 +284,327 @@ if (!is.null(sample_names_nodata)) {
 }
 
 # Retrieve IS summed adducts
-IS_summed <- IS[c(names(repl_pattern), "HMDB_code")]
-IS_summed$HMDB.name <- IS$name
-IS_summed <- reshape2::melt(IS_summed, id.vars = c("HMDB_code", "HMDB.name"))
-colnames(IS_summed) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-IS_summed$Intensity <- as.numeric(IS_summed$Intensity)
-IS_summed$Matrix <- dims_matrix
-IS_summed$Rundate <- rundate
-IS_summed$Project <- project
-IS_summed$Intensity <- as.numeric(as.character(IS_summed$Intensity))
+is_summed <- is_list[c(names(repl_pattern), "HMDB_code")]
+is_summed$HMDB.name <- is_list$name
+is_summed <- reshape2::melt(is_summed, id.vars = c("HMDB_code", "HMDB.name"))
+colnames(is_summed) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+is_summed$Intensity <- as.numeric(is_summed$Intensity)
+is_summed$Matrix <- dims_matrix
+is_summed$Rundate <- rundate
+is_summed$Project <- project
+is_summed$Intensity <- as.numeric(as.character(is_summed$Intensity))
 
 # Retrieve IS positive mode
-IS_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% IS_codes))
-IS_pos$HMDB_name <- IS[match(row.names(IS_pos), IS$HMDB_code, nomatch = NA), "name"]
-IS_pos$HMDB.code <- row.names(IS_pos)
-IS_pos <- reshape2::melt(IS_pos, id.vars = c("HMDB.code", "HMDB_name"))
-colnames(IS_pos) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-IS_pos$Matrix <- dims_matrix
-IS_pos$Rundate <- rundate
-IS_pos$Project <- project
-IS_pos$Intensity <- as.numeric(as.character(IS_pos$Intensity))
+is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
+is_pos$HMDB_name <- is_list[match(row.names(is_pos), is_list$HMDB_code, nomatch = NA), "name"]
+is_pos$HMDB.code <- row.names(is_pos)
+is_pos <- reshape2::melt(is_pos, id.vars = c("HMDB.code", "HMDB_name"))
+colnames(is_pos) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+is_pos$Matrix <- dims_matrix
+is_pos$Rundate <- rundate
+is_pos$Project <- project
+is_pos$Intensity <- as.numeric(as.character(is_pos$Intensity))
 
 # Retrieve IS negative mode
-IS_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% IS_codes))
-IS_neg$HMDB_name <- IS[match(row.names(IS_neg), IS$HMDB_code, nomatch = NA), "name"]
-IS_neg$HMDB.code <- row.names(IS_neg)
-IS_neg <- reshape2::melt(IS_neg, id.vars = c("HMDB.code", "HMDB_name"))
-colnames(IS_neg) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-IS_neg$Matrix <- dims_matrix
-IS_neg$Rundate <- rundate
-IS_neg$Project <- project
-IS_neg$Intensity <- as.numeric(as.character(IS_neg$Intensity))
+is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
+is_neg$HMDB_name <- is_list[match(row.names(is_neg), is_list$HMDB_code, nomatch = NA), "name"]
+is_neg$HMDB.code <- row.names(is_neg)
+is_neg <- reshape2::melt(is_neg, id.vars = c("HMDB.code", "HMDB_name"))
+colnames(is_neg) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+is_neg$Matrix <- dims_matrix
+is_neg$Rundate <- rundate
+is_neg$Project <- project
+is_neg$Intensity <- as.numeric(as.character(is_neg$Intensity))
 
 # Save results
-save(IS_pos, IS_neg, IS_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
+save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
 
 # number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
 
 # change the order of the x-axis summed plots to a natural sorted one
-Sample_naturalorder <- unique(as.character(IS_summed$Sample))
-Sample_naturalorder <- str_sort(Sample_naturalorder, numeric = TRUE)
-IS_summed$Sample_level <- factor(IS_summed$Sample, levels = c(Sample_naturalorder))
-IS_pos$Sample_level <- factor(IS_pos$Sample, levels = c(Sample_naturalorder))
-IS_neg$Sample_level <- factor(IS_neg$Sample, levels = c(Sample_naturalorder))
+sample_naturalorder <- unique(as.character(is_summed$Sample))
+sample_naturalorder <- str_sort(sample_naturalorder, numeric = TRUE)
+is_summed$Sample_level <- factor(is_summed$Sample, levels = c(sample_naturalorder))
+is_pos$Sample_level <- factor(is_pos$Sample, levels = c(sample_naturalorder))
+is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
 
 ## bar plots with all IS
-
-# function for ggplot theme
 # theme for all IS bar plots
-theme_IS_bar <- function(myPlot) {
-  myPlot +
+theme_is_bar <- function(my_plot) {
+  my_plot +
     scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-    theme(
-      legend.position = "none",
-      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
-      axis.text.y = element_text(size = 6)
+    theme(legend.position = "none", 
+	  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6), 
+	  axis.text.y = element_text(size = 6)
     )
 }
 
 # ggplot functions
-IS_neg_bar_plot <- ggplot(IS_neg, aes(Sample_level, Intensity)) +
+is_neg_bar_plot <- ggplot(is_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
-IS_pos_bar_plot <- ggplot(IS_pos, aes(Sample_level, Intensity)) +
+is_pos_bar_plot <- ggplot(is_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
-IS_sum_bar_plot <- ggplot(IS_summed, aes(Sample_level, Intensity)) +
+is_sum_bar_plot <- ggplot(is_summed, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Summed)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
 # add theme to ggplot functions
-IS_neg_bar_plot <- theme_IS_bar(IS_neg_bar_plot)
-IS_pos_bar_plot <- theme_IS_bar(IS_pos_bar_plot)
-IS_sum_bar_plot <- theme_IS_bar(IS_sum_bar_plot)
+is_neg_bar_plot <- theme_is_bar(is_neg_bar_plot)
+is_pos_bar_plot <- theme_is_bar(is_pos_bar_plot)
+is_sum_bar_plot <- theme_is_bar(is_sum_bar_plot)
 
 # save plots to disk
 plot_width <- 9 + 0.35 * sample_count
-ggsave(paste0(outdir, "/plots/IS_bar_all_neg.png"), plot = IS_neg_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_bar_all_pos.png"), plot = IS_pos_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_bar_all_sum.png"), plot = IS_sum_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_all_neg.png"), 
+       plot = is_neg_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_all_pos.png"), 
+       plot = is_pos_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_all_sum.png"), 
+       plot = is_sum_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 ## Line plots with all IS
-
 # function for ggplot theme
 # add smaller legend in the "all IS line plots", otherwise out-of-range when more than 13 IS lines
-theme_IS_line <- function(myPlot) {
-  myPlot +
-    guides(
-      shape = guide_legend(override.aes = list(size = 0.5)),
-      color = guide_legend(override.aes = list(size = 0.5))
+theme_is_line <- function(my_plot) {
+  my_plot +
+    guides(shape = guide_legend(override.aes = list(size = 0.5)), 
+	   color = guide_legend(override.aes = list(size = 0.5))
     ) +
-    theme(
-      legend.title = element_text(size = 8),
-      legend.text = element_text(size = 6),
-      legend.key.size = unit(0.7, "line"),
-      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)
+    theme(legend.title = element_text(size = 8), 
+	  legend.text = element_text(size = 6), 
+	  legend.key.size = unit(0.7, "line"), 
+	  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)
     )
 }
 
 # ggplot functions
-IS_neg_line_plot <- ggplot(IS_neg, aes(Sample_level, Intensity)) +
+is_neg_line_plot <- ggplot(is_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-IS_pos_line_plot <- ggplot(IS_pos, aes(Sample_level, Intensity)) +
+is_pos_line_plot <- ggplot(is_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-IS_sum_line_plot <- ggplot(IS_summed, aes(Sample_level, Intensity)) +
+is_sum_line_plot <- ggplot(is_summed, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
 # add theme to ggplot functions
-IS_sum_line_plot <- theme_IS_line(IS_sum_line_plot)
-IS_neg_line_plot <- theme_IS_line(IS_neg_line_plot)
-IS_pos_line_plot <- theme_IS_line(IS_pos_line_plot)
+is_sum_line_plot <- theme_is_line(is_sum_line_plot)
+is_neg_line_plot <- theme_is_line(is_neg_line_plot)
+is_pos_line_plot <- theme_is_line(is_pos_line_plot)
 
 # save plots to disk
 plot_width <- 8 + 0.2 * sample_count
-ggsave(paste0(outdir, "/plots/IS_line_all_neg.png"), plot = IS_neg_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_line_all_pos.png"), plot = IS_pos_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_line_all_sum.png"), plot = IS_sum_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_all_neg.png"), 
+       plot = is_neg_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_all_pos.png"), 
+       plot = is_pos_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_all_sum.png"), 
+       plot = is_sum_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 ## bar plots with a selection of IS
-IS_neg_selection <- c("2H2-Ornithine (IS)", "2H3-Glutamate (IS)", "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)", "13C6-Tyrosine (IS)")
-IS_pos_selection <- c("2H4-Alanine (IS)", "13C6-Phenylalanine (IS)", "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)", "2H9-Isovalerylcarnitine (IS)")
-IS_sum_selection <- c("2H8-Valine (IS)", "2H3-Leucine (IS)", "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)", "13C6-Tyrosine (IS)")
+is_neg_selection <- c("2H2-Ornithine (IS)", "2H3-Glutamate (IS)", "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)", 
+		      "13C6-Tyrosine (IS)")
+is_pos_selection <- c("2H4-Alanine (IS)", "13C6-Phenylalanine (IS)", "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)", 
+		      "2H9-Isovalerylcarnitine (IS)")
+is_sum_selection <- c("2H8-Valine (IS)", "2H3-Leucine (IS)", "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)", 
+		      "13C6-Tyrosine (IS)")
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
-  hline.data.neg <-
+  hline_data_neg <-
     data.frame(
       z = c(15000, 200000, 130000, 18000, 50000),
-      HMDB.name = IS_neg_selection
+      HMDB.name = is_neg_selection
     )
-  hline.data.pos <-
+  hline_data_pos <-
     data.frame(
       z = c(150000, 3300000, 1750000, 150000, 270000),
-      HMDB.name = IS_pos_selection
+      HMDB.name = is_pos_selection
     )
-  hline.data.sum <-
+  hline_data_sum <-
     data.frame(
       z = c(1300000, 2500000, 500000, 1800000, 1400000),
-      HMDB.name = IS_sum_selection
+      HMDB.name = is_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
-  hline.data.neg <-
+  hline_data_neg <-
     data.frame(
       z = c(6500, 100000, 75000, 7500, 25000),
-      HMDB.name = IS_neg_selection
+      HMDB.name = is_neg_selection
     )
-  hline.data.pos <-
+  hline_data_pos <-
     data.frame(
       z = c(85000, 1000000, 425000, 70000, 180000),
-      HMDB.name = IS_pos_selection
+      HMDB.name = is_pos_selection
     )
-  hline.data.sum <-
+  hline_data_sum <-
     data.frame(
       z = c(700000, 1250000, 150000, 425000, 300000),
-      HMDB.name = IS_sum_selection
+      HMDB.name = is_sum_selection
     )
 }
 
-# function for ggplot theme
-# see bar plots with all IS
-
 # ggplot functions
-IS_neg_selection_barplot <- ggplot(subset(IS_neg, HMDB.name %in% IS_neg_selection), aes(Sample_level, Intensity)) +
+is_neg_selection_barplot <- ggplot(subset(is_neg, HMDB.name %in% is_neg_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
-  if (exists("hline.data.neg")) {
-    geom_hline(aes(yintercept = z), subset(hline.data.neg, HMDB.name %in% IS_neg$HMDB.name))
-  } # subset, if some IS have no data, no empty plots will be generated with a line)
+  if (exists("hline_data_neg")) {
+    geom_hline(aes(yintercept = z), subset(hline_data_neg, HMDB.name %in% is_neg$HMDB.name))
+  }
 
-IS_pos_selection_barplot <- ggplot(subset(IS_pos, HMDB.name %in% IS_pos_selection), aes(Sample_level, Intensity)) +
+is_pos_selection_barplot <- ggplot(subset(is_pos, HMDB.name %in% is_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
-  if (exists("hline.data.pos")) {
-    geom_hline(aes(yintercept = z), subset(hline.data.pos, HMDB.name %in% IS_pos$HMDB.name))
+  if (exists("hline_data_pos")) {
+    geom_hline(aes(yintercept = z), subset(hline_data_pos, HMDB.name %in% is_pos$HMDB.name))
   }
 
-IS_sum_selection_barplot <- ggplot(subset(IS_summed, HMDB.name %in% IS_sum_selection), aes(Sample_level, Intensity)) +
+is_sum_selection_barplot <- ggplot(subset(is_summed, HMDB.name %in% is_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
-  if (exists("hline.data.sum")) {
-    geom_hline(aes(yintercept = z), subset(hline.data.sum, HMDB.name %in% IS_summed$HMDB.name))
+  if (exists("hline_data_sum")) {
+    geom_hline(aes(yintercept = z), subset(hline_data_sum, HMDB.name %in% is_summed$HMDB.name))
   }
 
 # add theme to ggplot functions
-IS_neg_selection_barplot <- theme_IS_bar(IS_neg_selection_barplot)
-IS_pos_selection_barplot <- theme_IS_bar(IS_pos_selection_barplot)
-IS_sum_selection_barplot <- theme_IS_bar(IS_sum_selection_barplot)
+is_neg_selection_barplot <- theme_is_bar(is_neg_selection_barplot)
+is_pos_selection_barplot <- theme_is_bar(is_pos_selection_barplot)
+is_sum_selection_barplot <- theme_is_bar(is_sum_selection_barplot)
 
 # save plots to disk
 plot_width <- 9 + 0.35 * sample_count
-ggsave(paste0(outdir, "/plots/IS_bar_select_neg.png"), plot = IS_neg_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_bar_select_pos.png"), plot = IS_pos_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_bar_select_sum.png"), plot = IS_sum_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_select_neg.png"), 
+       plot = is_neg_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_select_pos.png"), 
+       plot = is_pos_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_bar_select_sum.png"), 
+       plot = is_sum_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
 
 ## line plots with a selection of IS
-
-# function for ggplot theme
-# see line plots with all IS
-
 # ggplot functions
-IS_neg_selection_lineplot <- ggplot(subset(IS_neg, HMDB.name %in% IS_neg_selection), aes(Sample_level, Intensity)) +
+is_neg_selection_lineplot <- ggplot(subset(is_neg, HMDB.name %in% is_neg_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-IS_pos_selection_lineplot <- ggplot(subset(IS_pos, HMDB.name %in% IS_pos_selection), aes(Sample_level, Intensity)) +
+is_pos_selection_lineplot <- ggplot(subset(is_pos, HMDB.name %in% is_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-IS_sum_selection_lineplot <- ggplot(subset(IS_summed, HMDB.name %in% IS_sum_selection), aes(Sample_level, Intensity)) +
+is_sum_selection_lineplot <- ggplot(subset(is_summed, HMDB.name %in% is_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
 # add theme to ggplot functions
-IS_neg_selection_lineplot <- theme_IS_line(IS_neg_selection_lineplot)
-IS_pos_selection_lineplot <- theme_IS_line(IS_pos_selection_lineplot)
-IS_sum_selection_lineplot <- theme_IS_line(IS_sum_selection_lineplot)
+is_neg_selection_lineplot <- theme_is_line(is_neg_selection_lineplot)
+is_pos_selection_lineplot <- theme_is_line(is_pos_selection_lineplot)
+is_sum_selection_lineplot <- theme_is_line(is_sum_selection_lineplot)
 
 # save plots to disk
 plot_width <- 8 + 0.2 * sample_count
-ggsave(paste0(outdir, "/plots/IS_line_select_neg.png"), plot = IS_neg_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_line_select_pos.png"), plot = IS_pos_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
-ggsave(paste0(outdir, "/plots/IS_line_select_sum.png"), plot = IS_sum_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_select_neg.png"), 
+       plot = is_neg_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_select_pos.png"), 
+       plot = is_pos_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+ggsave(paste0(outdir, "/plots/IS_line_select_sum.png"), 
+       plot = is_sum_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 
 ### POSITIVE CONTROLS CHECK
-# these positive controls need to be in the samplesheet, in order to make the Pos_Contr.RData file
+# these positive controls need to be in the samplesheet, in order to make the positive_control.RData file
 # Positive control samples all have the format P1002.x, P1003.x and P1005.x (where x is a number)
 
 column_list <- colnames(outlist)
 patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\.)[[:digit:]]+_")
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
-positivecontrol_list <- column_list[positive_controls_index]
+positive_control_list <- column_list[positive_controls_index]
 
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  # any() grep because you get a vector of FALSE's and TRUE's. only one grep match is needed for each positive control
-  if (any(grep("^(P1002\\.)[[:digit:]]+_", positivecontrol_list)) &&
-    any(grep("^(P1003\\.)[[:digit:]]+_", positivecontrol_list)) &&
-    any(grep("^(P1005\\.)[[:digit:]]+_", positivecontrol_list))) {
+  if (any(grep("^(P1002\\.)[[:digit:]]+_", positive_control_list)) &&
+    any(grep("^(P1003\\.)[[:digit:]]+_", positive_control_list)) &&
+    any(grep("^(P1005\\.)[[:digit:]]+_", positive_control_list))) {
     cat("All three positive controls are present")
   } else {
-    pos_contr_warning <- paste0(c("positive controls list is not complete. Only ", positivecontrol_list, " is/are present"), collapse = " ")
+    pos_contr_warning <- paste0(c("positive controls list is not complete. Only ", 
+				  positive_control_list, " is/are present"), collapse = " ")
   }
   # you need all positive control samples, thus starting the script only if all are available
   if (length(pos_contr_warning) == 0) {
-    ### POSITIVE CONTROLS
     # make positive control excel with specific HMDB_codes in combination with specific control samples
-    PA_sample_name <- positivecontrol_list[grepl("P1002", positivecontrol_list)] # P1001.x_Zscore
-    PKU_sample_name <- positivecontrol_list[grepl("P1003", positivecontrol_list)] # P1003.x_Zscore
-    LPI_sample_name <- positivecontrol_list[grepl("P1005", positivecontrol_list)] # P1005.x_Zscore
+    pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
+    pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
+    lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
 
-    PA_codes <- c("HMDB00824", "HMDB00783", "HMDB00123")
-    PKU_codes <- c("HMDB00159")
-    LPI_codes <- c("HMDB00904", "HMDB00641", "HMDB00182")
+    pa_codes <- c("HMDB00824", "HMDB00783", "HMDB00123")
+    pku_codes <- c("HMDB00159")
+    lpi_codes <- c("HMDB00904", "HMDB00641", "HMDB00182")
 
-    PA_data <- outlist[PA_codes, c("HMDB_code", "name", PA_sample_name)]
-    PA_data <- reshape2::melt(PA_data, id.vars = c("HMDB_code", "name"))
-    colnames(PA_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    pa_data <- outlist[pa_codes, c("HMDB_code", "name", pa_sample_name)]
+    pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
+    colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
-    PKU_data <- outlist[PKU_codes, c("HMDB_code", "name", PKU_sample_name)]
-    PKU_data <- reshape2::melt(PKU_data, id.vars = c("HMDB_code", "name"))
-    colnames(PKU_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
+    pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
+    colnames(pku_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
-    LPI_data <- outlist[LPI_codes, c("HMDB_code", "name", LPI_sample_name)]
-    LPI_data <- reshape2::melt(LPI_data, id.vars = c("HMDB_code", "name"))
-    colnames(LPI_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    lpi_data <- outlist[lpi_codes, c("HMDB_code", "name", lpi_sample_name)]
+    lpi_data <- reshape2::melt(lpi_data, id.vars = c("HMDB_code", "name"))
+    colnames(lpi_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
-    Pos_Contr <- rbind(PA_data, PKU_data, LPI_data)
-    Pos_Contr$Zscore <- as.numeric(Pos_Contr$Zscore)
+    positive_control <- rbind(pa_data, pku_data, lpi_data)
+    positive_control$Zscore <- as.numeric(positive_control$Zscore)
     # extra information added to excel for future reference. made in beginning of this script
-    Pos_Contr$Matrix <- dims_matrix
-    Pos_Contr$Rundate <- rundate
-    Pos_Contr$Project <- project
+    positive_control$Matrix <- dims_matrix
+    positive_control$Rundate <- rundate
+    positive_control$Project <- project
 
     # Save results
-    save(Pos_Contr, file = paste0(outdir, "/", project, "_Pos_Contr.RData"))
-    Pos_Contr$Zscore <- round_df(Pos_Contr$Zscore, 2) # asked by Lab to round the number to 2 digits
-    write.xlsx(Pos_Contr, file = paste0(outdir, "/", project, "_Pos_Contr.xlsx"), sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE)
+    save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
+    # round the Z-scores to 2 digits
+    positive_control$Zscore <- round_df(positive_control$Zscore, 2)
+    write.xlsx(positive_control, file = paste0(outdir, "/", project, "_positive_control.xlsx"), 
+	       sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE)
   } else {
-    write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"), row.names = FALSE, col.names = FALSE, quote = FALSE)
+    write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"), 
+		row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
 }
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
-print("Nu in missing m/z check")
 # Load the outlist_identified files + remove the loaded files
 load(paste0(outdir, "/outlist_identified_negative.RData"))
 outlist_ident_neg <- outlist_ident

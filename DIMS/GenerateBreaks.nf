@@ -5,7 +5,7 @@ process GenerateBreaks {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple val(file_id), path(mzML_file)
+       tuple(val(file_id), path(mzML_file))
 
 
     output:

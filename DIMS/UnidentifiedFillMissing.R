@@ -4,25 +4,24 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-# define parameters
 peakgrouplist_file1 <- cmd_args[1]
 peakgrouplist_file2 <- cmd_args[2]
-scripts_dir         <- cmd_args[3]
-thresh   <- as.numeric(cmd_args[4])
-resol    <- as.numeric(cmd_args[5])
-ppm      <- as.numeric(cmd_args[6])
-outdir   <- "./"
+scripts_dir <- cmd_args[3]
+thresh <- as.numeric(cmd_args[4])
+resol <- as.numeric(cmd_args[5])
+ppm <- as.numeric(cmd_args[6])
+outdir  <- "./"
 
 # load in function scripts
-source(paste0(scripts_dir, "AddOnFunctions/replaceZeros.R"))
-source(paste0(scripts_dir, "AddOnFunctions/generateGaussian.R"))
-source(paste0(scripts_dir, "AddOnFunctions/getFwhm.R"))
-source(paste0(scripts_dir, "AddOnFunctions/getSD.R"))
-source(paste0(scripts_dir, "AddOnFunctions/getArea.R"))
-source(paste0(scripts_dir, "AddOnFunctions/optimizeGauss.R"))
-source(paste0(scripts_dir, "AddOnFunctions/ident.hires.noise.HPC.R"))
-source(paste0(scripts_dir, "AddOnFunctions/elementInfo.R"))
-source(paste0(scripts_dir, "AddOnFunctions/globalAssignments.HPC.R"))
+source(paste0(scripts_dir, "replaceZeros.R"))
+source(paste0(scripts_dir, "generateGaussian.R"))
+source(paste0(scripts_dir, "getFwhm.R"))
+source(paste0(scripts_dir, "getSD.R"))
+source(paste0(scripts_dir, "getArea.R"))
+source(paste0(scripts_dir, "optimizeGauss.R"))
+source(paste0(scripts_dir, "ident.hires.noise.HPC.R"))
+source(paste0(scripts_dir, "elementInfo.R"))
+source(paste0(scripts_dir, "globalAssignments.HPC.R"))
 
 peakgrouplist_files <- c(peakgrouplist_file1, peakgrouplist_file2)
 for (peakgrouplist_file in peakgrouplist_files) {
@@ -46,5 +45,5 @@ for (peakgrouplist_file in peakgrouplist_files) {
   peakgrouplist_filled <- replaceZeros(outpgrlist_identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
 
   # save output
-  save(peakgrouplist_filled, file = paste0("./", outputfile_name))
+  save(peakgrouplist_filled, file = outputfile_name)
 }

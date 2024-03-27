@@ -4,25 +4,27 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-resol  <- as.numeric(cmd_args[1])
-ppm    <- as.numeric(cmd_args[2])
+resol <- as.numeric(cmd_args[1])
+ppm <- as.numeric(cmd_args[2])
 outdir <- "./"
+
 options(digits = 16)
-
-print(list.files(outdir, pattern = "RData"))
-
-scanmodes <- c("positive", "negative")
 
 # function for grouping unidentified peaks
 grouping_rest <- function(outdir, unidentified_peaklist, scanmode, ppm) {
   outlist_copy <- get(load(unidentified_peaklist))
-  load(paste0("./", scanmode, "_repl_pattern.RData"))
+  load(paste0(scanmode, "_repl_pattern.RData"))
   outpgrlist <- NULL
 
   # group on highest peaks
   range <- ppm * 1e-06
 
-  while (dim(outlist_copy)[1] > 0) {
+  # temporary: speed up this step by limiting the number of rows used in while loop
+  # this script needs to be parallellized
+  nrow_div <- nrow(outlist_copy) / 1.1
+
+  # while (dim(outlist_copy)[1] > 0) {
+  while (dim(outlist_copy)[1] > nrow_div) {
     sel <- which(as.numeric(outlist_copy[, "height.pkt"]) == max(as.numeric(outlist_copy[, "height.pkt"])))[1]
 
     # ppm range around max
@@ -58,22 +60,27 @@ grouping_rest <- function(outdir, unidentified_peaklist, scanmode, ppm) {
         sum(as.numeric(tmplist[which(tmplist[, "samplenr"] == x), "height.pkt"]))
       })))
 
-      outpgrlist <- rbind(outpgrlist, c(mzmed_pgrp, fq_best_pgrp, fq_worst_pgrp, nrsamples, mzmin_pgrp, mzmax_pgrp, ints_allsamps, NA, NA, NA, NA))
+      # combine all information
+      outpgrlist <- rbind(outpgrlist, c(mzmed_pgrp, fq_best_pgrp, fq_worst_pgrp, nrsamples, 
+					mzmin_pgrp, mzmax_pgrp, ints_allsamps, NA, NA, NA, NA))
     }
 
     outlist_copy <- outlist_copy[-which(selp == TRUE), , drop = FALSE]
   }
 
   outpgrlist <- as.data.frame(outpgrlist)
-  colnames(outpgrlist)[1:6] <- c("mzmed_pgrp", "fq.best", "fq.worst", "nrsamples", "mzmin_pgrp", "mzmax_pgrp")
-  colnames(outpgrlist)[(length(repl_pattern_filtered) + 7):ncol(outpgrlist)] <- c("assi_HMDB", "iso_HMDB", "HMDB_code", "theormz_HMDB")
+  colnames(outpgrlist)[1:6] <- c("mzmed.pgrp", "fq.best", "fq.worst", "nrsamples", "mzmin.pgrp", "mzmax.pgrp")
+  colnames(outpgrlist)[(length(repl_pattern_filtered) + 7):ncol(outpgrlist)] <- c("assi_HMDB", "iso_HMDB", 
+										  "HMDB_code", "theormz_HMDB")
 
   return(outpgrlist)
 }
 
+scanmodes <- c("positive", "negative")
+
 for (scanmode in scanmodes) {
   # generate peak group lists of the unidentified peaks
-  unidentified_peaklist <- paste0("./SpectrumPeaks_", scanmode, "_Unidentified.RData")
+  unidentified_peaklist <- paste0("SpectrumPeaks_", scanmode, "_Unidentified.RData")
   outpgrlist <- grouping_rest(outdir, unidentified_peaklist, scanmode, ppm = ppm)
   write.table(outpgrlist, file = paste0("PeakGroupList_", scanmode, "_Unidentified.txt"))
 

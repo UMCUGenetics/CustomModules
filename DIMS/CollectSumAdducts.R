@@ -4,10 +4,10 @@
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
+# collect all AdductSums part files for each scanmode
 scanmodes <- c("positive", "negative")
 
 for (scanmode in scanmodes) {
-  # collect all AdductSums part files for each scanmode
   adductsum_part_files <- list.files("./", pattern = scanmode)
 
   outlist.tot <- NULL
@@ -17,6 +17,6 @@ for (scanmode in scanmodes) {
   }
 
   # save output file
-  save(outlist.tot, file=paste0("AdductSums_", scanmode, ".RData"))
+  save(outlist.tot, file = paste0("AdductSums_", scanmode, ".RData"))
 }
 

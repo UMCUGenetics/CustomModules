@@ -1,12 +1,12 @@
 process UnidentifiedPeakGrouping {
-    tag "DIMS UnidentifiedPeakGrouping ${UnidentifiedSpectrumPeaks_file}"
+    tag "DIMS UnidentifiedPeakGrouping ${unidentified_spectrumpeaks_files}"
     label 'UnidentifiedPeakGrouping'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(UnidentifiedSpectrumPeaks_file) // input files need to be linked, but called within R script
-       path(replication_pattern)  // input files need to be linked, but called within R script
+       path(unidentified_spectrumpeaks_files)
+       each path(replication_pattern)
 
     output:
        path('*_Unidentified.txt')

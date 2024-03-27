@@ -5,7 +5,8 @@ process MakeInit {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple path(samplesheet), val(nr_replicates)
+       path(samplesheet) 
+       val(nr_replicates)
 
     output:
        path('init.RData')

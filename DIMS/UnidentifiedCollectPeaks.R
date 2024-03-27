@@ -5,7 +5,6 @@
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 ppm <- as.numeric(cmd_args[1])
-outdir <- "./"
 
 scanmodes <- c("positive", "negative")
 
@@ -17,16 +16,16 @@ for (scanmode in scanmodes) {
 
   # Make a list of indexes of peaks that have been identified, then remove these from the peaklist.
   remove <- NULL
-  for (i in 1:length(files)) {
+  for (file_index in 1:length(files)) {
     # load list_of_peaks_used_in_peak_groups_identified
-    load(files[i])
-    remove <- c(remove, which(outlist_total[, "mzmed.pkt"] %in% list_of_peaks_used_in_peak_groups_identified[i, "mzmed.pkt"]))
+    load(files[file_index])
+    remove <- c(remove, 
+		which(outlist_total[, "mzmed.pkt"] %in% list_of_peaks_used_in_peak_groups_identified[file_index, "mzmed.pkt"]))
   }
   outlist_rest <- outlist_total[-remove, ]
 
   # sort on mass
   outlist <- outlist_rest[order(as.numeric(outlist_rest[, "mzmed.pkt"])), ]
   # save output
-  save(outlist, file = paste0(outdir, "/SpectrumPeaks_", scanmode, "_Unidentified.RData"))
-
+  save(outlist, file = paste0("SpectrumPeaks_", scanmode, "_Unidentified.RData"))
 }

@@ -5,18 +5,20 @@ process GenerateExcel {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(collect_file) // input files need to be linked, but called within R script
-       path(identified_file) // input files need to be lined, but called within R script
-       path(init_filepath) 
+       path(collect_files)
+       path(identified_files)
+       path(init_file) 
        val(analysis_id) 
        path(relevance_file)
 
     output:
        path('AdductSums_*.txt')
+       path('*IS_results.RData')
        path('*.xlsx'), emit: excel_file 
+       path('plots'), emit: plot_files 
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_filepath $analysis_id $params.matrix $relevance_file $params.zscore 
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_file $analysis_id $params.matrix $relevance_file $params.zscore 
         """
 }

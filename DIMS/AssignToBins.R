@@ -7,40 +7,31 @@ suppressPackageStartupMessages(library("xcms"))
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-filepath        <- cmd_args[1]
+mzml_filepath <- cmd_args[1]
 breaks_filepath <- cmd_args[2]
-resol           <- as.numeric(cmd_args[3])
-trim            <- 0.1
-dims_thresh     <- 100
+resol <- as.numeric(cmd_args[3])
+trim <- 0.1
+dims_thresh <- 100
+
+# load breaks_fwhm
+load(breaks_filepath)
 
 # get sample name
-sample_name <- sub("\\..*$", "", basename(filepath))
+sample_name <- sub("\\..*$", "", basename(mzml_filepath))
 
 options(digits = 16)
 
 # Initialize
-int_factor <- 1 * 10^5 # Number used to calculate area under Gaussian curve
-scale      <- 2 # Initial value used to estimate scaling parameter
-width      <- 1024
-height     <- 768
-trim_left       <- NULL
-trim_right      <- NULL
-breaks_fwhm     <- NULL
-breaks_fwhm_avg <- NULL
-bins            <- NULL
-pos_results     <- NULL
-neg_results     <- NULL
+pos_results <- NULL
+neg_results <- NULL
 
 # read in the data for 1 sample
-raw_data <- suppressMessages(xcmsRaw(filepath))
+raw_data <- suppressMessages(xcmsRaw(mzml_filepath))
 
 # for TIC plots: prepare txt files with data for plots
 tic_intensity_persample <- cbind(round(raw_data@scantime, 2), raw_data@tic)
 colnames(tic_intensity_persample) <- c("retention_time", "tic_intensity")
-write.table(tic_intensity_persample, file = paste0("./", sample_name, "_TIC.txt"))
-
-# load breaks_fwhm
-load(breaks_filepath)
+write.table(tic_intensity_persample, file = paste0(sample_name, "_TIC.txt"))
 
 # Create empty placeholders for later use
 bins <- rep(0, length(breaks_fwhm) - 1)
@@ -65,10 +56,20 @@ pos_raw_data_matrix <- raw_data_matrix[pos_index, ]
 neg_raw_data_matrix <- raw_data_matrix[neg_index, ]
 
 # Get index for binning intensity values
-bin_indices_pos <- cut(pos_raw_data_matrix[, "mz"], breaks_fwhm,
-                       include.lowest = TRUE, right = TRUE, labels = FALSE)
-bin_indices_neg <- cut(neg_raw_data_matrix[, "mz"], breaks_fwhm,
-                       include.lowest = TRUE, right = TRUE, labels = FALSE)
+bin_indices_pos <- cut(
+  pos_raw_data_matrix[, "mz"], 
+  breaks_fwhm,
+  include.lowest = TRUE, 
+  right = TRUE, 
+  labels = FALSE
+)
+bin_indices_neg <- cut(
+  neg_raw_data_matrix[, "mz"], 
+  breaks_fwhm, 
+  include.lowest = TRUE, 
+  right = TRUE, 
+  labels = FALSE
+)
 
 # Get the list of intensity values for each bin, and add the
 # intensity values which are in the same bin
@@ -121,4 +122,4 @@ neg_results_final <- t(neg_results_transpose)
 
 peak_list <- list("pos" = pos_results_final, "neg" = neg_results_final, "breaksFwhm" = breaks_fwhm)
 
-save(peak_list, file = paste0("./", sample_name, ".RData"))
+save(peak_list, file = paste0(sample_name, ".RData"))
