@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl=2
 
 process MosaicHunterGetGender {
     tag {"MosaicHunterGetGender ${sample_id}"}
