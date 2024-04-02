@@ -32,16 +32,14 @@ class TestGetGenderFromBam():
 
 
 class TestCompareGender():
-    ''' Test function CompareGender
-            1) test_gender and true_gender identical, should be PASS
-            2) test_gender and true_gender not identical , should be FAIL
-            3) true_gender unknown, should be PASS
-            4) true_gender not_detected, should be FAIL
-    '''
     @pytest.mark.parametrize("sample_id,analysis_id,test_gender,true_gender,expected", [
+        # test_gender and true_gender identical, should be PASS
         ("test_sample", "test_analyse", "male", "male", "test_sample\ttest_analyse\tmale\tmale\tPASS\n"),
+        # test_gender and true_gender not identical , should be FAIL
         ("test_sample", "test_analyse", "male", "female", "test_sample\ttest_analyse\tmale\tfemale\tFAIL\n"),
+        # true_gender unknown, should be PASS
         ("test_sample", "test_analyse", "male", "unknown", "test_sample\ttest_analyse\tmale\tunknown\tPASS\n"),
+        # true_gender not_detected, should be FAIL
         ("test_sample", "test_analyse", "male", "not_detected", "test_sample\ttest_analyse\tmale\tnot_detected\tFAIL\n"),
     ])
     def test_compare_gender(self, sample_id, analysis_id, test_gender, true_gender, expected):
