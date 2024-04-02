@@ -12,6 +12,6 @@ process CreateHSmetricsSummary {
 
     script:
         """
-        python2 ${baseDir}/CustomModules/Utils/create_hsmetrics_summary.py ${hsmetrics_files} > HSMetrics_summary.txt
+        python2 ${projectDir}/CustomModules/Utils/create_hsmetrics_summary.py ${hsmetrics_files} > HSMetrics_summary.txt
         """
 }
