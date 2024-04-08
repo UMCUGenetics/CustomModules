@@ -13,6 +13,7 @@ process GenerateViolinPlots {
        path('Other/*.pdf'), emit: other_plot_files
        path('dIEM/*.pdf'), emit: diem_plot_files
        path('*.xlsx'), emit: excel_file
+       path('*.csv'), emit: helix_file
 
     script:
         """
