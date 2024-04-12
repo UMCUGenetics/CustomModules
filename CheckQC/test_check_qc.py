@@ -113,13 +113,19 @@ class TestSelectMetrics():
         # match on word truth and SNP
         (
             ".*truth.*SNP",
-            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            [
+                '2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
+                '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
+            ],
             ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
         ),
         # match on word truth and SNP
         (
             ".*truth.*SNP",
-            ['U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', 'U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            [
+                'U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
+                'U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
+            ],
             ['U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
         ),
         # match if 'truth' is absent and contains 'SNP'
@@ -127,7 +133,10 @@ class TestSelectMetrics():
         # ?! Match if 'truth' is absent.
         (
             "(?:(?!truth).)*SNP.*$",
-            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv', '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'],
+            [
+                '2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
+                '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
+            ],
             ['12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv']
         ),
 

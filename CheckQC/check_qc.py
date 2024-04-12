@@ -25,7 +25,7 @@ def non_empty_existing_path(file_or_dir):
 
     Returns:
         string: Provided input file or directory. If dir, suffix '/' might be added.
-    """    
+    """
     input_path = Path(file_or_dir)
     if not input_path.is_file() and not input_path.is_dir():
         raise FileNotFoundError(errno_ENOENT, os_strerror(errno_ENOENT), file_or_dir)
@@ -44,7 +44,7 @@ def parse_arguments_and_check(args_in):
 
     Returns:
         Namespace: Convert argument strings to objects and assign them as attributes of the namespace.
-    """    
+    """
     parser = argparse.ArgumentParser(
         description="Check and summarize sample quality using qc metrics and their thresholds."
     )
@@ -82,7 +82,7 @@ def read_yaml(yaml_file):
 
     Returns:
         Object: Content of the YAML file.
-    """    
+    """
     yaml_loaded = yaml.safe_load(open(yaml_file))
     if not yaml_loaded:
         raise ValueError("Could not load YAML.")
@@ -97,7 +97,7 @@ def check_allowed_operators(qc_operator):
 
     Raises:
         ValueError: If provided qc_operator is invalid / unsupported.
-    """    
+    """
     operators = ["<", "<=", ">", ">=", "==", "!=", "match"]
     if qc_operator not in operators:
         raise ValueError(f"Unsupported operator provided: {qc_operator}. Please select from: {operators}")
@@ -111,7 +111,7 @@ def check_required_keys_metrics(qc_metrics):
 
     Raises:
         KeyError: Required key is not provided for the qc metric settings
-    """    
+    """
     for req_key in ["filename", "qc_col", "threshold", "operator", "report_cols"]:
         if any([req_key not in setting.keys() for setting in qc_metrics]):
             raise KeyError(f"Required key {req_key} not in all metrics settings.")
@@ -129,7 +129,7 @@ def select_metrics(filename, input_files):
     """
     # If filename is string, change into regex to match absolute and relative paths in input_files.
     if filename.isalpha():
-        filename=".*" + filename
+        filename = ".*" + filename
     metrics = list(filter(re.compile(f"{filename}").match, input_files))
     if not metrics:
         warnings.warn(UserWarning(f"No input file provided with filename pattern {filename}"))
@@ -151,7 +151,7 @@ def get_columns_to_report(qc_report_cols, qc_metric_cols, qc_col):
 
     Returns:
         list of strings: Valid column names to include in report.
-    """    
+    """
     not_existing_cols = list(set(qc_report_cols) - set(qc_metric_cols))
     if qc_report_cols == "@all":
         qc_report_cols = qc_metric_cols
@@ -190,7 +190,7 @@ def add_and_rename_columns(qc_metric, qc_title, qc_col, qc_operator, qc_threshol
 
 
 def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
-    """Get rows that fail provided qc threshold 
+    """Get rows that fail provided qc threshold
 
     Args:
         qc_metric (pandas DataFrame): DataFrame with columns required to judge qc values
@@ -203,7 +203,7 @@ def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
 
     Returns:
         object: The indexes of failed rows in qc_metric
-    """    
+    """
     # Select failed rows using qc_threshold regex pattern and qc_operator 'match'
     if qc_operator == "match" and isinstance(qc_threshold, str):
         return qc_metric[qc_col].str.match(qc_threshold)
@@ -231,7 +231,7 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
     Returns:
         qc_metric (DataFrame): DataFrame of qc metric without failed rows
         qc_metric_out (DataFrame): DataFrame of qc metric to report with failed rows
-    """    
+    """
     qc_metric_out = DataFrame(columns=["sample", "qc_check", "qc_status", "qc_msg", "qc_value"])
     failed_samples = []
     if failed_rows.to_list():
@@ -272,7 +272,7 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
 
     Returns:
         pandas DataFrame: Sorted qc metric for both passed and failed samples, without duplicates.
-    """    
+    """
     # Add passed samples to output
     for sample_col in sample_cols:
         qc_metric_out = concat([
@@ -284,7 +284,7 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
             )
         ])
     # Try to convert column qc_value to float.
-    # If ValueError is raised, probably because column is a string, continue.    
+    # If ValueError is raised, probably because column is a string, continue.
     try:
         qc_metric_out["qc_value"] = qc_metric_out["qc_value"].astype("float")
     except ValueError:
@@ -295,13 +295,13 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
 
 
 def create_and_write_output(qc_output, output_path, output_prefix):
-    """Joined qc metrics is created and written to output file. 
+    """Joined qc metrics is created and written to output file.
 
     Args:
         qc_output (pandas DataFrame): Sorted judged qc metric for both passed and failed samples, without duplicates.
-        output_path (string): Relative or absolute path where output should be saved. 
+        output_path (string): Relative or absolute path where output should be saved.
         output_prefix (string): Output prefix for output file.
-    """    
+    """
     # Add qc_summary
     qc_output.insert(1, "qc_summary", "PASS")
     qc_output.loc[qc_output.isin(["FAIL"]).any(axis=1), "qc_summary"] = "FAIL"
@@ -310,7 +310,7 @@ def create_and_write_output(qc_output, output_path, output_prefix):
 
 
 def read_and_judge_metrics(qc, metrics):
-    """Read and judge each single qc metric and join results. 
+    """Read and judge each single qc metric and join results.
 
     Args:
         qc (dict): qc settings of the metric
@@ -318,7 +318,7 @@ def read_and_judge_metrics(qc, metrics):
 
     Returns:
         pandas DataFrame: Joined and judged qc metrics.
-    """    
+    """
     for qc_file in metrics:
         qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter=qc.get("delim", "\t"), quotechar='"')
         report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
@@ -355,26 +355,26 @@ def read_and_judge_metrics(qc, metrics):
 
 def check_qc(input_files, settings, output_path, output_prefix):
     """
-    Main function to judge input files on configured qc settings. 
-    It creates a single results table, each row representing 
+    Main function to judge input files on configured qc settings.
+    It creates a single results table, each row representing
         sample (string): sample name
         qc_summary: Summarized status of all qcs for sample (pass or fail)
         qc columns (5 per each qc metric);
             qc_check (string): QC check consiting of qc title, operator and threshold
             qc_status (string): Status of performed qc check (pass or fail)
-            qc_msg (string): String with human readable message if sample failed qc check, empty if passed.  
+            qc_msg (string): String with human readable message if sample failed qc check, empty if passed.
             qc_value (string, int, float): qc value/score to check.
 
     Args:
         input_files (list): All qc metrics input files.
         settings (string): Path to yaml file
-        output_path (string): Relative or absolute path where output should be saved. 
+        output_path (string): Relative or absolute path where output should be saved.
         output_prefix (string): Output prefix for output file.
 
     Raises:
         ValueError: No input files found to match any qc metric patterns defined in settings.
-        ValueError: Duplicated samples with different values found in some of the input files. 
-    """    
+        ValueError: Duplicated samples with different values found in some of the input files.
+    """
     # A single qc metric file can be used multiple times, by defining a metric section for each check in the qc settings.
     qc_settings = read_yaml(settings)
     check_required_keys_metrics(qc_settings["metrics"])
