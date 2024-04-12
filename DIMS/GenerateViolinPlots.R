@@ -16,6 +16,7 @@ library(reshape2)
 library(openxlsx)
 library(ggplot2)
 suppressPackageStartupMessages(library("gridExtra"))
+library(stringr)
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
