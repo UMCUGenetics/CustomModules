@@ -4,6 +4,7 @@ import pytest
 
 
 class TestIsValidRead():
+
     class MyObject:
         def __init__(self, qual, start, end):
             self.mapping_quality = qual
@@ -32,13 +33,13 @@ class TestGetGenderFromBam():
 
 class TestCompareGender():
     @pytest.mark.parametrize("sample_id,analysis_id,test_gender,true_gender,expected", [
-        # test_gender and true_gender identical, PASS
+        # test_gender and true_gender identical, should be PASS
         ("test_sample", "test_analyse", "male", "male", "test_sample\ttest_analyse\tmale\tmale\tPASS\n"),
-        # test_gender and true_gender not identical , FAIL
+        # test_gender and true_gender not identical , should be FAIL
         ("test_sample", "test_analyse", "male", "female", "test_sample\ttest_analyse\tmale\tfemale\tFAIL\n"),
-        # true_gender unknown, PASS
+        # true_gender unknown, should be PASS
         ("test_sample", "test_analyse", "male", "unknown", "test_sample\ttest_analyse\tmale\tunknown\tPASS\n"),
-        # true_gender not_detected, FAIL
+        # true_gender not_detected, should be FAIL
         ("test_sample", "test_analyse", "male", "not_detected", "test_sample\ttest_analyse\tmale\tnot_detected\tFAIL\n"),
     ])
     def test_compare_gender(self, sample_id, analysis_id, test_gender, true_gender, expected):

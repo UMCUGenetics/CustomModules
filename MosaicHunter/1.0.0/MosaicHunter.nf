@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl=2
 
 process MosaicHunterGetGender {
     tag {"MosaicHunterGetGender ${sample_id}"}
@@ -60,7 +59,7 @@ process MosaicHunterQualityCorrection {
     - A tuple containing respectively the number for the alpha and beta found in the sample.
     */
     output:
-        tuple(sample_id, env(MHALPHA), env(MHBETA))
+        tuple(val(sample_id), env(MHALPHA), env(MHBETA))
 
     // The command to execute MosaicHunter
     shell:
