@@ -148,7 +148,13 @@ class TestSelectMetrics():
         metrics = check_qc.select_metrics(filename_or_regex, input_files)
         assert metrics == expected
 
-    def test_no_match(self):
+    @pytest.mark.parametrize("filename_or_regex,input_files", [
+        # No match
+        ("test", ["fake1.txt", "fake2.txt"]),
+        # No match, filename with specialchar assumed to be a regex
+        ("specialchar_@", ["12/specialchar_@.txt"]),
+    ])
+    def test_no_match(self, filename_or_regex, input_files):
         with pytest.warns(UserWarning) as match_warning:
             return_val = check_qc.select_metrics("test", ["fake1.txt", "fake2.txt"])
         warn_msg = match_warning[0].message.args[0]

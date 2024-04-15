@@ -5,6 +5,7 @@ from errno import ENOENT as errno_ENOENT
 from os import strerror as os_strerror
 from pathlib import Path
 import re
+from string import punctuation
 import sys
 import warnings
 
@@ -127,14 +128,16 @@ def select_metrics(filename, input_files):
     Using regular expression to match the qc metric filename with the input files
 
     Args:
-        filename (string): Filename of qc metric, could be regex.
+        filename (string): Filename of qc metric, could be a regex.
         input_files (list): All qc metrics input files.
 
     Returns:
         list: Input files matching the given filename.
     """
-    # If filename is string, change into regex to match absolute and relative paths in input_files.
-    if filename.isalpha():
+    # Change filename without special characters (except for '_', '-' and '.') into
+    # a regex pattern to match absolute and relative paths in input_files.
+    special_symbols = set(punctuation) - set(".", "_", "-")
+    if not any([char in special_symbols for char in set(filename)]):
         filename = ".*" + filename
     metrics = list(filter(re.compile(f"{filename}").match, input_files))
     if not metrics:
