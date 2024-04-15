@@ -14,7 +14,8 @@ import yaml
 
 
 def non_empty_existing_path(file_or_dir):
-    """This function checks whether the provided file or dir exists and is not empty.
+    """
+    This function checks whether the provided file or dir exists and is not empty.
 
     Args:
         file_or_dir (string): Input file or directory
@@ -37,7 +38,8 @@ def non_empty_existing_path(file_or_dir):
 
 
 def parse_arguments_and_check(args_in):
-    """Parses arguments and validates / checks format of input.
+    """
+    Parses arguments and validates / checks format of input.
 
     Args:
         args_in (list of strings): Commandline input arguments.
@@ -72,7 +74,8 @@ def parse_arguments_and_check(args_in):
 
 
 def read_yaml(yaml_file):
-    """Read input yaml
+    """
+    Read input yaml
 
     Args:
         yaml_file (string): String with path to yaml file
@@ -90,7 +93,8 @@ def read_yaml(yaml_file):
 
 
 def check_allowed_operators(qc_operator):
-    """Check if provided qc_operator is allowed.
+    """
+    Check if provided qc_operator is allowed.
 
     Args:
         qc_operator (string): (Custom / math) operator
@@ -104,7 +108,8 @@ def check_allowed_operators(qc_operator):
 
 
 def check_required_keys_metrics(qc_metrics):
-    """Check if all required settings are included in the qc_settings
+    """
+    Check if all required settings are included in the qc_settings
 
     Args:
         qc_metrics (list with dicts): qc settings per qc metric
@@ -118,7 +123,8 @@ def check_required_keys_metrics(qc_metrics):
 
 
 def select_metrics(filename, input_files):
-    """Using regular expression to match the qc metric filename with the input files
+    """
+    Using regular expression to match the qc metric filename with the input files
 
     Args:
         filename (string): Filename of qc metric, could be regex.
@@ -138,7 +144,8 @@ def select_metrics(filename, input_files):
 
 
 def get_columns_to_report(qc_report_cols, qc_metric_cols, qc_col):
-    """Get valid columns to include in final output report
+    """
+    Get valid columns to include in final output report
 
     Args:
         qc_report_cols (list, string): column name(s) to include in report.
@@ -167,7 +174,8 @@ def get_columns_to_report(qc_report_cols, qc_metric_cols, qc_col):
 
 
 def add_and_rename_columns(qc_metric, qc_title, qc_col, qc_operator, qc_threshold):
-    """Add and rename columns in qc_metric.
+    """
+    Add and rename columns in qc_metric.
 
     Args:
         qc_metric (pandas DataFrame): DataFrame with columns required to judge qc values
@@ -190,7 +198,8 @@ def add_and_rename_columns(qc_metric, qc_title, qc_col, qc_operator, qc_threshol
 
 
 def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
-    """Get rows that fail provided qc threshold
+    """
+    Get rows that fail provided qc threshold
 
     Args:
         qc_metric (pandas DataFrame): DataFrame with columns required to judge qc values
@@ -220,7 +229,8 @@ def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
 
 
 def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
-    """Failed samples are added to the output metric, and removed from qc_metric.
+    """
+    Failed samples are added to the output metric, and removed from qc_metric.
 
     Args:
         qc_metric (pandas DataFrame): DataFrame with columns required to judge qc values
@@ -263,7 +273,8 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
 
 
 def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
-    """Passed samples are added to the output metric
+    """
+    Passed samples are added to the output metric
 
     Args:
         qc_metric (DataFrame): DataFrame of qc metric without failed rows
@@ -295,7 +306,8 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
 
 
 def create_and_write_output(qc_output, output_path, output_prefix):
-    """Joined qc metrics is created and written to output file.
+    """
+    Joined qc metrics is created and written to output file.
 
     Args:
         qc_output (pandas DataFrame): Sorted judged qc metric for both passed and failed samples, without duplicates.
@@ -310,7 +322,8 @@ def create_and_write_output(qc_output, output_path, output_prefix):
 
 
 def read_and_judge_metrics(qc, metrics):
-    """Read and judge each single qc metric and join results.
+    """
+    Read and judge each single qc metric and join results.
 
     Args:
         qc (dict): qc settings of the metric
