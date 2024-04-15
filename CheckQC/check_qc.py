@@ -297,6 +297,8 @@ def add_passed_samples_metric(qc_metric, qc_metric_out, sample_cols):
                 .loc[:, qc_metric_out.columns]
             )
         ])
+    # Some qc metrics did result in errors when merging the tables.
+    # The merge failed when the column qc_value has floats stored as strings.
     # Try to convert column qc_value to float.
     # If ValueError is raised, probably because column is a string, continue.
     try:
