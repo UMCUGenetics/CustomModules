@@ -26,7 +26,9 @@ class TestGetGenderFromBam:
         ("./test_bam.bam", 20, "X:2699520-154931044", 5.5, 7.5, ("M", False)),
         ("./test_bam.bam", 20, "X:2699520-154931044", 4.5, 6.5, ("F", True)),
     ])
-    def test_get_gender_from_bam(self, bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female, expected_outcome):
+    def test_get_gender_from_bam(
+            self, bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female, expected_outcome
+    ):
         assert expected_outcome == get_gender_from_bam_chrx.get_gender_from_bam_chrx(
             bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female)
 
