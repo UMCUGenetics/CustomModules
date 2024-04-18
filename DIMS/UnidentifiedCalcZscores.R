@@ -15,10 +15,13 @@ source(paste0(scripts_dir, "statistics_z.R"))
 scanmodes <- c("positive", "negative")
 
 for (scanmode in scanmodes) {
-  # get list of files
-  filled_file <- paste0("PeakGroupList_", scanmode, "_Unidentified_filled.RData")
-  # load file
-  outlist_total <- get(load(filled_file))
+  filled_files <- list.files("./", full.names = TRUE, pattern = paste0(scanmode, ".{1,}_Unidentified_filled"))
+  # load files and combine into one object
+  outlist_total <- NULL
+  for (file_nr in 1:length(filled_files)) {
+    peakgrouplist_filled <- get(load(filled_files[file_nr]))
+    outlist_total <- rbind(outlist_total, peakgrouplist_filled)
+  }
 
   # remove duplicates; peak groups with exactly the same m/z
   outlist_total <- mergeDuplicatedRows(outlist_total)

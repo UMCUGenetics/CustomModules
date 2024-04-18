@@ -14,6 +14,6 @@ process UnidentifiedPeakGrouping {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/UnidentifiedPeakGrouping.R $params.resolution $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/UnidentifiedPeakGrouping.R $unidentified_spectrumpeaks_files $params.resolution $params.ppm
         """
 }

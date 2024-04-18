@@ -4,8 +4,9 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-resol <- as.numeric(cmd_args[1])
-ppm <- as.numeric(cmd_args[2])
+unidentified_peaklist <- cmd_args[1]
+resol <- as.numeric(cmd_args[2])
+ppm <- as.numeric(cmd_args[3])
 outdir <- "./"
 
 options(digits = 16)
@@ -76,14 +77,33 @@ grouping_rest <- function(outdir, unidentified_peaklist, scanmode, ppm) {
   return(outpgrlist)
 }
 
-scanmodes <- c("positive", "negative")
+# scanmodes <- c("positive", "negative")
 
-for (scanmode in scanmodes) {
-  # generate peak group lists of the unidentified peaks
-  unidentified_peaklist <- paste0("SpectrumPeaks_", scanmode, "_Unidentified.RData")
-  outpgrlist <- grouping_rest(outdir, unidentified_peaklist, scanmode, ppm = ppm)
-  write.table(outpgrlist, file = paste0("PeakGroupList_", scanmode, "_Unidentified.txt"))
+# for (scanmode in scanmodes) {
+#   # generate peak group lists of the unidentified peaks
+#   unidentified_peaklist <- paste0("SpectrumPeaks_", scanmode, "_Unidentified.RData")
+#   outpgrlist <- grouping_rest(outdir, unidentified_peaklist, scanmode, ppm = ppm)
+#   write.table(outpgrlist, file = paste0("PeakGroupList_", scanmode, "_Unidentified.txt"))
 
-  # save output in RData format for further processing
-  save(outpgrlist, file=paste0("PeakGroupList_", scanmode, "_Unidentified.RData"))
+#   # save output in RData format for further processing
+#   save(outpgrlist, file=paste0("PeakGroupList_", scanmode, "_Unidentified.RData"))
+# }
+
+# determine appropriate scanmode based on unidentified_peaklist file
+if (grepl("negative", basename(unidentified_peaklist))) {
+  scanmode <- "negative"
+} else if (grepl("positive", basename(unidentified_peaklist))) {
+  scanmode <- "positive"
 }
+
+# generate peak group lists of the unidentified peaks
+outpgrlist <- grouping_rest(outdir, unidentified_peaklist, scanmode, ppm = ppm)
+
+# determine part number of unidentified_peaklist file
+part_number <- gsub("\\D", "", basename(unidentified_peaklist))
+
+# save output in txt format
+write.table(outpgrlist, file = paste0("PeakGroupList_", scanmode, "_part_", part_number, "_Unidentified.txt"))
+
+# save output in RData format for further processing
+save(outpgrlist, file=paste0("PeakGroupList_", scanmode, "_part_", part_number, "_Unidentified.RData"))

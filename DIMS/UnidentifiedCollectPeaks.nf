@@ -9,7 +9,8 @@ process UnidentifiedCollectPeaks {
        path(peaklist_identified)
 
     output:
-       path('SpectrumPeaks_*_Unidentified.RData')
+       // path('SpectrumPeaks_*_Unidentified.RData')
+       path('*.RData')
 
     script:
         """
