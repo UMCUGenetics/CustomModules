@@ -12,11 +12,10 @@ process GenerateExcel {
        path(relevance_file)
 
     output:
-       path('AdductSums_*.txt')
-       path('*IS_results.RData')
-       path('*_positive_control.RData')
+       path('*.RData')
+       path('*.txt')
        path('*.xlsx'), emit: excel_files 
-       path('plots/*.png'), emit: plot_files 
+       path('*.png'), emit: plot_files 
 
     script:
         """

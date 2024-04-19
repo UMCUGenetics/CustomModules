@@ -421,7 +421,7 @@ if (violin == 1) {
         # get output file for Helix
         output_helix <- output_for_helix(protocol_name, dims_helix_table)
         # write output to file
-        path_helixfile <- paste0(outdir, "/output_Helix_", run_name,".csv")
+        path_helixfile <- paste0(output_dir, "/output_Helix_", run_name,".csv")
         write.csv(output_helix, path_helixfile, quote = F, row.names = F)
       }
     }

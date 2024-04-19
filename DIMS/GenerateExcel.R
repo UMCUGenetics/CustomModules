@@ -181,9 +181,11 @@ if (z_score == 1) {
   }
   colnames(outlist_noZ)[startcol:ncol(outlist_noZ)] <- cnames_robust
 
-  # output metabolites filtered on relevance into tab-separated file
+  # output metabolites filtered on relevance
+  save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
   write.table(outlist, file = paste0("AdductSums_filtered_Zscores.txt"), sep = "\t", row.names = FALSE)
   # output filtered metabolites with robust scaled Zscores
+  save(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.RData"))
   write.table(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
 
   # get the IDs of the patients and sort

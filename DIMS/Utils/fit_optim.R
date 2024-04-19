@@ -2,7 +2,7 @@
 # variables with fixed values will be removed from function parameters
 # plot, width, height
 # fit_gaussian should be defined before this function is called.
-fit_op4tim <- function(mass_vector, int_vector, resol,
+fit_optim <- function(mass_vector, int_vector, resol,
                       plot, scanmode, int_factor, width, height) {
   #' Determine optimized fit of Gaussian curve to small region of m/z
   #'

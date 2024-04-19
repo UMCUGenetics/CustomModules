@@ -64,8 +64,8 @@ for (scanmode in scanmodes) {
     if (part != num_parts) {
       mz_end <- outlist_part[nrow(outlist_part), "mzmed.pkt"]
       mz_ppm_range <- ppm * as.numeric(mz_end) / 1e+06
-      mz_end_plus_ppm <- mz_end + mz_ppm_range
-      outlist_after_part <- outlist %>% filter(mzmed.pkt > mz_end & mzmed.pkt <= mz_end_plus_ppm)
+      mz_end_plus_ppm <- as.numeric(mz_end) + mz_ppm_range
+      outlist_after_part <- as.data.frame(outlist) %>% filter(mzmed.pkt > mz_end & mzmed.pkt <= mz_end_plus_ppm)
 
       outlist_part <- rbind(outlist_part, outlist_after_part)
     }
