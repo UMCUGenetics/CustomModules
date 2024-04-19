@@ -15,7 +15,7 @@ process GenerateExcel {
        path('*.RData')
        path('*.txt')
        path('*.xlsx'), emit: excel_files 
-       path('*.png'), emit: plot_files 
+       path('plots/*.png'), emit: plot_files 
 
     script:
         """
