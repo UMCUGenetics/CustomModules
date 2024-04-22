@@ -2,6 +2,7 @@
 # variables with fixed values will be removed from function parameters
 # scale, outdir, plot, width, height
 # mz_index, start_index, end_index, sample_name not used.
+# use_bounds is used, but not defined.
 # fit_gaussian should be defined before this function is called.
 fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
                      outdir, sample_name, scanmode, plot, width, height,

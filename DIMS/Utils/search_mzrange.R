@@ -21,10 +21,6 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
   #'
   #' @return allpeaks_values: list of m/z regions of interest
 
-  # initialise list to store results for all peaks. Currently in do_peakfinding
-  # allpeaks_values <- list("mean" = NULL, "area" = NULL, "nr" = NULL,
-  #                         "min" = NULL, "max" = NULL, "qual" = NULL, "spikes" = 0)
-
   # find indices where intensity is not equal to zero
   nonzero_indices <- as.vector(which(ints_fullrange != 0))
 
@@ -76,8 +72,8 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
 
           if (roi_values$qual[1] == 1) {
             # get optimized fit values
-            roi_values <- generateGaussian(mass_vector, int_vector, resol, plot,
-                                           scanmode, int_factor, width, height)
+            roi_values <- fit_optim(mass_vector, int_vector, resol, plot,
+                                    scanmode, int_factor, width, height)
             # add region of interest to list of all peaks
             allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
             allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)
@@ -100,8 +96,8 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
 
         } else {
 
-          roi_values <- generateGaussian(mass_vector, int_vector, resol,
-                                         plot, scanmode, int_factor, width, height)
+          roi_values <- fit_optim(mass_vector, int_vector, resol,
+                                  plot, scanmode, int_factor, width, height)
 
           allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
           allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)
@@ -148,8 +144,8 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
                                mz_index, start_index, end_index)
 
         if (roi_values$qual[1] == 1) {
-          roi_values <- generateGaussian(mass_vector, int_vector, resol,
-                                         plot, scanmode, int_factor, width, height)
+          roi_values <- fit_optim(mass_vector, int_vector, resol,
+                                  plot, scanmode, int_factor, width, height)
 
           allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
           allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)
@@ -170,8 +166,8 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
           }
         }
       } else {
-        roi_values <- generateGaussian(mass_vector, int_vector, resol,
-                                       plot, scanmode, int_factor, width, height)
+        roi_values <- fit_optim(mass_vector, int_vector, resol,
+                                plot, scanmode, int_factor, width, height)
 
         allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
         allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)

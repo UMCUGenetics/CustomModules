@@ -63,4 +63,4 @@ print(thresh)
 print(width)
 print(height)
 
-findPeaks.Gauss.HPC(sample_avgtechrepl, breaks_fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
+do_peakfinding(sample_avgtechrepl, breaks_fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)

@@ -39,7 +39,7 @@ outpgrlist_identified <- get(load(peakgrouplist_file))
 outputfile_name <- gsub(".RData", "_filled.RData", peakgrouplist_file)
 
 # replace missing values (zeros) with random noise
-peakgrouplist_filled <- replaceZeros(outpgrlist_identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
+peakgrouplist_filled <- replace_zeros(outpgrlist_identified, repl_pattern, scanmode, resol, outdir, thresh, ppm)
 
 # save output
 save(peakgrouplist_filled, file = outputfile_name)

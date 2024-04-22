@@ -34,10 +34,10 @@ fit_optim <- function(mass_vector, int_vector, resol,
   mass_vector2 <- seq(mass_max_simple[1], mass_max_simple[length(mass_max_simple)], 
                       length = mz_diff * int_factor)
   sigma <- get_stdev(mass_vector2, int_max_simple)
-  scale <- optimizeGauss(mass_vector2, int_max_simple, sigma, mass_max)
+  scale <- optimize_gaussfit(mass_vector2, int_max_simple, sigma, mass_max)
 
   # get an estimate of the area under the peak
-  area <- getArea(mass_max, resol, scale, sigma, int_factor)
+  area <- get_area(mass_max, resol, scale, sigma, int_factor)
   
   # put all values for this region of interest into a list
   roi_value_list <- list("mean" = mass_max,

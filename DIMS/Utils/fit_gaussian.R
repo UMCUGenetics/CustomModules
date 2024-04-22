@@ -38,7 +38,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
   # One local maximum:
   if (force == 1) {
     # determine fit values for 1 Gaussian peak (mean, scale, sigma, qual)
-    fit_values <- fit1Peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol, plot, fit_quality1, use_bounds)
+    fit_values <- fit_1peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
+                            plot, fit_quality1, use_bounds)
     # set initial value for scale factor
     scale <- 2
     # test if the mean is outside the m/z range
@@ -75,8 +76,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
   #### Two local maxima; need at least 6 data points for this ####
   } else if (force == 2 && (length(mass_vector) > 6)) {
     # determine fit values for 2 Gaussian peaks (mean, scale, sigma, qual)
-    fit_values <- fit2peaks(mass_vector2, mass_vector, int_vector, new_index, scale, resol,
-                            use_bounds, plot, fit_quality, int_factor)
+    fit_values <- fit_2peaks(mass_vector2, mass_vector, int_vector, new_index, scale, resol,
+                             use_bounds, plot, fit_quality, int_factor)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)]) {
@@ -114,9 +115,9 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
           new_index <- c(new_index, 2 * new_index, 3 * new_index)
         }
         # run this function again with three local maxima
-        return(fitGaussian(mass_vector2, mass_vector, int_vector, new_index,
-                           scale, resol, outdir, force = 3, use_bounds = FALSE,
-                           plot, scanmode, int_factor, width, height))
+        return(fit_gaussian(mass_vector2, mass_vector, int_vector, new_index,
+                            scale, resol, outdir, force = 3, use_bounds = FALSE,
+                            plot, scanmode, int_factor, width, height))
       # good fit, all means are within m/z range
       } else {
         # check if means are within 3 ppm and sum if so
@@ -125,32 +126,20 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
         nr_means <- length(fit_values$mean)
         while (nr_means != nr_means_new) {
           nr_means <- length(fit_values$mean)
-          fit_values <- isWithinXppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
+          fit_values <- within_ppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
                                      mass_vector2, mass_vector, ppm = 4, resol, plot)
           nr_means_new <- length(fit_values$mean)
         }
         # restore original quality score
         fit_values$qual <- tmp
-        # section for plot
-        # plot_header <- NULL
-        # for (i in 1:length(fit_values$mean)) {
-        #   plot_header <- c(plot_header, paste("mean =", fit_values$mean[i], sep = " "))
-        #   peak_mean <- c(peak_mean, fit_values$mean[i])
-        #   peak_area <- c(peak_area, fit_values$area[i])
-        # }
-        # peak_qual <- fit_values$qual
-        # peak_min <- mass_vector[1]
-        # peak_max <- mass_vector[length(mass_vector)]
-        # plot_header <- c(plot_header, paste("fq =", fit_values$qual, sep = " "))
-        # if (plot) legend("topright", legend=plot_header)
       }  
     }
 
-  #### Three local maxima; need at least 6 data points for this ####
+  # Three local maxima; need at least 6 data points for this 
   } else if (force == 3 && (length(mass_vector) > 6)) {
     # determine fit values for 3 Gaussian peaks (mean, scale, sigma, qual)
-    fit_values <- fit3peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
-                            use_bounds, plot, fit_quality, int_factor)
+    fit_values <- fit_3peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
+                             use_bounds, plot, fit_quality, int_factor)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
@@ -199,35 +188,22 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
         tmp <- fit_values$qual
         nr_means_new <- -1
         nr_means <- length(fit_values$mean)
-        while (nr_means!=nr_means_new) {
+        while (nr_means != nr_means_new) {
           nr_means <- length(fit_values$mean)
-          fit_values <- isWithinXppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
-                                     mass_vector2, mass_vector, ppm = 4, resol, plot)
+          fit_values <- within_ppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
+                                   mass_vector2, mass_vector, ppm = 4, resol, plot)
           nr_means_new <- length(fit_values$mean)
         }
         # restore original quality score
         fit_values$qual <- tmp
-
-        # plot_header <- NULL
-        # for (i in 1:length(fit_values$mean)){
-        #   plot_header <- c(plot_header, paste("mean =", fit_values$mean[i], sep = " "))
-        #   
-        #   peak_mean <- c(peak_mean, fit_values$mean[i])
-        #   peak_area <- c(peak_area, fit_values$area[i])
-        # }
-        # peak_qual <- fit_values$qual
-        # peak_min <- mass_vector[1]
-        # peak_max <- mass_vector[length(mass_vector)]
-        # plot_header <- c(plot_header, paste("fq =", fit_values$qual, sep = " "))
-        # if (plot) legend("topright", legend=plot_header)
       }
     }
     
   #### Four local maxima; need at least 6 data points for this ####  
   } else if (force == 4 && (length(mass_vector) > 6)) {
     # determine fit values for 4 Gaussian peaks (mean, scale, sigma, qual)
-    fit_values <- fit4peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
-                            use_bounds, plot, fit_quality, int_factor)
+    fit_values <- fit_4peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
+                             use_bounds, plot, fit_quality, int_factor)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
@@ -273,24 +249,12 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
         nr_means <- length(fit_values$mean)
         while (nr_means != nr_means_new) {
           nr_means <- length(fit_values$mean)
-          fit_values <- isWithinXppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
-                                     mass_vector2, mass_vector, ppm = 4, resol, plot)
+          fit_values <- within_ppm(fit_values$mean, fit_values$scale, fit_values$sigma, fit_values$area, 
+                                   mass_vector2, mass_vector, ppm = 4, resol, plot)
           nr_means_new <- length(fit_values$mean)
         }
         # restore original quality score
         fit_values$qual <- tmp
-
-        # plot_header<-NULL
-        # for (i in 1:length(fit_values$mean)){
-        #   plot_header <- c(plot_header, paste("mean =", fit_values$mean[i], sep = " "))
-        #   peak_mean <- c(peak_mean, fit_values$mean[i])
-        #   peak_area <- c(peak_area, fit_values$area[i])
-        # }
-        # peak_qual <- fit_values$qual
-        # peak_min <- mass_vector[1]
-        # peak_max <- mass_vector[length(mass_vector)]
-        # plot_header <- c(plot_header, paste("fq =", fit_values$qual, sep = " "))
-        # if (plot) legend("topright", legend=plot_header)
       }  
     }
     
@@ -300,8 +264,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     fit_quality1 <- 0.40
     use_bounds <- TRUE
     max_index <- which(int_vector == max(int_vector))
-    fit_values <- fit1Peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
-                           plot, fit_quality1, use_bounds)
+    fit_values <- fit_1peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
+                            plot, fit_quality1, use_bounds)
     # check for bad fit
     if (fit_values$qual > fit_quality1) {
       # remove
@@ -315,7 +279,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       peak_qual <- 0
     } else {
       peak_mean <- c(peak_mean, fit_values$mean)
-      peak_area <- c(peak_area, getArea(fit_values$mean, resol, fit_values$scale, fit_values$sigma, int_factor))
+      peak_area <- c(peak_area, get_area(fit_values$mean, resol, fit_values$scale, fit_values$sigma, int_factor))
       peak_qual <- fit_values$qual
       peak_min <- mass_vector[1]
       peak_max <- mass_vector[length(mass_vector)]

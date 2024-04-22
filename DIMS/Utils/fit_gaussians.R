@@ -140,7 +140,6 @@ fit_3gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3,
   return(opt_fit)
 }
 
-
 fit_4gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3, sigma4,
                            query_mass1, scale1,
                            query_mass2, scale2,
