@@ -13,6 +13,6 @@ process ConvertRawFile {
 
         """
         source /hpc/dbg_mz/tools/mono/etc/profile
-        mono /hpc/dbg_mz/tools/ThermoRawFileParser_1.1.11/ThermoRawFileParser.exe -i=${raw_file} --output=./
+        mono /hpc/dbg_mz/tools/ThermoRawFileParser_1.1.11/ThermoRawFileParser.exe -i=${raw_file} --output=./ -p
         """
 }

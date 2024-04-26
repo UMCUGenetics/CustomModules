@@ -46,7 +46,7 @@ load(init_file)
 
 # lower the threshold below which a sample will be removed for DBS and for high m/z
 if (dims_matrix == "DBS") {
-  thresh2remove <- 50000000
+  thresh2remove <- 500000000
 }
 if (highest_mz > 700) {
   thresh2remove <- 1000000
@@ -66,6 +66,7 @@ for (sample_nr in 1:length(repl_pattern)) {
   nr_neg <- 0
   for (file_nr in 1:length(tech_reps)) {
     load(paste(tech_reps[file_nr], ".RData", sep = ""))
+    cat("\n\nParsing", tech_reps[file_nr])
     # negative scanmode
     cat("\n\tNegative peak_list sum", sum(peak_list$neg[, 1]))
     if (sum(peak_list$neg[, 1]) < thresh2remove) {
@@ -146,7 +147,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
   sample_name <- names(repl_pattern)[sample_nr]
   for (file_nr in 1:length(tech_reps)) {
     plot_nr <- plot_nr + 1
-    repl1_nr <- read.table(tic_files[file_nr])
+    repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
+    # repl1_nr <- read.table(tic_files[file_nr])
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos[[1]]
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg[[1]]
     if (bad_color_neg & bad_color_pos) {
