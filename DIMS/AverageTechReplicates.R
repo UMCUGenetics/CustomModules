@@ -147,8 +147,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
   sample_name <- names(repl_pattern)[sample_nr]
   for (file_nr in 1:length(tech_reps)) {
     plot_nr <- plot_nr + 1
-    repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
-    # repl1_nr <- read.table(tic_files[file_nr])
+    # repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
+    repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos[[1]]
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg[[1]]
     if (bad_color_neg & bad_color_pos) {
