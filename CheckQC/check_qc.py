@@ -136,7 +136,7 @@ def select_metrics(filename, input_files):
     """
     # Change filename without special characters (except for '_', '-' and '.') into
     # a regex pattern to match absolute and relative paths in input_files.
-    special_symbols = set(punctuation) - set(".", "_", "-")
+    special_symbols = set(punctuation) - set([".", "_", "-"])
     if not any([char in special_symbols for char in set(filename)]):
         filename = ".*" + filename
     metrics = list(filter(re.compile(f"{filename}").match, input_files))
