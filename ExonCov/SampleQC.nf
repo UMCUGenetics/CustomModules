@@ -16,7 +16,7 @@ process SampleQC {
         def panels = indications.collect{"$it"}.join(" ")
         """
         source ${params.exoncov_path}/venv/bin/activate
-        python ${params.exoncov_path}/ExonCov.py sample_qc \
+        flask --app ExonCov sample_qc \
         -s ${samples} -p ${panels} > ${analysis_id}.ExonCovQC_check.out
         """
 }
