@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 10-collectSamplesFilled.R
 
 # define parameters

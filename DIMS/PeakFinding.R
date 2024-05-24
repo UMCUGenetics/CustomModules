@@ -1,5 +1,4 @@
-#!/usr/bin/Rscript
-# adapted from 4-peakFinding.R
+## adapted from 4-peakFinding.R
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
@@ -12,27 +11,22 @@ thresh <- 2000
 outdir <- "./"
 
 # load in function scripts
-source(paste0(scripts_dir, "findPeaks.Gauss.HPC.R"))
-source(paste0(scripts_dir, "searchMZRange.R"))
-source(paste0(scripts_dir, "generateGaussian.R"))
-source(paste0(scripts_dir, "fitGaussian.R"))
-source(paste0(scripts_dir, "fitGaussianInit.R"))
-source(paste0(scripts_dir, "getFwhm.R"))
-source(paste0(scripts_dir, "getSD.R"))
-source(paste0(scripts_dir, "optimizeGauss.R"))
-source(paste0(scripts_dir, "fit1Peak.R"))
-source(paste0(scripts_dir, "fit2peaks.R"))
-source(paste0(scripts_dir, "fit3peaks.R"))
-source(paste0(scripts_dir, "fit4peaks.R"))
-source(paste0(scripts_dir, "fitG.R"))
-source(paste0(scripts_dir, "fit2G.R"))
-source(paste0(scripts_dir, "fit3G.R"))
-source(paste0(scripts_dir, "fit4G.R"))
-source(paste0(scripts_dir, "getArea.R"))
-source(paste0(scripts_dir, "getFitQuality.R"))
-source(paste0(scripts_dir, "checkOverlap.R"))
-source(paste0(scripts_dir, "sumCurves.R"))
-source(paste0(scripts_dir, "isWithinXppm.R"))
+source(paste0(scripts_dir, "do_peakfinding.R"))
+source(paste0(scripts_dir, "check_overlap.R"))
+source(paste0(scripts_dir, "search_mzrange.R"))
+source(paste0(scripts_dir, "fit_optim.R"))
+source(paste0(scripts_dir, "fit_gaussian.R"))
+source(paste0(scripts_dir, "fit_init.R"))
+source(paste0(scripts_dir, "get_fwhm.R"))
+source(paste0(scripts_dir, "get_stdev.R"))
+source(paste0(scripts_dir, "optimize_gaussfit.R"))
+source(paste0(scripts_dir, "fit_peaks.R"))
+source(paste0(scripts_dir, "fit_gaussians.R"))
+source(paste0(scripts_dir, "estimate_area.R"))
+source(paste0(scripts_dir, "get_fit_quality.R"))
+source(paste0(scripts_dir, "check_overlap.R"))
+source(paste0(scripts_dir, "sum_curves.R"))
+source(paste0(scripts_dir, "within_ppm.R"))
 
 load(breaks_file)
 
@@ -46,21 +40,14 @@ if (grepl("_pos", sample_file)) {
 
 # Initialize
 options(digits = 16)
-int_factor <- 1 * 10^5 # Number used to calculate area under Gaussian curve
-scale <- 2 # Initial value used to estimate scaling parameter
+# Number used to calculate area under Gaussian curve
+int_factor <- 1 * 10^5 
+# Initial value used to estimate scaling parameter
+scale <- 2
 width <- 1024
 height <- 768
 
 # run the findPeaks function
-print(head(sample_avgtechrepl))
-print(head(breaks_fwhm))
-print(int_factor)
-print(scale)
-print(resol)
-print(outdir)
-print(scanmode)
-print(thresh)
-print(width)
-print(height)
 
-do_peakfinding(sample_avgtechrepl, breaks_fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
+# do_peakfinding(sample_avgtechrepl, breaks_fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
+do_peakfinding(sample_avgtechrepl, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)

@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 7-collectSamplesGroupedHMDB.R
 
 # load required packages

@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 1-generateBreaksFwhm.HPC.R ##
 
 # load required package

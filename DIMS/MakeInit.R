@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript
 ## adapted from makeInit in old pipeline
 
 # define parameters

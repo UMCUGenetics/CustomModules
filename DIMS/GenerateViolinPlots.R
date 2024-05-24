@@ -7,7 +7,6 @@
 #    corresponding Z-scores.
 # 2. All files from github: https://github.com/UMCUGenetics/DIMS
 
-#!/usr/bin/Rscript
 ## adapted from 15-dIEM_violin.R
 
 # load packages

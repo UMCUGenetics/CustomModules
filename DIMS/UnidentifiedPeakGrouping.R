@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 8-peakGrouping.rest.R
 
 # define parameters

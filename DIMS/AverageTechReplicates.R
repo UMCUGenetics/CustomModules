@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 # adapted from 3-AverageTechReplicates.R
 
 # load packages

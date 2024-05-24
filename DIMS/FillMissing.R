@@ -1,5 +1,4 @@
-#!/usr/bin/Rscript
-# adapted from 9-runFillMissing.R
+## adapted from 9-runFillMissing.R
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
@@ -12,15 +11,15 @@ ppm <- as.numeric(cmd_args[5])
 outdir <- "./"
 
 # load in function scripts
-source(paste0(scripts_dir, "replaceZeros.R"))
-source(paste0(scripts_dir, "generateGaussian.R"))
-source(paste0(scripts_dir, "getFwhm.R"))
-source(paste0(scripts_dir, "getSD.R"))
-source(paste0(scripts_dir, "getArea.R"))
-source(paste0(scripts_dir, "optimizeGauss.R"))
-source(paste0(scripts_dir, "ident.hires.noise.HPC.R"))
-source(paste0(scripts_dir, "elementInfo.R"))
-source(paste0(scripts_dir, "globalAssignments.HPC.R"))
+source(paste0(scripts_dir, "replace_zeros.R"))
+source(paste0(scripts_dir, "fit_optim.R"))
+source(paste0(scripts_dir, "get_fwhm.R"))
+source(paste0(scripts_dir, "get_stdev.R"))
+source(paste0(scripts_dir, "estimate_area.R"))
+source(paste0(scripts_dir, "optimize_gaussfit.R"))
+source(paste0(scripts_dir, "identify_noisepeaks.R"))
+source(paste0(scripts_dir, "get_element_info.R"))
+source(paste0(scripts_dir, "atomic_info.R"))
 
 # determine scan mode
 if (grepl("_pos", peakgrouplist_file)) {

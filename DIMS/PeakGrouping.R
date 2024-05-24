@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 # adapted from 6-peakGrouping.R
 
 # define parameters

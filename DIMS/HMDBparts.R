@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 # adapted from hmdb_parts.R
 
 # define parameters 

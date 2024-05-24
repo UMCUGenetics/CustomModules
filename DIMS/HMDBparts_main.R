@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from hmdb_part_adductSums.R
 
 # define parameters 

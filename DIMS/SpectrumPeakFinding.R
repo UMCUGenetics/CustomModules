@@ -1,5 +1,4 @@
-#!/usr/bin/Rscript
-# adapted from 5-collectSamples.R
+## adapted from 5-collectSamples.R
 
 # define parameters
 scanmodes <- c("positive", "negative")

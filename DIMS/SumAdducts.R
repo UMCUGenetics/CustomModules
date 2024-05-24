@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 11-runSumAdducts.R
 
 # define parameters

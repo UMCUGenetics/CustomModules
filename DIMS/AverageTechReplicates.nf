@@ -24,7 +24,8 @@ process AverageTechReplicates {
         """
         Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_file \
                                                                       $params.nr_replicates \
-                                                                      $analysis_id $matrix \
+                                                                      $analysis_id \
+                                                                      $matrix \
                                                                       $highest_mz_file
         """
 }

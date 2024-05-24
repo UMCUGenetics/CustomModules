@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 ## adapted from 13-excelExport.R
 
 # load required packages
@@ -290,7 +289,6 @@ is_summed <- is_list[c(names(repl_pattern), "HMDB_code")]
 is_summed$HMDB.name <- is_list$name
 is_summed <- reshape2::melt(is_summed, id.vars = c("HMDB_code", "HMDB.name"))
 colnames(is_summed) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-is_summed$Intensity <- as.numeric(is_summed$Intensity)
 is_summed$Matrix <- dims_matrix
 is_summed$Rundate <- rundate
 is_summed$Project <- project

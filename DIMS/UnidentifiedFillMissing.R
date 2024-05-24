@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript
 # adapted from 9-runFillMissing.R
 
 # define parameters
