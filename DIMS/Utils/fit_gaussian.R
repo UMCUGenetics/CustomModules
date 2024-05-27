@@ -40,6 +40,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 1 Gaussian peak (mean, scale, sigma, qual)
     fit_values <- fit_1peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             plot, fit_quality1, use_bounds)
+  print("nu in fit_gaussian, if force == 1")
+  print(fit_values)
     # set initial value for scale factor
     scale <- 2
     # test if the mean is outside the m/z range
@@ -47,7 +49,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       # run this function again with fixed boundaries
       return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                           outdir, force = 1, use_bounds = TRUE, plot, scanmode, int_factor, width, height))
-
+    print("nu in fit_gaussian, mean outside m/z range")
     } else {
       # test if the fit is bad
       if (fit_values$qual > fit_quality1) {
@@ -62,10 +64,11 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, new_index,
                             scale, resol, outdir, force = 2, use_bounds = FALSE,
                             plot, scanmode, int_factor, width, height))
+    print("nu in fit_gaussian, bad fit ")
       # good fit
       } else {
         peak_mean <- c(peak_mean, fit_values$mean)
-        peak_area <- c(peak_area, getArea(fit_values$mean, resol, fit_values$scale,
+        peak_area <- c(peak_area, estimate_area(fit_values$mean, resol, fit_values$scale,
                                           fit_values$sigma, int_factor))
         peak_qual <- fit_values$qual
         peak_min <- mass_vector[1]
@@ -76,8 +79,10 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
   #### Two local maxima; need at least 6 data points for this ####
   } else if (force == 2 && (length(mass_vector) > 6)) {
     # determine fit values for 2 Gaussian peaks (mean, scale, sigma, qual)
-    fit_values <- fit_2peaks(mass_vector2, mass_vector, int_vector, new_index, scale, resol,
+    fit_values <- fit_2peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
+  print("nu in fit_gaussian force == 2")
+  print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)]) {
@@ -140,6 +145,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 3 Gaussian peaks (mean, scale, sigma, qual)
     fit_values <- fit_3peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
+  print("nu in fit_gaussian force == 3")
+  print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
@@ -204,6 +211,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 4 Gaussian peaks (mean, scale, sigma, qual)
     fit_values <- fit_4peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
+  print("nu in fit_gaussian force == 4")
+  print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
@@ -279,7 +288,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       peak_qual <- 0
     } else {
       peak_mean <- c(peak_mean, fit_values$mean)
-      peak_area <- c(peak_area, get_area(fit_values$mean, resol, fit_values$scale, fit_values$sigma, int_factor))
+      peak_area <- c(peak_area, estimate_area(fit_values$mean, resol, fit_values$scale, fit_values$sigma, int_factor))
       peak_qual <- fit_values$qual
       peak_min <- mass_vector[1]
       peak_max <- mass_vector[length(mass_vector)]

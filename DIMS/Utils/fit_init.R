@@ -2,7 +2,6 @@
 # variables with fixed values will be removed from function parameters
 # scale, outdir, plot, width, height
 # mz_index, start_index, end_index, sample_name not used.
-# use_bounds is used, but not defined.
 # fit_gaussian should be defined before this function is called.
 fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
                      outdir, sample_name, scanmode, plot, width, height,
@@ -34,17 +33,16 @@ fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
 
   # Find the index in int_vector with the highest intensity
   max_index <- which(int_vector == max(int_vector))
-
+print("nu in fit_init")
   roi_values <- fit_gaussian(mass_vector2, mass_vector, int_vector, max_index,
                              scale, resol, outdir, force = length(max_index),
-                             useBounds = FALSE, plot, scanmode, int_factor, width, height)
+                             use_bounds = FALSE, plot, scanmode, int_factor, width, height)
   # put all values for this region of interest into a list
   roi_value_list <- list("mean" = roi_values$mean,
                          "area" = roi_values$area,
                          "qual" = roi_values$qual,
                          "min" = roi_values$min,
                          "max" = roi_values$max)
-
   return(roi_value_list)
 }
 

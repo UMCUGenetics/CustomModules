@@ -151,8 +151,8 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
                         resol, sum_fit = sum_fit)$fq_new
 
   # get parameter values
-  area1 <- get_area(pc[1], resol, pc[2], sigma1, int_factor)
-  area2 <- get_area(pc[3], resol, pc[4], sigma2, int_factor)
+  area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
+  area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
   peak_area <- c(peak_area, area1)
   peak_area <- c(peak_area, area2)
   peak_mean <- c(peak_mean, pc[1])
@@ -245,9 +245,9 @@ fit_3peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
                         resol, sum_fit = sum_fit)$fq_new
 
   # get parameter values
-  area1 <- get_area(pc[1], resol, pc[2], sigma1, int_factor)
-  area2 <- get_area(pc[3], resol, pc[4], sigma2, int_factor)
-  area3 <- get_area(pc[5], resol, pc[6], sigma3, int_factor)
+  area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
+  area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
+  area3 <- estimate_area(pc[5], resol, pc[6], sigma3, int_factor)
   peak_area <- c(peak_area, area1)
   peak_area <- c(peak_area, area2)
   peak_area <- c(peak_area, area3)
@@ -354,10 +354,10 @@ fit_4peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
                         resol, sum_fit = sum_fit)$fq_new
 
   # get parameter values
-  area1 <- get_area(pc[1], resol, pc[2], sigma1, int_factor)
-  area2 <- get_area(pc[3], resol, pc[4], sigma2, int_factor)
-  area3 <- get_area(pc[5], resol, pc[6], sigma3, int_factor)
-  area4 <- get_area(pc[7], resol, pc[8], sigma4, int_factor)
+  area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
+  area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
+  area3 <- estimate_area(pc[5], resol, pc[6], sigma3, int_factor)
+  area4 <- estimate_area(pc[7], resol, pc[8], sigma4, int_factor)
   peak_area <- c(peak_area, area1)
   peak_area <- c(peak_area, area2)
   peak_area <- c(peak_area, area3)
