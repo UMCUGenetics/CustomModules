@@ -25,10 +25,8 @@ for (scanmode in scanmodes) {
              HMDB_add_iso[ ,column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
 
   # remove adducts and isotopes, put internal standard at the beginning
-  outlist_is <- outlist[grep("IS", outlist[ , "CompoundName"], fixed = TRUE), ]
   outlist <- outlist[grep("HMDB", rownames(outlist), fixed = TRUE), ]
   outlist <- outlist[-grep("_", rownames(outlist), fixed = TRUE), ]
-  outlist <- rbind(outlist_is, outlist)
   # sort on m/z value
   outlist <- outlist[order(outlist[ , column_label]), ]
   nr_rows <- dim(outlist)[1]
@@ -47,11 +45,12 @@ for (scanmode in scanmodes) {
       save(outlist_part, file=paste0(scanmode, "_hmdb_main.", i, ".RData"))
     }
   }
+
+  # finish last hmdb part
+  start <- end + 1
+  end <- nr_rows
+
+  outlist_part <- outlist[c(start:end), ]
+  save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i + 1, ".RData"))
+
 }
-
-# finish last hmdb part
-start <- end + 1
-end <- nr_rows
-
-outlist_part <- outlist[c(start:end), ]
-save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i + 1, ".RData"))
