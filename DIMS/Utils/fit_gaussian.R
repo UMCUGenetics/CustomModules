@@ -40,19 +40,20 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 1 Gaussian peak (mean, scale, sigma, qual)
     fit_values <- fit_1peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             plot, fit_quality1, use_bounds)
-  print("nu in fit_gaussian, if force == 1")
-  print(fit_values)
+    print("fit_gaussian, force == 1, values fit_values:")
+    print(fit_values)
     # set initial value for scale factor
     scale <- 2
     # test if the mean is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)]) {
       # run this function again with fixed boundaries
+      print("nu in fit_gaussian, mean outside m/z range")
       return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                           outdir, force = 1, use_bounds = TRUE, plot, scanmode, int_factor, width, height))
-    print("nu in fit_gaussian, mean outside m/z range")
     } else {
       # test if the fit is bad
       if (fit_values$qual > fit_quality1) {
+        print("fit_gaussian, force == 1, qual > fit_quality")
         # Try to fit two curves; find two local maxima
         new_index <- which(diff(sign(diff(int_vector))) == -2) + 1
         # test if there are two indices in new_index
@@ -64,9 +65,9 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, new_index,
                             scale, resol, outdir, force = 2, use_bounds = FALSE,
                             plot, scanmode, int_factor, width, height))
-    print("nu in fit_gaussian, bad fit ")
       # good fit
       } else {
+        print("fit_gaussian, force == 1, qual < fit_quality")
         peak_mean <- c(peak_mean, fit_values$mean)
         peak_area <- c(peak_area, estimate_area(fit_values$mean, resol, fit_values$scale,
                                           fit_values$sigma, int_factor))
@@ -81,18 +82,21 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 2 Gaussian peaks (mean, scale, sigma, qual)
     fit_values <- fit_2peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
-  print("nu in fit_gaussian force == 2")
-  print(fit_values)
+    print("fit_gaussian force == 2, values fit_values:")
+    print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)]) {
+      print("fit_gaussian, force == 2, mean outside m/z range")
       # check if fit quality is bad
       if (fit_values$qual > fit_quality) {
+        print("fit_gaussian, force == 2, qual > fit_quality")
         # run this function again with fixed boundaries
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             outdir, force = 2, use_bounds = TRUE,
                             plot, scanmode, int_factor, width, height))
       } else {
+        print("fit_gaussian, fource == 2, qual < fit_quality")
         # check which mean is outside range and remove it from the list of means
         # NB: peak_mean and other variables have not been given values from 2-peak fit yet!
         for (i in 1:length(fit_values$mean)){
@@ -110,8 +114,10 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       }
     # if all means are within range
     } else {
+      print("fit_gaussian, force == 2, means within m/z range")
       # check for bad fit
       if (fit_values$qual > fit_quality) {
+        print("fit_gaussian, force == 2, qual > fit_quality")
         # Try to fit three curves; find three local maxima
         new_index <- which(diff(sign(diff(int_vector))) == -2) + 1
         # test if there are three indices in new_index
@@ -125,6 +131,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
                             plot, scanmode, int_factor, width, height))
       # good fit, all means are within m/z range
       } else {
+        print("fit_gaussian, force == 2, qual < fit_quality")
         # check if means are within 3 ppm and sum if so
         tmp <- fit_values$qual
         nr_means_new <- -1
@@ -145,20 +152,22 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 3 Gaussian peaks (mean, scale, sigma, qual)
     fit_values <- fit_3peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
-  print("nu in fit_gaussian force == 3")
-  print(fit_values)
+    print("fit_gaussian force == 3, values fit_values:")
+    print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
         fit_values$mean[3] < mass_vector[1] || fit_values$mean[3] > mass_vector[length(mass_vector)]) {
-
+      print("fit_gaussian, force == 3, mean outside mz range")
       # check if fit quality is bad
       if (fit_values$qual > fit_quality) {
+        print("fit_gaussian, force == 3, qual > fit_quality")
         # run this function again with fixed boundaries
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             outdir, force, use_bounds = TRUE,
                             plot, scanmode, int_factor, width, height))
       } else {
+        print("fit_gaussian, force == 3, qual < fit_quality")
         # check which mean is outside range and remove it from the list of means
         # NB: peak_mean and other variables have not been given values from 2-peak fit yet!
         for (i in 1:length(fit_values$mean)) {
@@ -176,8 +185,10 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       }
     # if all means are within range
     } else {
+      print("fit_gaussian, force == 3, means within range")
       # check for bad fit
       if (fit_values$qual > fit_quality) {
+        print("fit_gaussian, force == 3, qual > fit_quality")
         # Try to fit four curves; find four local maxima
         new_index <- which(diff(sign(diff(int_vector))) == -2) + 1
         # test if there are four indices in new_index
@@ -191,6 +202,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
                             int_factor, width, height))
       # good fit, all means are within m/z range
       } else {
+        print("fit_gaussian, force == 3, qual < fit_quality")
         # check if means are within 4 ppm and sum if so  
         tmp <- fit_values$qual
         nr_means_new <- -1
@@ -211,22 +223,24 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     # determine fit values for 4 Gaussian peaks (mean, scale, sigma, qual)
     fit_values <- fit_4peaks(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                              use_bounds, plot, fit_quality, int_factor)
-  print("nu in fit_gaussian force == 4")
-  print(fit_values)
+    print("fit_gaussian force == 4, values fit_values:")
+    print(fit_values)
     # test if one of the means is outside the m/z range
     if (fit_values$mean[1] < mass_vector[1] || fit_values$mean[1] > mass_vector[length(mass_vector)] ||
         fit_values$mean[2] < mass_vector[1] || fit_values$mean[2] > mass_vector[length(mass_vector)] ||
         fit_values$mean[3] < mass_vector[1] || fit_values$mean[3] > mass_vector[length(mass_vector)] ||
         fit_values$mean[4] < mass_vector[1] || fit_values$mean[4] > mass_vector[length(mass_vector)]) {
-
+      print("fit_gaussian, force == 4, mean outside mz range")
       # check if quality of fit is bad
       if (fit_values$qual > fit_quality) {
+	print("fit_gaussian, force == 4, qual > fit_quality")
         # run this function again with fixed boundaries
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             outdir, force, use_bounds = TRUE,
                             plot, scanmode, int_factor, width, height))
 
       } else {
+        print("fit_gaussian, force == 4, qual < fit_quality")
         # check which mean is outside range and remove it from the list of means
         # NB: peak_mean and other variables have not been given values from 2-peak fit yet!
         for (i in 1:length(fit_values$mean)) {
@@ -244,14 +258,17 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       }
     # if all means are within range
     } else {
+      print("fit_gaussian, force == 4, means within range")
       # check for bad fit
       if (fit_values$qual > fit_quality) {
+        print("fit_gaussian, force == 4, qual > fit_quality")
         # Try to fit 1 curve, force = 5
         return(fit_gaussian(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             outdir, force = 5, use_bounds = FALSE,
                             plot, scanmode, int_factor, width, height))
       # good fit, all means are within m/z range
       } else {
+        print("fit_gaussian, force == 4, qual < fit_quality")
         # check if means are within 4 ppm and sum if so
         tmp <- fit_values$qual 
         nr_means_new <- -1
@@ -275,8 +292,11 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
     max_index <- which(int_vector == max(int_vector))
     fit_values <- fit_1peak(mass_vector2, mass_vector, int_vector, max_index, scale, resol,
                             plot, fit_quality1, use_bounds)
+    print("fit_gaussian, force > 4, values fit_values:")
+    print(fit_values)
     # check for bad fit
     if (fit_values$qual > fit_quality1) {
+      print("fit_gaussian, force > 4, qual > fit_quality1")
       # remove
       if (plot) dev.off()    
       # get fit values from fit_optim
@@ -287,6 +307,7 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
       peak_max <- fit_values$max
       peak_qual <- 0
     } else {
+      print("fit_gaussian, force > 4, qual < fit_quality1")
       peak_mean <- c(peak_mean, fit_values$mean)
       peak_area <- c(peak_area, estimate_area(fit_values$mean, resol, fit_values$scale, fit_values$sigma, int_factor))
       peak_qual <- fit_values$qual
@@ -301,6 +322,8 @@ fit_gaussian <- function(mass_vector2, mass_vector, int_vector, max_index, scale
                          "qual" = peak_qual,
                          "min" = peak_min,
                          "max" = peak_max)
+  print("fit_gaussian, end script, values roi_value_list:")
+  print(roi_value_list)
   return(roi_value_list)
 }
 

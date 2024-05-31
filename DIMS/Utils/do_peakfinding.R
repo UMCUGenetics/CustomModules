@@ -43,10 +43,7 @@ do_peakfinding <- function(sample_avgtechrepl, int_factor, scale, resol, outdir,
                              "height.pkt" = allpeaks_values$area)
 
   # remove peaks with height = 0
-  index <- which(outlist_persample[, "height.pkt"] == 0)
-  if (length(index) > 0) {
-    outlist_persample <- outlist_persample[-index, ]
-  }
+  outlist_persample <- outlist_persample[outlist_persample[, "height.pkt"] != 0, ]
 
   # save output to file
   save(outlist_persample, file = paste0(sample_name, "_", scanmode, ".RData"))
