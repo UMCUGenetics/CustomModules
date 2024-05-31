@@ -25,7 +25,7 @@ pos_results <- NULL
 neg_results <- NULL
 
 # read in the data for 1 sample
-raw_data <- suppressMessages(xcmsRaw(mzml_filepath))
+raw_data <- suppressMessages(xcms::xcmsRaw(mzml_filepath))
 
 # for TIC plots: prepare txt files with data for plots
 tic_intensity_persample <- cbind(round(raw_data@scantime, 2), raw_data@tic)
@@ -38,7 +38,7 @@ pos_bins <- bins
 neg_bins <- bins
 
 # Generate a matrix
-raw_data_matrix <- rawMat(raw_data)
+raw_data_matrix <- xcms::rawMat(raw_data)
 
 # Get time values for positive and negative scans
 pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
@@ -111,13 +111,13 @@ rownames(pos_results_transpose) <- sample_name
 rownames(neg_results_transpose) <- sample_name
 
 # delete the last value of breaks_fwhm_avg to match dimensions of pos_results and neg_results
-breaks_fwhm_avg_minus1 <- breaks_fwhm_avg[-length(breaks_fwhm_avg)]
+breaks_fwhm_avg_minuslast <- breaks_fwhm_avg[-length(breaks_fwhm_avg)]
 # Format as string and show precision of float to 5 digits
-breaks_fwhm_avg_minus1 <- sprintf("%.5f", breaks_fwhm_avg_minus1)
+breaks_fwhm_avg_minuslast <- sprintf("%.5f", breaks_fwhm_avg_minuslast)
 
 # Use this as the column names
-colnames(pos_results_transpose) <- breaks_fwhm_avg_minus1
-colnames(neg_results_transpose) <- breaks_fwhm_avg_minus1
+colnames(pos_results_transpose) <- breaks_fwhm_avg_minuslast
+colnames(neg_results_transpose) <- breaks_fwhm_avg_minuslast
 
 # transpose back
 pos_results_final <- t(pos_results_transpose)

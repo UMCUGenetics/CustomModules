@@ -19,7 +19,7 @@ breaks_fwhm_avg <- NULL
 bins <- NULL
 
 # read in mzML file
-raw_data <- suppressMessages(xcmsRaw(filepath))
+raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 
 # trim (remove) scans at the start and end
 trim_left  <- round(raw_data@scantime[length(raw_data@scantime) * trim])

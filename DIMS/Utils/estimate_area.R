@@ -20,7 +20,7 @@ estimate_area <- function(mass_max, resol, scale, sigma, int_factor) {
   mz_min <- mass_max - 2 * fwhm
   mz_max <- mass_max + 2 * fwhm
   mz_range <- mz_max - mz_min 
-  mass_vector2 <- seq(mz_min, mz_max, length = mz_range * int.factor)
+  mass_vector2 <- seq(mz_min, mz_max, length = mz_range * int_factor)
 
   # estimate area under the curve
   area_curve <- sum(scale * dnorm(mass_vector2, mass_max, sigma)) / 100

@@ -25,32 +25,32 @@ grouping_rest <- function(outdir, unidentified_peaklist, scanmode, ppm) {
 
   # while (dim(outlist_copy)[1] > 0) {
   while (dim(outlist_copy)[1] > nrow_div) {
-    sel <- which(as.numeric(outlist_copy[, "height.pkt"]) == max(as.numeric(outlist_copy[, "height.pkt"])))[1]
+    select_max_height <- which(as.numeric(outlist_copy[, "height.pkt"]) == max(as.numeric(outlist_copy[, "height.pkt"])))[1]
 
     # ppm range around max
-    mzref <- as.numeric(outlist_copy[sel, "mzmed.pkt"])
+    mzref <- as.numeric(outlist_copy[select_max_height, "mzmed.pkt"])
     pkmin <- -(range * mzref - mzref)
     pkmax <- 2 * mzref - pkmin
 
-    selp <- as.numeric(outlist_copy[, "mzmed.pkt"]) > pkmin & as.numeric(outlist_copy[, "mzmed.pkt"]) < pkmax
-    tmplist <- outlist_copy[selp, , drop = FALSE]
+    select_peaks_within_range <- as.numeric(outlist_copy[, "mzmed.pkt"]) > pkmin & as.numeric(outlist_copy[, "mzmed.pkt"]) < pkmax
+    tmplist <- outlist_copy[select_peaks_within_range, , drop = FALSE]
 
     nrsamples <- length(unique(tmplist[, "samplenr"]))
     if (nrsamples > 0) {
-      mzmed_pgrp <- mean(as.numeric(outlist_copy[selp, "mzmed.pkt"]))
+      mzmed_pgrp <- mean(as.numeric(outlist_copy[select_peaks_within_range, "mzmed.pkt"]))
       mzmin_pgrp <- -(range * mzmed_pgrp - mzmed_pgrp)
       mzmax_pgrp <- 2 * mzmed_pgrp - mzmin_pgrp
       # select peaks within mz range
-      selp <- as.numeric(outlist_copy[, "mzmed.pkt"]) > mzmin_pgrp & as.numeric(outlist_copy[, "mzmed.pkt"]) < mzmax_pgrp
-      tmplist <- outlist_copy[selp, , drop = FALSE]
+      select_peaks_within_range <- as.numeric(outlist_copy[, "mzmed.pkt"]) > mzmin_pgrp & as.numeric(outlist_copy[, "mzmed.pkt"]) < mzmax_pgrp
+      tmplist <- outlist_copy[select_peaks_within_range, , drop = FALSE]
 
       # remove used peaks
       tmp <- as.vector(which(tmplist[, "height.pkt"] == -1))
       if (length(tmp) > 0) tmplist <- tmplist[-tmp, , drop = FALSE]
 
       nrsamples <- length(unique(tmplist[, "samplenr"]))
-      fq_worst_pgrp <- as.numeric(max(outlist_copy[selp, "fq"]))
-      fq_best_pgrp  <- as.numeric(min(outlist_copy[selp, "fq"]))
+      fq_worst_pgrp <- as.numeric(max(outlist_copy[select_peaks_within_range, "fq"]))
+      fq_best_pgrp  <- as.numeric(min(outlist_copy[select_peaks_within_range, "fq"]))
       ints_allsamps <- rep(0, length(names(repl_pattern_filtered)))
       names(ints_allsamps) <- names(repl_pattern_filtered)
 
@@ -65,7 +65,7 @@ grouping_rest <- function(outdir, unidentified_peaklist, scanmode, ppm) {
 					mzmin_pgrp, mzmax_pgrp, ints_allsamps, NA, NA, NA, NA))
     }
 
-    outlist_copy <- outlist_copy[-which(selp == TRUE), , drop = FALSE]
+    outlist_copy <- outlist_copy[-which(select_peaks_within_range == TRUE), , drop = FALSE]
   }
 
   outpgrlist <- as.data.frame(outpgrlist)

@@ -7,8 +7,8 @@ scripts_dir <- cmd_args[1]
 ppm <- as.numeric(cmd_args[2])
 z_score <- as.numeric(cmd_args[3])
 
-source(paste0(scripts_dir, "mergeDuplicatedRows.R"))
-source(paste0(scripts_dir, "statistics_z.R"))
+source(paste0(scripts_dir, "merge_duplicate_rows.R"))
+source(paste0(scripts_dir, "calculate_zscores.R"))
 
 # for each scan mode, collect all filled peak group lists
 scanmodes <- c("positive", "negative")

@@ -69,7 +69,7 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
           roi_values <- fit_init(mass_vector, int_vector, int_factor, scale, resol,
                                  outdir, sample_name, scanmode, plot, width, height,
                                  mz_index, start_index, end_index)
-
+	  print(roi_values)
           if (roi_values$qual[1] == 1) {
             # get optimized fit values
             roi_values <- fit_optim(mass_vector, int_vector, resol, plot,
@@ -98,7 +98,6 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
 
           roi_values <- fit_optim(mass_vector, int_vector, resol,
                                   plot, scanmode, int_factor, width, height)
-
           allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
           allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)
           allpeaks_values$nr <- c(allpeaks_values$nr, sample_name)
@@ -138,11 +137,9 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
         # Check only zeros
         if (sum(int_vector) == 0) next
 
-        roi_values <- fit_init(mass_vector, int_vector, int_factor, scale,
-                               resol, outdir, sample_name, scanmode,
-                               plot, width, height,
+        roi_values <- fit_init(mass_vector, int_vector, int_factor, scale, resol, 
+			       outdir, sample_name, scanmode, plot, width, height,
                                mz_index, start_index, end_index)
-
         if (roi_values$qual[1] == 1) {
           roi_values <- fit_optim(mass_vector, int_vector, resol,
                                   plot, scanmode, int_factor, width, height)
@@ -168,7 +165,6 @@ search_mzrange <- function(ints_fullrange, allpeaks_values, int_factor, scale, r
       } else {
         roi_values <- fit_optim(mass_vector, int_vector, resol,
                                 plot, scanmode, int_factor, width, height)
-
         allpeaks_values$mean <- c(allpeaks_values$mean, roi_values$mean)
         allpeaks_values$area <- c(allpeaks_values$area, roi_values$area)
         allpeaks_values$nr <- c(allpeaks_values$nr, sample_name)

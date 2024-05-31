@@ -37,10 +37,10 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   #' @param perc: Percentage of outliers which will be removed from controls (float)
   #'
   #' @return trimmed_control_intensities: Intensities trimmed for outliers
-  nr_toremove <- ceiling(length(control_col_ids) * perc / 100)
+  nr_to_remove <- ceiling(length(control_col_ids) * perc / 100)
   sorted_control_intensities <- sort(as.numeric(control_intensities))
-  trimmed_control_intensities <- sorted_control_intensities[(nr_toremove + 1) : 
-							    (length(sorted_control_intensities) - nr_toremove)]
+  trimmed_control_intensities <- sorted_control_intensities[(nr_to_remove + 1) : 
+							    (length(sorted_control_intensities) - nr_to_remove)]
   return(trimmed_control_intensities)
 }
 
@@ -233,37 +233,37 @@ if (z_score == 1) {
 
     file_png <- paste0(plot_dir, "/", hmdb_name, "_box.png")
     if (is.null(temp_png)) {
-      temp_png <- readPng(file_png)
+      temp_png <- loder::readPng(file_png)
       img_dim <- dim(temp_png)[c(1, 2)]
       cell_dim <- img_dim * imagesize_multiplier
       setColWidths(wb, filelist, cols = 1, widths = cell_dim[2] / 20)
     }
 
-    insertImage(wb,
-                filelist,
-                file_png,
-                startRow = p + 1,
-                startCol = 1,
-                height = cell_dim[1],
-                width = cell_dim[2],
-                units = "px")
+    openxlsx::insertImage(wb,
+                          filelist,
+                          file_png,
+                          startRow = p + 1,
+                          startCol = 1,
+                          height = cell_dim[1],
+                          width = cell_dim[2],
+                          units = "px")
 
     if (p %% 100 == 0) {
       cat("at row: ", p, "\n")
     }
   }
 
-  setRowHeights(wb, filelist, rows = c(1:nrow(outlist) + 1), heights = cell_dim[1] / 4)
-  setColWidths(wb, filelist, cols = c(2:ncol(outlist)), widths = 20)
+  openxlsx::setRowHeights(wb, filelist, rows = c(1:nrow(outlist) + 1), heights = cell_dim[1] / 4)
+  openxlsx::setColWidths(wb, filelist, cols = c(2:ncol(outlist)), widths = 20)
 } else {
-  setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
-  setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
+  openxlsx::setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
+  openxlsx::setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
 }
 
 # write Excel file
-writeData(wb, sheet = 1, outlist, startCol = 1)
+openxlsx::writeData(wb, sheet = 1, outlist, startCol = 1)
 xlsx_name <- paste0(outdir, "/", project, ".xlsx")
-saveWorkbook(wb, xlsx_name, overwrite = TRUE)
+openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
 #### INTERNAL STANDARDS ####
@@ -324,7 +324,7 @@ sample_count <- length(repl_pattern)
 
 # change the order of the x-axis summed plots to a natural sorted one
 sample_naturalorder <- unique(as.character(is_summed$Sample))
-sample_naturalorder <- str_sort(sample_naturalorder, numeric = TRUE)
+sample_naturalorder <- stringr::str_sort(sample_naturalorder, numeric = TRUE)
 is_summed$Sample_level <- factor(is_summed$Sample, levels = c(sample_naturalorder))
 is_pos$Sample_level <- factor(is_pos$Sample, levels = c(sample_naturalorder))
 is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
@@ -333,10 +333,10 @@ is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
 # theme for all IS bar plots
 theme_is_bar <- function(my_plot) {
   my_plot +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-    theme(legend.position = "none", 
-	  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6), 
-	  axis.text.y = element_text(size = 6)
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+    ggplot2::theme(legend.position = "none", 
+	           axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6), 
+               	   axis.text.y = element_text(size = 6)
     )
 }
 

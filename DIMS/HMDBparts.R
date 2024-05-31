@@ -12,7 +12,8 @@ load(breaks_file)
 min_mz <- round(breaks_fwhm[1])
 max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
 
-# In case of a standard run (m/z 69-606) use external HMDB parts
+# In case of a standard run use external HMDB parts
+# m/z is approximately 70 to 600: set limits between 68-71 for min and 599-610 for max
 if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 610) {
   # skip generating HMDB parts
   hmdb_parts_path <- cmd_args[3] 
@@ -30,18 +31,18 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
   for (scanmode in scanmodes) {
     if (scanmode == "negative") {
       column_label <- "MNeg"
-      HMDB_add_iso <- HMDB_add_iso.Neg
+      hmdb_add_iso <- hmdb_add_iso.Neg
     } else if (scanmode == "positive") {
       column_label <- "Mpos"
-      HMDB_add_iso <- HMDB_add_iso.Pos
+      hmdb_add_iso <- hmdb_add_iso.Pos
     }
 
     # filter mass range meassured
-    HMDB_add_iso = HMDB_add_iso[which(HMDB_add_iso[ , column_label] >= breaks_fwhm[1] &
-                                      HMDB_add_iso[ , column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
+    hmdb_add_iso = hmdb_add_iso[which(hmdb_add_iso[ , column_label] >= breaks_fwhm[1] &
+                                      hmdb_add_iso[ , column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
 
     # sort on mass
-    outlist <- HMDB_add_iso[order(as.numeric(HMDB_add_iso[ , column_label])),]
+    outlist <- hmdb_add_iso[order(as.numeric(hmdb_add_iso[ , column_label])),]
     nr_rows <- dim(outlist)[1]
 
     # maximum number of rows per file
