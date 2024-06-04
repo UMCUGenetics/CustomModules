@@ -10,7 +10,7 @@ get_element_info <- function(name, elements = NULL) {
 
   # get information on all elements
   if (!is.list(elements) || length(elements) == 0 ) {
-    all_elements <- initializePSE() 
+    elements <- initializePSE()
   }
   # extract information for a particular adduct
   if (name == "CH3OH+H") {
@@ -19,6 +19,6 @@ get_element_info <- function(name, elements = NULL) {
   } else {
     regular_expr <- paste0("^", name, "$")
   }
-  element_info <- all_elements[[grep(regular_expr, sapply(all_elements, function(x) { x$name }))]]
+  element_info <- elements[[grep(regular_expr, sapply(elements, function(x) { x$name }))]]
   return(element_info)
 }

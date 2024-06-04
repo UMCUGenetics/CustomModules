@@ -33,7 +33,6 @@ fit_init <- function(mass_vector, int_vector, int_factor, scale, resol,
 
   # Find the index in int_vector with the highest intensity
   max_index <- which(int_vector == max(int_vector))
-print("nu in fit_init")
   roi_values <- fit_gaussian(mass_vector2, mass_vector, int_vector, max_index,
                              scale, resol, outdir, force = length(max_index),
                              use_bounds = FALSE, plot, scanmode, int_factor, width, height)

@@ -52,15 +52,6 @@ for (scanmode in scanmodes) {
     }
 
     outlist_part <- outlist[c(start_part:end_part), ]
-    # # add ppm extra before start
-    # if (part != 1) {
-    #   mz_start <- outlist_part[1, "mzmed.pkt"]
-    #   mz_ppm_range <- ppm * as.numeric(mz_start) / 1e+06
-    #   mz_start_min_ppm <- mz_start - mz_ppm_range
-    #   outlist_before_part <- outlist %>% filter(mzmed.pkt >= mz_start_min_ppm & mzmed.pkt < mz_start)
-
-    #   outlist_part <- rbind(outlist_before_part, outlist_part)
-    # }
 
     # add ppm extra after end
     if (part != num_parts) {

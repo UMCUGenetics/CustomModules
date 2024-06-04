@@ -26,8 +26,8 @@ replace_zeros <- function(peakgroup_list, repl_pattern, scanmode, resol, outdir,
         next
       }
       for (zero_index in 1:length(zero_intensity)) {
-        area <- generate_gaussian(peakgroup_list[zero_intensity[zero_index], "mzmed.pgrp"], thresh,
-                                  resol, FALSE, scanmode, int_factor = 1 * 10^5, 1, 1)$area
+        area <- fit_optim(peakgroup_list[zero_intensity[zero_index], "mzmed.pgrp"], thresh,
+                          resol, FALSE, scanmode, int_factor = 1 * 10^5, 1, 1)$area
         peakgroup_list[zero_intensity[zero_index], names(repl_pattern)[sample_index]] <- rnorm(n = 1, mean = area,
                                                                                                sd = 0.25 * area)
       }

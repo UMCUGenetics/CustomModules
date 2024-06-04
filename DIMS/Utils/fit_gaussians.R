@@ -17,7 +17,6 @@ fit_1gaussian <- function(mass_vector, int_vector, sigma, query_mass, scale, use
     d <- params[2] * dnorm(mass_vector, mean = params[1], sd = sigma)
     sum((d - int_vector) ^ 2)
   }
-print("nu in fit_1gaussian")
   if (use_bounds) {
     # determine lower and upper boundaries
     lower <- c(mass_vector[1], 0, mass_vector[1], 0)
@@ -58,7 +57,6 @@ fit_2gaussians <- function(mass_vector, int_vector, sigma1, sigma2,
     sum((d - int_vector) ^ 2)
   }
 
-print("nu in fit_2gaussians")
   if (use_bounds) {
     # determine lower and upper boundaries
     lower <- c(mass_vector[1], 0, mass_vector[1], 0)
@@ -121,7 +119,6 @@ fit_3gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3,
     sum((d - int_vector) ^ 2)
   }
 
-print("nu in fit_3gaussians")
   if (use_bounds) {
     # determine lower and upper boundaries
     lower <- c(mass_vector[1], 0, mass_vector[1], 0, mass_vector[1], 0)
@@ -176,7 +173,6 @@ fit_4gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3, sigm
     sum((d - int_vector) ^ 2)
   }
 
-print("nu in fit_4gaussians")
   if (use_bounds) {
     # determine lower and upper boundaries
     lower <- c(mass_vector[1], 0, mass_vector[1], 0, mass_vector[1], 0, mass_vector[1], 0)

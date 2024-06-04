@@ -43,7 +43,7 @@ sum_adducts <- function(peaklist, theor_mz, grpnames_long, adducts, batch_number
         int_cols <- c(int_cols_C, int_cols_P)
         ints <- peaklist[metab, int_cols]
       } else {
-        ints <- peaklist[metab, c(7:(length(grpnames_long) + 6))]
+        ints <- peaklist[metab, c(3:(length(grpnames_long) + 2))]
       }
       total <- apply(ints, 2, sum)
 

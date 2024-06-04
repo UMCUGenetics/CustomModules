@@ -26,7 +26,7 @@ for (scanmode in scanmodes) {
   for (file_nr in 1:length(peaklist_files)) {
     cat("\n", peaklist_files[file_nr])
     load(peaklist_files[file_nr])
-    if (is.null(outlist.persample) || (dim(outlist.persample)[1] == 0)) {
+    if (is.null(outlist_persample) || (dim(outlist_persample)[1] == 0)) {
       tmp <- strsplit(peaklist_files[file_nr], "/")[[1]]
       fname <- tmp[length(tmp)]
       fname <- strsplit(fname, ".RData")[[1]][1]
@@ -38,9 +38,9 @@ for (scanmode in scanmodes) {
       }
     } else {
       if (file_nr == 1) {
-        outlist_total <- outlist.persample
+        outlist_total <- outlist_persample
       } else {
-        outlist_total <- rbind(outlist_total, outlist.persample)
+        outlist_total <- rbind(outlist_total, outlist_persample)
       }
     }
   }

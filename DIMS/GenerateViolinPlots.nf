@@ -9,11 +9,11 @@ process GenerateViolinPlots {
        val(analysis_id)
 
     output:
-       path('Diagnostics/*.pdf'), emit: diag_plot_files
-       path('Other/*.pdf'), emit: other_plot_files
-       path('dIEM_plots/*.pdf'), emit: diem_plot_files
-       path('*.xlsx'), emit: excel_file
-       path('*.csv'), emit: helix_file
+       path('Diagnostics/*.pdf'), emit: diag_plot_files, optional: true
+       path('Other/*.pdf'), emit: other_plot_files, optional: true
+       path('dIEM_plots/*.pdf'), emit: diem_plot_files, optional: true
+       path('*.xlsx'), emit: excel_file, optional: true
+       path('*.csv'), emit: helix_file, optional: true
 
     script:
         """

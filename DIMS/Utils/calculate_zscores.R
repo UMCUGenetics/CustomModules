@@ -1,8 +1,7 @@
 ## adapted from statistics_z.R
 # refactor: change column names from avg.ctrls to avg_ctrls, sd.ctrls to sd_ctrls
-# remove parameter sort_col
 # check logic of parameter adducts
-calculate_zscores <- function(peakgroup_list, sort_col, adducts) {
+calculate_zscores <- function(peakgroup_list, adducts) {
   #' Calculate Z-scores for peak groups based on average and standard deviation of controls
   #'
   #' @param peakgroup_list: Peak group list (matrix)
@@ -13,6 +12,8 @@ calculate_zscores <- function(peakgroup_list, sort_col, adducts) {
 
   case_label <- "P"
   control_label <- "C"
+  # get index for new column names
+  startcol <- ncol(peakgroup_list) + 3
 
   # calculate mean and standard deviation for Control group
   ctrl_cols <- grep(control_label, colnames(peakgroup_list), fixed = TRUE)
@@ -35,7 +36,6 @@ calculate_zscores <- function(peakgroup_list, sort_col, adducts) {
   }
 
   # apply new column names to columns at end plus avg and sd columns
-  startcol <- ncol(peakgroup_list) + 3
   colnames(peakgroup_list)[startcol:ncol(peakgroup_list)] <- colnames_zscores
 
   # add ppm deviation column

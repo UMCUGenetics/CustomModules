@@ -43,7 +43,7 @@ identify_noisepeaks <- function(peakgroup_list, all_adducts, scanmode = "Negativ
       add2label <- paste0("[M+", look4[adduct_index], "]", adduct_scanmode)
     }
 
-    noise_mz_adduct[, "CompoundName"] <- paste0(noise_mz_adduct[, "CompoundName "], add2label)
+    noise_mz_adduct[, "CompoundName"] <- paste0(noise_mz_adduct[, "CompoundName"], add2label)
     adduct_info <- get_element_info(look4[adduct_index], all_adducts)
     if (scanmode == "Positive") {
       adduct_mass <- adduct_info$mass[1] + adduct_info$isotope$mass[1] - hydrogen_mass

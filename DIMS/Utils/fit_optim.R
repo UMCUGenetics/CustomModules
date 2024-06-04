@@ -38,12 +38,10 @@ fit_optim <- function(mass_vector, int_vector, resol,
 
   # get an estimate of the area under the peak
   area <- estimate_area(mass_max, resol, scale, sigma, int_factor)
-print("nu in fit_optim")  
   # put all values for this region of interest into a list
   roi_value_list <- list("mean" = mass_max,
                          "area" = area,
                          "min" = mass_vector2[1],
                          "max" = mass_vector2[length(mass_vector2)])
-print(roi_value_list)
   return(roi_value_list)
 }

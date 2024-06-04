@@ -23,7 +23,7 @@ for (scanmode in scanmodes) {
   }
 
   # remove duplicates; peak groups with exactly the same m/z
-  outlist_total <- mergeDuplicatedRows(outlist_total)
+  outlist_total <- merge_duplicate_rows(outlist_total)
 
   # sort on mass
   outlist_total <- outlist_total[order(outlist_total[, "mzmed.pgrp"]), ]
@@ -34,7 +34,7 @@ for (scanmode in scanmodes) {
 
   if (z_score == 1) {
     # calculate Z-scores
-    outlist_stats <- statistics_z(outlist_total, sortCol = NULL, adducts = FALSE)
+    outlist_stats <- calculate_zscores(outlist_total, adducts = FALSE)
     nr_removed_samples <- length(which(repl_pattern[] == "character(0)"))
     order_index_int <- order(colnames(outlist_stats)[8:(length(repl_pattern) - nr_removed_samples + 7)])
     outlist_stats_more <- cbind(outlist_stats[, 1:7],
