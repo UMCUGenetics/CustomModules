@@ -14,7 +14,7 @@ process ImportBam {
     script:
         """
         source ${params.exoncov_path}/venv/bin/activate
-        python ${params.exoncov_path}/ExonCov.py import_bam \
+        flask --app ${params.exoncov_path}/ExonCov import_bam \
         --threads ${task.cpus} \
         --overwrite \
         --print_sample_id \
