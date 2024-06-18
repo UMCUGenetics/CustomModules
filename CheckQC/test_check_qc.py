@@ -15,7 +15,7 @@ import check_qc
 @pytest.fixture(scope="module", autouse=True)
 def setup_test_path(tmp_path_factory):
     test_tmp_path = str(tmp_path_factory.mktemp("test")) + "/"
-    # Create empty files
+    # create empty files
     open(str(test_tmp_path) + "/empty.txt", "a").close()
     open(str(test_tmp_path) + "/empty.yaml", "a").close()
     return test_tmp_path
@@ -66,95 +66,44 @@ class TestCheckAllowedOperators():
 
 class TestCheckRequiredKeysMetrics():
     def test_required_keys_present(self):
-        qc_metrics = [
+        qc_settings = {"metrics": [
             {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake",  "report_cols": "fake"},
-        ]
-        check_qc.check_required_keys_metrics(qc_metrics)
+        ]}
+        check_qc.check_required_keys_metrics(qc_settings)
         assert True
 
     @pytest.mark.parametrize(
-        "incomplete_qc_metrics",
+        "incomplete_qc_settings",
         [
-            [{"filename": "fakename"}],
-            [
+            {"metrics": [{"filename": "fakename"}]},
+            {"metrics": [
                 {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake",  "report_cols": "fake"},
-                # Missing report_cols
-                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},
-            ],
-            [
-                # Missing report_cols
-                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},
-                # Missing report_cols
-                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},
-            ]
+                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
+            ]},
+            {"metrics": [
+                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
+                {"filename": "fake", "qc_col": "fake", "threshold": "fake", "operator": "fake"},  # missing report_cols
+            ]}
         ]
     )
-    def test_missing_keys(self, incomplete_qc_metrics):
+    def test_missing_keys(self, incomplete_qc_settings):
         with pytest.raises(KeyError) as required_error:
-            check_qc.check_required_keys_metrics(incomplete_qc_metrics)
+            check_qc.check_required_keys_metrics(incomplete_qc_settings)
         error_val = str(required_error.value)
         assert "not in all metrics settings." in error_val
         assert error_val.split(" ")[2] in ["filename", "qc_col", "threshold", "operator", "report_cols"]
 
 
 class TestSelectMetrics():
-    @pytest.mark.parametrize("filename_or_regex,input_files,expected", [
-        # Multi match
-        ("test", ["test1.txt", "test2.txt"], ["test1.txt", "test2.txt"]),
-        # Single match
-        ("test", ["test1.txt", "fake2.txt"],  ["test1.txt"]),
-        # Match with relative path
-        ("test", ["./random/path/to/test1.txt"],  ["./random/path/to/test1.txt"]),
-        # Match with absolute path
-        ("test", ["/random/path/to/test1.txt"],  ["/random/path/to/test1.txt"]),
-        # Match regex: kinship file suffix
-        (
-            ".*.kinship_check.out$",
-            ["240101_A00295_0001_AHWCFKDSX7_CREv4_1.kinship_check.out"],
-            ["240101_A00295_0001_AHWCFKDSX7_CREv4_1.kinship_check.out"]
-        ),
-        # Match on word truth and SNP
-        (
-            ".*truth.*SNP",
-            [
-                '2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
-                '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
-            ],
-            ['2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
-        ),
-        # Match on word truth and SNP
-        (
-            ".*truth.*SNP",
-            [
-                'U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
-                'U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
-            ],
-            ['U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv']
-        ),
-        # Match if 'truth' is absent and contains 'SNP'
-        # ?: Match expression but do not capture it
-        # ?! Match if 'truth' is absent.
-        (
-            "(?:(?!truth).)*SNP.*$",
-            [
-                '2/U000000CFGIAB12878a_GIAB12878_nist2.19_truth_fix_header.vcf.gz_SNP_ALL.csv',
-                '12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv'
-            ],
-            ['12/U000000CFGIAB12878b_U000000CFGIAB12878c_SNP_ALL.csv']
-        ),
-
+    @pytest.mark.parametrize("input_files,expected", [
+        (["test1.txt", "test2.txt"], ["test1.txt", "test2.txt"]),  # multi match
+        (["test1.txt", "fake2.txt"],  ["test1.txt"]),  # single match
     ])
-    def test_select_metric(self, filename_or_regex, input_files, expected):
-        metrics = check_qc.select_metrics(filename_or_regex, input_files)
+    def test_select_metric(self, input_files, expected):
+        metrics = check_qc.select_metrics("test", input_files)
         assert metrics == expected
 
-    @pytest.mark.parametrize("filename_or_regex,input_files", [
-        # No match
-        ("test", ["fake1.txt", "fake2.txt"]),
-        # No match, filename with specialchar assumed to be a regex
-        ("specialchar_@", ["12/specialchar_@.txt"]),
-    ])
-    def test_no_match(self, filename_or_regex, input_files):
+    def test_no_match(self):
         with pytest.warns(UserWarning) as match_warning:
             return_val = check_qc.select_metrics("test", ["fake1.txt", "fake2.txt"])
         warn_msg = match_warning[0].message.args[0]
@@ -166,14 +115,10 @@ class TestSelectMetrics():
 class TestGetColumnsToReport():
     @pytest.mark.parametrize("report_cols,metric_cols,qc_col,expected", [
         (["col1"], ["col1"], "col1", ["qc_title", "qc_value"]),
-        # Additional report col
-        (["col1", "col2"], ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),
-        # Different order output
-        (["col1", "col2"], ["col1", "col2"], "col2", ["qc_title", "qc_value", "col1"]),
-        # Additional metric col
-        (["col1"], ["col1", "col3"], "col1", ["qc_title", "qc_value"]),
-        # Special @all option
-        ("@all", ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),
+        (["col1", "col2"], ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),  # additional report col
+        (["col1", "col2"], ["col1", "col2"], "col2", ["qc_title", "qc_value", "col1"]),  # different order output
+        (["col1"], ["col1", "col3"], "col1", ["qc_title", "qc_value"]),  # additional metric col
+        ("@all", ["col1", "col2"], "col1", ["qc_title", "qc_value", "col2"]),  # special @all option
     ])
     def test_get_columns_to_report(self, report_cols, metric_cols, qc_col, expected):
         qc_report_cols = check_qc.get_columns_to_report(report_cols, metric_cols, qc_col)
@@ -195,11 +140,11 @@ class TestAddAndRenameColumns():
     def test_add_and_rename_columns(self):
         fake_qc_metric = DataFrame({"sample": ["sample1"], "fake_qc_col": ["0.01"]})
         qc_metric_out = check_qc.add_and_rename_columns(fake_qc_metric, "FAKE_title", "fake_qc_col", "fake_op", "fake_thres")
-        # Assert expected column values
+        # assert expected column values
         assert qc_metric_out["qc_title"].values == "fake_title"
         assert qc_metric_out["qc_status"].values == "PASS"
         assert qc_metric_out["qc_check"].values == "fake_thres fake_op fake_qc_col"
-        # Assert all expected columns exist
+        # assert all expected columns exist
         assert not list(
             set(['sample', 'qc_value', 'qc_title', 'qc_status', 'qc_check', 'qc_msg']) - set(qc_metric_out.columns)
         )
@@ -208,14 +153,10 @@ class TestAddAndRenameColumns():
 
 class TestGetFailedRows():
     @pytest.mark.parametrize("qc_op,qc_thres", [
-        # Test match
-        ("match", "fake_thres"),
-        # Test string
-        ("==", "FAIL"),
-        # Test int
-        ("==", 1),
-        # Test float
-        ("==", 0.1),
+        ("match", "fake_thres"),  # test match
+        ("==", "FAIL"),  # test string
+        ("==", 1),  # test int
+        ("==", 0.1),  # test float
     ])
     def test_correct(self, qc_op, qc_thres):
         fake_qc_metric = DataFrame({"sample": ["sample1"], "fake_qc_col": [qc_thres]})
@@ -240,12 +181,9 @@ class TestAddFailedSamplesMetric():
         failed_rows = fake_qc_metric.loc[fake_qc_metric["sample_col"] == "sample2"].index
         qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(
             fake_qc_metric, failed_rows, fake_qc_metric.columns.to_list(), ["sample_col"])
-        # Test rename column
-        assert "sample" in qc_metric_out.columns.to_list()
-        # Test removal failed sample
-        assert "sample2" not in qc_metric["sample_col"].to_list()
-        # Test added failed sample
-        assert "sample2" in qc_metric_out["sample"].to_list()
+        assert "sample" in qc_metric_out.columns.to_list()  # test rename column
+        assert "sample2" not in qc_metric["sample_col"].to_list()  # test removal failed sample
+        assert "sample2" in qc_metric_out["sample"].to_list()  # test added failed sample
         assert len(qc_metric) == 1 and len(qc_metric_out) == 1
         assert qc_metric_out["qc_status"].values == "FAIL"
 
@@ -255,21 +193,18 @@ class TestAddFailedSamplesMetric():
             columns=["sample_col1", "sample_col2"]
         )
         fake_kinship_metric = fake_kinship_metric.assign(qc_check="checks", qc_value="wrong")
-        # Define sample1 vs sample2 and sample1 vs sample3 as failed
-        failed_rows = fake_kinship_metric.iloc[0:2].index
+        failed_rows = fake_kinship_metric.iloc[0:2].index  # define sample1 vs sample2 and sample1 vs sample3 as failed
         qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(
             fake_kinship_metric, failed_rows, fake_kinship_metric.columns.to_list(), ["sample_col1", "sample_col2"])
         for failed_sample in ["sample1", "sample2", "sample3"]:
-            # Test removal failed sample
+            # test removal failed sample
             assert failed_sample not in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())
-            # Test added failed sample
-            assert failed_sample in qc_metric_out["sample"].to_list()
+            assert failed_sample in qc_metric_out["sample"].to_list()  # test added failed sample
         assert qc_metric_out["qc_status"].values.all() == "FAIL"
         assert len(qc_metric) == 1
         twice_failed = qc_metric_out.loc[qc_metric_out["sample"] == "sample1"]
-        # Assert join with ';' on column qc_value
-        assert "wrong;wrong" == twice_failed["qc_value"].item()
-        # Assert join with ';' on column qc_msg
+        assert "wrong;wrong" == twice_failed["qc_value"].item()  # assert join with ';' on column qc_value
+        # assert join with ';' on column qc_msg
         assert "sample1 sample2 checks wrong;sample1 sample3 checks wrong" == twice_failed["qc_msg"].item()
         for passed_sample in ["sample4", "sample5"]:
             assert passed_sample in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())
@@ -299,23 +234,20 @@ class TestAddPassedSamplesMetric():
         )
         qc_metric_out = check_qc.add_passed_samples_metric(
             fake_qc_metric, fake_sample_qc, ["sample_col1", "sample_col2"])
-        # Test rename column
-        assert "sample" in qc_metric_out.columns.to_list()
-        # Test removal duplicates
-        assert qc_metric_out["sample"].to_list().count("s4") == 1
-        # Test additional columns ignored
-        assert "new_col" not in qc_metric_out.columns.to_list()
+        assert "sample" in qc_metric_out.columns.to_list()  # test rename column
+        assert qc_metric_out["sample"].to_list().count("s4") == 1  # test removal duplicates
+        assert "new_col" not in qc_metric_out.columns.to_list()  # test additional columns ignored
 
 
 class TestCreateAndWriteOutput():
     @pytest.mark.parametrize("exp_summary,qc_output", [
-        # All qc checks passed
+        # all qc checks passed
         ("PASS", DataFrame({"sample": ["s1"], "qc_status_cov": ["PASS"], "qc_status_kinship": ["PASS"]})),
-        # Single qc check failed
+        # single qc check failed
         ("FAIL", DataFrame({"sample": ["s1"], "qc_status_cov": ["PASS"], "qc_status_kinship": ["FAIL"]})),
-        # All qc check failed
+        # all qc check failed
         ("FAIL", DataFrame({"sample": ["s1"], "qc_status_cov": ["FAIL"], "qc_status_kinship": ["FAIL"]})),
-        # Not restricted to qc_status_<check> column name
+        # not restricted to qc_status_<check> column name
         ("PASS", DataFrame({"sample": ["s1"], "random_col1": ["PASS"], "random_col2": ["PASS"]})),
     ])
     def test_create_and_write_output(self, setup_test_path, exp_summary, qc_output):
@@ -330,61 +262,61 @@ class TestCreateAndWriteOutput():
 
 class TestGetOutputMetrics():
     @pytest.mark.parametrize("data_in,nr_rows", [
-        # Single sample
+        # single sample
         (["sample1_fake_check.txt"], 1),
-        # Multiple single samples
+        # multiple single samples
         (["sample1_fake_check.txt", "sample2_fake_check.txt"], 2),
-        # Single multi samples
+        # single multi samples
         (["240101_fake_check.txt"], 2),
-        # Multiple multi samples
+        # multiple multi samples
         (["240101_fake_check.txt", "240102_fake_check.txt"], 4),
-        # Multi and single sample
+        # multi and single sample
         (["sample1_fake_check.txt", "240101_fake_check.txt"], 3),
     ])
     def test_input_ok(self, data_in, nr_rows, dataset, datadir):
         datadir_files = [f"{datadir}/{filename}" for filename in data_in]
+        # input1 = datadir / "sample1_fake_check.txt"
         df_output = check_qc.read_and_judge_metrics(dataset["settings_single_metric"]["metrics"][0], datadir_files)
         assert not df_output.empty
         observed_cols = df_output.columns.to_list()
-        # Shape results in tuple with no. rows and no. cols
-        assert df_output.shape[0] == nr_rows
+        assert df_output.shape[0] == nr_rows  # shape results in tuple with no. rows and no. cols
         assert len(observed_cols) == 5
         assert observed_cols == ['sample', 'qc_check_fc', 'qc_status_fc', 'qc_msg_fc', 'qc_value_fc']
 
     @pytest.mark.parametrize("data_in,nr_rows,exp_warn_msg", [
-        # Single sample duplicate
+        # single sample duplicate
         (["sample1_fake_check.txt"]*2, 1, "Sample IDs occur multiple times in input:"),
-        # Single multi samples duplicate
+        # single multi samples duplicate
         (["240101_fake_check.txt"]*2, 2, "Sample IDs occur multiple times in input:"),
-        # Multiple multi samples, duplicate samples
+        # multiple multi samples, duplicate samples
         (["240101_fake_check.txt", "240101_v2_fake_check.txt"], 4, "Different qc values for duplicated sample IDs in input:"),
     ])
     def test_input_warn(self, data_in, nr_rows, exp_warn_msg, dataset, datadir):
         datadir_files = [f"{datadir}/{filename}" for filename in data_in]
+        # input1 = datadir / "sample1_fake_check.txt"
         with pytest.warns(UserWarning) as match_warning:
             df_output = check_qc.read_and_judge_metrics(dataset["settings_single_metric"]["metrics"][0], datadir_files)
         warn_msg = match_warning[0].message.args[0]
         assert exp_warn_msg in warn_msg
         assert not df_output.empty
         observed_cols = df_output.columns.to_list()
-        # Shape: tuple with no. rows and no. cols
-        assert df_output.shape[0] == nr_rows
+        assert df_output.shape[0] == nr_rows  # Shape: tuple with no. rows and no. cols
         assert len(observed_cols) == 5
         assert observed_cols == ['sample', 'qc_check_fc', 'qc_status_fc', 'qc_msg_fc', 'qc_value_fc']
 
 
 class TestCheckQc():
     @pytest.mark.parametrize("settings,data_in,exp_shape", [
-        # Single metric, single sample input
+        # single metric, single sample input
         ("settings_single_metric", ["sample1_fake_check.txt"], (1, 5)),
-        # Two metrics, single sample input
+        # two metrics, single sample input
         ("settings_two_metrics", ["sample1_fake_check.txt"], (1, 9)),
-        # Single metric, multiple samples input
+        # single metric, multiple samples input
         ("settings_single_metric", ["240101_fake_check.txt"], (2, 5)),
         ("settings_single_metric", ["240101_fake_check.txt", "240102_fake_check.txt"], (4, 5)),
-        # Two metrics, multiple sample input
+        # two metrics, multiple sample input
         ("settings_two_metrics", ["240101_fake_check.txt", "240102_fake_check.txt"], (4, 9)),
-        # Two metricS, multi and single sample input
+        # two metric, multi and single sample input
         ("settings_two_metrics", ["sample1_fake_check.txt", "240101_fake_check.txt"], (3, 9)),
     ])
     def test_ok(self, settings, data_in, exp_shape, datadir, dataset, mocker, ):
