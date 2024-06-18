@@ -43,24 +43,12 @@ if __name__ == "__main__":
 
         print("\n\t{0} %duplication\n".format(100*sample_dups/sample_mapped))
 
-    print(
-        "Total raw reads: {total:,} reads (Total throughput, 75bp={total_75bp:,} bp, 100bp={total_100bp:,} bp, "
-        "150bp={total_150bp:,} bp)".format(
-            total=counts['total'],
-            total_75bp=counts['total']*75,
-            total_100bp=counts['total']*100,
-            total_150bp=counts['total']*150
-        )
-    )
-    print(
-        "Total mapped reads: {total:,} reads (Total throughput, 75bp={total_75bp:,} bp, 100bp={total_100bp:,} bp, "
-        "150bp={total_150bp:,} bp)".format(
-            total=counts['mapped'],
-            total_75bp=counts['mapped']*75,
-            total_100bp=counts['mapped']*100,
-            total_150bp=counts['mapped']*150
-        )
-    )
+    print("Total raw reads: {total:,} reads (Total throughput, 75bp={total_75bp:,} bp, 100bp={total_100bp:,} bp, 150bp={total_150bp:,} bp)".format(
+        total=counts['total'], total_75bp=counts['total']*75, total_100bp=counts['total']*100, total_150bp=counts['total']*150
+    ))
+    print("Total mapped reads: {total:,} reads (Total throughput, 75bp={total_75bp:,} bp, 100bp={total_100bp:,} bp, 150bp={total_150bp:,} bp)".format(
+        total=counts['mapped'], total_75bp=counts['mapped']*75, total_100bp=counts['mapped']*100, total_150bp=counts['mapped']*150
+    ))
     print("Average mapped per lib: {:,} reads".format(int(round(float(counts['mapped'])/float(counts['files'])))))
     print("Average dups per lib: {:,} reads".format(int(round(float(counts['dups'])/float(counts['files'])))))
     print("Average dups % per lib: {:.2f} %".format(100*float(counts['dups'])/float(counts['mapped'])))
