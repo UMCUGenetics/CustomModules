@@ -31,10 +31,10 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
   for (scanmode in scanmodes) {
     if (scanmode == "negative") {
       column_label <- "MNeg"
-      hmdb_add_iso <- hmdb_add_iso.Neg
+      hmdb_add_iso <- HMDB_add_iso.Neg
     } else if (scanmode == "positive") {
       column_label <- "Mpos"
-      hmdb_add_iso <- hmdb_add_iso.Pos
+      hmdb_add_iso <- HMDB_add_iso.Pos
     }
 
     # filter mass range meassured
@@ -97,12 +97,12 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
           nr_moved <- nr_moved + 1
         }
 
-        save(outlist_part, file = paste0(scanmode, "_hmdb_", i, ".RData"))
+        save(outlist_part, file = paste0(scanmode, "_hmdb.", i, ".RData"))
         check <- check + dim(outlist_part)[1]
       }
 
       outlist_part <- outlist_i
-      save(outlist_part, file = paste0(scanmode, "_hmdb_", i + 1, ".RData"))
+      save(outlist_part, file = paste0(scanmode, "_hmdb.", i + 1, ".RData"))
       check <- check + dim(outlist_part)[1]
     }
   }
