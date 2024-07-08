@@ -472,6 +472,8 @@ if (z_score == 1){
         metab_iem_controls <- prepare_data(metab_iem_all, zscore_controls)
         # make sure every page has 20 metabolites
         diem_metab_perpage <- prepare_data_perpage(metab_iem_sorted, metab_iem_controls, nr_plots_perpage, nr_pat)
+	# add table of metabolites with increased or decreased Z-scores
+        top_metab_pt <- prepare_toplist(pt_name, zscore_patients)
 
         # generate dIEM violin plots
         create_violin_plots(diem_plot_dir, pt_name, diem_metab_perpage, top_metab_pt)
