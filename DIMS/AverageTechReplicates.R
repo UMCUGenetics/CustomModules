@@ -148,8 +148,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
     plot_nr <- plot_nr + 1
     # repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
     repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
-    bad_color_pos <- tech_reps[file_nr] %in% remove_pos[[1]]
-    bad_color_neg <- tech_reps[file_nr] %in% remove_neg[[1]]
+    bad_color_pos <- tech_reps[file_nr] %in% remove_pos
+    bad_color_neg <- tech_reps[file_nr] %in% remove_neg
     if (bad_color_neg & bad_color_pos) {
       plot_color <- "#F8766D"
     } else if (bad_color_pos) {
