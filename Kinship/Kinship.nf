@@ -1,7 +1,8 @@
 process Kinship {
     tag {"Kinship ${analysis_id}"}
     label 'Kinship'
-    container = 'docker.io/umcugenbioinf/kinship:1.0.0'
+    container = 'ghcr.io/umcugenetics/kinship:1.1.0'
+
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -17,6 +18,6 @@ process Kinship {
         plink --file out --make-bed --noweb
         king -b plink.bed --kinship
         cp king.kin0 ${analysis_id}.kinship
-        python ${projectDir}/CustomModules/Kinship/check_kinship.py ${analysis_id}.kinship ${ped_file} > ${analysis_id}.kinship_check.out
+        python ${projectDir}/CustomModules/Kinship/check_kinship.py ${analysis_id}.kinship ${ped_file} --output-prefix ${analysis_id} --output_path .
         """
 }
