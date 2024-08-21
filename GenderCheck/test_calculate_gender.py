@@ -1,6 +1,10 @@
-import calculate_gender
-
+#!/usr/bin/env python
+# Import statements, alphabetic order of main package.
+# Third party libraries alphabetic order of main package.
 import pytest
+
+# Custom libraries alphabetic order of main package.
+import calculate_gender
 
 
 class TestIsValidRead():
@@ -12,11 +16,11 @@ class TestIsValidRead():
             self.reference_end = end
 
     @pytest.mark.parametrize("read,mapping_qual,expected", [
-        (MyObject(19, True, True), 20, False),  # mapping quality is below the threshold
-        (MyObject(20, True, True), 20, True),  # mapping quality is equal to the threshold
-        (MyObject(20, True, True), 19, True),  # mapping quality is higher than the threshold
-        (MyObject(20, False, True), 20, False),  # reference_end is false
-        (MyObject(20, True, False), 20, False),  # reference_start is false
+        (MyObject(19, True, True), 20, False),  # Mapping quality is below the threshold
+        (MyObject(20, True, True), 20, True),  # Mapping quality is equal to the threshold
+        (MyObject(20, True, True), 19, True),  # Mapping quality is higher than the threshold
+        (MyObject(20, False, True), 20, False),  # Reference_end is false
+        (MyObject(20, True, False), 20, False),  # Reference_start is false
     ])
     def test_is_valid_read(self, read, mapping_qual, expected):
         assert expected == calculate_gender.is_valid_read(read, mapping_qual)
@@ -24,11 +28,11 @@ class TestIsValidRead():
 
 class TestGetGenderFromBam():
     @pytest.mark.parametrize("bam,mapping_qual,locus_y,ratio_y,expected", [
-        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.02, "male"),  # output male below
-        ("./test_bam.bam", 20, "Y:2649520-59034050", 0.22, "female"),  # output female
+        ("test_bam.bam", 20, "Y:2649520-59034050", 0.02, "male"),  # Output male below
+        ("test_bam.bam", 20, "Y:2649520-59034050", 0.22, "female"),  # Output female
     ])
-    def test_get_gender_from_bam(self, bam, mapping_qual, locus_y, ratio_y, expected):
-        assert expected == calculate_gender.get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y)
+    def test_get_gender_from_bam(self, bam, mapping_qual, locus_y, ratio_y, expected, datadir):
+        assert expected == calculate_gender.get_gender_from_bam(f"{datadir}/{bam}", mapping_qual, locus_y, ratio_y)
 
 
 class TestCompareGender():
