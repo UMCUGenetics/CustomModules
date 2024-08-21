@@ -10,11 +10,11 @@ class TestIsValidRead():
             self.reference_end = end
 
     @pytest.mark.parametrize("read,mapping_qual,expected", [
-        (ValidReadObject(19, True, True), 20, False),  # mapping quality is below the threshold
-        (ValidReadObject(20, True, True), 20, True),  # mapping quality is equal to the threshold
-        (ValidReadObject(20, True, True), 19, True),  # mapping quality is higher than the threshold
-        (ValidReadObject(20, False, True), 20, False),  # reference_end is false
-        (ValidReadObject(20, True, False), 20, False),  # reference_start is false
+        (ValidReadObject(19, True, True), 20, False),  # Mapping quality is below the threshold
+        (ValidReadObject(20, True, True), 20, True),  # Mapping quality is equal to the threshold
+        (ValidReadObject(20, True, True), 19, True),  # Mapping quality is higher than the threshold
+        (ValidReadObject(20, False, True), 20, False),  # Reference_end is false
+        (ValidReadObject(20, True, False), 20, False),  # Reference_start is false
     ])
     def test_is_valid_read(self, read, mapping_qual, expected):
         assert expected == get_gender_from_bam_chrx.is_valid_read(read, mapping_qual)
@@ -22,13 +22,15 @@ class TestIsValidRead():
 
 class TestGetGenderFromBam:
     @pytest.mark.parametrize("bam,mapping_qual,locus_x,ratio_x_threshold_male,ratio_x_threshold_female,expected_outcome", [
-        ("./test_bam.bam", 20, "X:2699520-154931044", 3.5, 4.5, ("F", False)),
-        ("./test_bam.bam", 20, "X:2699520-154931044", 5.5, 7.5, ("M", False)),
-        ("./test_bam.bam", 20, "X:2699520-154931044", 4.5, 6.5, ("F", True)),
+        ("test_bam.bam", 20, "X:2699520-154931044", 3.5, 4.5, ("F", False)),
+        ("test_bam.bam", 20, "X:2699520-154931044", 5.5, 7.5, ("M", False)),
+        ("test_bam.bam", 20, "X:2699520-154931044", 4.5, 6.5, ("F", True)),
     ])
-    def test_get_gender_from_bam(self, bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female, expected_outcome):
+    def test_get_gender_from_bam(
+        self, bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female, expected_outcome, datadir
+    ):
         assert expected_outcome == get_gender_from_bam_chrx.get_gender_from_bam_chrx(
-            bam, mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female)
+            f"{datadir}/{bam}", mapping_qual, locus_x, ratio_x_threshold_male, ratio_x_threshold_female)
 
 
 class TestWriteGenderDataToFile:
