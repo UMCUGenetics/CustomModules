@@ -1,0 +1,5 @@
+# Mirror production requirements
+-r prod.txt
+
+# Add dev specific packages
+-r testing.txt

@@ -1,0 +1,4 @@
+# Reference specific module requirements
+-r ../CheckQC/requirements.txt
+-r ../GenderCheck/requirements.txt
+-r ../MosaicHunter/1.0.0/requirements.txt

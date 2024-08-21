@@ -1,12 +1,6 @@
+# Mirror testing requirements
+-r ../requirements/testing.txt
+
+# CheckQC specific packages
 pandas==2.1.4
-pytest==6.2.5
-pytest-cov==3.0.0
-pytest-datadir==1.5.0
-pytest-datafiles==2.0
-pytest-dataset==0.3.2
-pytest-flake8==1.0.7
-pytest-mock==3.8.2
-pytest-raises==0.11
-pytest-reqs==0.2.1
-pytest-unordered==0.5.2
 PyYAML==6.0.1

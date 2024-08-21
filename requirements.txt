@@ -1,5 +1,2 @@
-pytest==6.2.5
-pytest-cov==3.0.0
-pytest-mock==3.8.2
-pytest-raises==0.11
-pytest-unordered==0.5.2
+# Mirrors prod
+-r requirements/prod.txt
