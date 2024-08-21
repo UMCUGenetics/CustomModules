@@ -8,7 +8,7 @@ if __name__ == "__main__":
     parser.add_argument('hsmetrics_files', type=argparse.FileType('r'), nargs='*', help='HSMetric file')
     arguments = parser.parse_args()
 
-    interval_files_pattern = re.compile("BAIT_INTERVALS=\[(\S*)\].TARGET_INTERVALS=\[(\S*)\]")
+    interval_files_pattern = re.compile("BAIT_INTERVALS=\[(\S*)\].TARGET_INTERVALS=\[(\S*)\]")  # noqa: W605
     summary_header = []
     summary_data = {}
     for hsmetrics_file in arguments.hsmetrics_files:
