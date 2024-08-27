@@ -1,33 +1,20 @@
 #! /usr/bin/env python3
-
+# Import statements, alphabetic order of main package.
 import argparse
+
+# Third party libraries alphabetic order of main package.
 import pysam
 
-
-def is_valid_read(read, mapping_qual):
-    """Check if a read is properly mapped."""
-    if (read.mapping_quality >= mapping_qual and read.reference_end and read.reference_start):
-        return True
-    return False
-
-
-def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
-    with pysam.AlignmentFile(bam, "rb") as bam_file:
-        y_reads = float(
-                      sum([is_valid_read(read, mapping_qual) for read in bam_file.fetch(region=locus_y)])
-                  )
-        total_reads = float(bam_file.mapped)
-        y_ratio_perc = (y_reads / total_reads) * 100
-    if y_ratio_perc <= ratio_y:
-        return "female"
-    else:
-        return "male"
+# Custom libraries alphabetic order of main package.
+from CustomModules.Utils.get_gender import get_ratio_from_bam, get_gender_on_y_ratio
 
 
 def compare_gender(sample_id, analysis_id, test_gender, true_gender):
-    if test_gender == true_gender or true_gender == "unknown":  # if gender if unknown/onbekend in database, pass
+    # PASS qc if test and true gender are the same or if true gender is unknown/onbekend
+    if test_gender == true_gender or true_gender == "unknown":
         qc = "PASS"
-    else:  # not_detected in database considered failed
+    # FAIL qc otherwise. not_detected as true gender is considered failed
+    else:
         qc = "FAIL"
     return f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{qc}\n"
 
@@ -59,6 +46,7 @@ if __name__ == "__main__":
     if true_gender in translation:
         true_gender = translation[true_gender]
 
-    test_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y)
+    ratio_y_reads = get_ratio_from_bam(args.bam, args.mapping_qual, args.locus_y)
+    test_gender = get_gender_on_y_ratio(ratio_y_reads, args.ratio_y)
     comparison = compare_gender(args.sample_id, args.analysis_id, test_gender, true_gender)
     write_qc_file(args.sample_id, args.analysis_id, comparison, args.outputfolder)
