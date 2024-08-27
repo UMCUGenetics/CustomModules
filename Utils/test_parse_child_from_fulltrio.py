@@ -7,36 +7,42 @@ from pytest_unordered import unordered
 
 # Custom libraries alphabetic order of main package.
 from CustomModules.Utils.parse_child_from_fulltrio import parse_ped
+
+
 @pytest.mark.parametrize("input_file,exp_dict_samples", [
-    ("multi_family.ped",
+    (
+        "multi_family.ped",
         {
             "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
             "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001","2024D00002"], 'children': []},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
             "2024D00004": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
             "2024D00005": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
-            "2024D00006": {'family': 'U000002', 'parents': ["2024D00004","2024D00005"], 'children': []},
+            "2024D00006": {'family': 'U000002', 'parents': ["2024D00004", "2024D00005"], 'children': []}
         },
     ),
-    ("multi_siblings.ped",
+    (
+        "multi_siblings.ped",
         {
             "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
             "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001","2024D00002"], 'children': []},
-            "2024D00004": {'family': 'U000001', 'parents': ["2024D00001","2024D00002"], 'children': []},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
+            "2024D00004": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
         },
     ),
-    ("multi_unrelated_samples.ped",
+    (
+        "multi_unrelated_samples.ped",
         {
             "2024D00001": {'family': 'U000001', 'parents': [], 'children': []},
-            "2024D00002": {'family': 'U000002', 'parents': [], 'children': []},
+            "2024D00002": {'family': 'U000002', 'parents': [], 'children': []}
         },
     ),
-    ("single_family.ped",
+    (
+        "single_family.ped",
         {
             "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
             "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001","2024D00002"], 'children': []},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
         },
     ),
 ])

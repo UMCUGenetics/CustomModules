@@ -4,6 +4,7 @@ from errno import ENOENT as errno_ENOENT
 from os import strerror as os_strerror
 from pathlib import Path
 
+
 def non_empty_existing_path(file_or_dir):
     """
     This function checks whether the provided file or dir exists and is not empty.

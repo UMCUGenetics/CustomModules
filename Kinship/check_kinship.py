@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 # Import statements, alphabetic order of main package.
 import argparse
-from errno import ENOENT as errno_ENOENT
-from os import strerror as os_strerror
-from pathlib import Path
 from sys import argv
 import tempfile
 
