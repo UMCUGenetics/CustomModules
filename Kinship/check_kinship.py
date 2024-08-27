@@ -14,10 +14,17 @@ from pandas import read_table
 from CustomModules.Utils.parse_child_from_fulltrio import parse_ped
 from CustomModules.Utils.non_empty_existing_path import non_empty_existing_path
 
-# TODO: add docstrings
-
 
 def parse_arguments_and_check(args_in):
+    """
+    Parses arguments and validates / checks format of input.
+
+    Args:
+        args_in (list of strings): Commandline input arguments.
+
+    Returns:
+        Namespace: Convert argument strings to objects and assign them as attributes of the namespace.
+    """
     parser = argparse.ArgumentParser(description='Check kinship output based on ped file.')
     parser.add_argument('kinship_file', type=non_empty_existing_path, help='Kinship file')
     parser.add_argument('ped_file', type=non_empty_existing_path, help='PED file')
@@ -38,6 +45,18 @@ def parse_arguments_and_check(args_in):
 
 
 def read_kinship(kinship_file, kinship_min, kinship_max):
+    """
+    Read and modify kinship file content by renaming and adding columns.
+
+    Args:
+        kinship_file (string): File with retrieved kinship values as result of running the tool
+                                'KING' (Kinship-based INference for Gwas)
+        kinship_min (float): Minimum threshold to check if samples are kin.
+        kinship_max (float): Maximum threshold to check if samples are kin, without being self-self relationship.
+
+    Returns:
+        pandas DataFrame: Retrieved kinship data input with additional columns.
+    """
     kinship_data = (
         # Read kinship data specific columns
         read_table(kinship_file, delimiter='\t', usecols=['FID1', 'FID2', 'Kinship'])
@@ -54,6 +73,24 @@ def read_kinship(kinship_file, kinship_min, kinship_max):
 
 
 def check_and_annotate_kinship(kinship_data, samples, kinship_min, kinship_max):
+    """
+    Calculated kinship values are judged and results are added to the dataframe.
+    Results include:
+        related (boolean): Are samples related to each other, aka kin.
+        type (string): The relationship type in words, one of: unrelated, parent_parent, parent_child, sibling_sibling
+        status (string): Whether the kinship value is within the expected range: 'FAIL' or 'OK'
+        message (string): User friendly message to explain error if status equals 'FAIL'. Empty when status equals 'OK'.
+
+    Args:
+        kinship_data (pandas DataFrame): Retrieved kinship data input with additional columns.
+        samples (dict): Per sample (key) a metadata dict (values) with
+                        the family ID (string), parents (list) and children (list).
+        kinship_min (float): Minimum threshold to check if samples are kin.
+        kinship_max (float): Maximum threshold to check if samples are kin, without being self-self relationship.
+
+    Returns:
+        pandas DataFrame: Retrieved kinship data with annotated / judged results.
+    """
     for index, row in kinship_data.iterrows():
         status = 'OK'
         message = ''
@@ -99,6 +136,14 @@ def check_and_annotate_kinship(kinship_data, samples, kinship_min, kinship_max):
 
 
 def write_kinship(df_kinship_out, output_path, output_prefix):
+    """
+    Write the retrieved and annoted kinship data to file or stdout. Include comments as header.
+
+    Args:
+        df_kinship_out (pandas DataFrame): Retrieved kinship data with annotated / judged results.
+        output_path (string): Path to output dir where outputfile is stored.
+        output_prefix (string): Prefix to use output filename.
+    """
     # Collect all comments
     comments = []
     if any(df_kinship_out.status == 'FAIL'):
