@@ -46,7 +46,7 @@ def read_kinship(kinship_file, kinship_min, kinship_max):
         # Add columns with default values
         .assign(
             related=None, type=None, status=None,
-            thresholds=f'{kinship_min},{kinship_max}',
+            thresholds=f"{kinship_min},{kinship_max}",
             message=''
         )
     )
@@ -65,33 +65,33 @@ def check_and_annotate_kinship(kinship_data, samples, kinship_min, kinship_max):
                 type = 'parent_child'
                 if row.kinship <= kinship_min or row.kinship >= kinship_max:
                     status = 'FAIL'
-                    expected_value_range = f'> {kinship_min} and < {kinship_max}'
+                    expected_value_range = f"> {kinship_min} and < {kinship_max}"
             # Parent - Parent -> both samples have the same children
             elif samples[row.sample_1]['children'] and samples[row.sample_1]['children'] == samples[row.sample_2]['children']:
                 type = 'parent_parent'
                 if row.kinship > kinship_min:
                     status = 'FAIL'
-                    expected_value_range = f'<= {kinship_min}'
+                    expected_value_range = f"<= {kinship_min}"
             # Assume siblings
             else:
                 type = 'sibling_sibling'
                 if row.kinship <= kinship_min or row.kinship >= kinship_max:
                     status = 'FAIL'
-                    expected_value_range = f'> {kinship_min} and < {kinship_max}'
+                    expected_value_range = f"> {kinship_min} and < {kinship_max}"
         # Unrelated
         else:
             related = False
             type = 'unrelated'
             if row.kinship > kinship_min:
                 status = 'FAIL'
-                expected_value_range = f'<= {kinship_min}'
+                expected_value_range = f"<= {kinship_min}"
 
         # Create end user message if status is fail
         if status == 'FAIL':
             message = (
-                f'Kinship value {row.kinship} between '
-                f'{row.sample_1} ({samples[row.sample_1]['family']}) and {row.sample_2} ({samples[row.sample_2]['family']}) '
-                f'is not between expected values for {type}: {expected_value_range}'
+                f"Kinship value {row.kinship} between "
+                f"{row.sample_1} ({samples[row.sample_1]['family']}) and {row.sample_2} ({samples[row.sample_2]['family']}) "
+                f"is not between expected values for {type}: {expected_value_range}"
             )
         # Update row with retrieved related (boolean), relationship type, status (OK / FAIL) and message.
         kinship_data.loc[index, ['related', 'type', 'status', 'message']] = related, type, status, message
@@ -106,11 +106,11 @@ def write_kinship(df_kinship_out, output_path, output_prefix):
     else:
         comments.append('# No kinship errors found.\n')
     # Assume all row values of column thresholds are the same.
-    comments.append(f'# Used kinship check settings: {df_kinship_out.thresholds[0]}\n')
+    comments.append(f"# Used kinship check settings: {df_kinship_out.loc[0, 'thresholds']}\n")
 
     # Write to provided output settings or to a tempfile
     if output_path and output_prefix:
-        file_out = open(f'{output_path}/{output_prefix}.kinship_check.out', 'a+')
+        file_out = open(f"{output_path}/{output_prefix}.kinship_check.out", 'a+')
     else:
         file_out = tempfile.TemporaryFile(mode='a+')
 
