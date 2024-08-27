@@ -1,28 +1,20 @@
 #! /usr/bin/env python
 # Import statements, alphabetic order of main package.
 import argparse
-from csv import writer
 from errno import ENOENT as errno_ENOENT
 from os import strerror as os_strerror
 from pathlib import Path
-from sys import argv, stdout
+from sys import argv
 import tempfile
 
 # Third party libraries alphabetic order of main package.
-from pandas import DataFrame, read_table
+from pandas import read_table
+
+# Custom libraries alphabetic order of main package.
+from CustomModules.Utils.parse_child_from_fulltrio import parse_ped
+from CustomModules.Utils.non_empty_existing_path import non_empty_existing_path
 
 # TODO: add docstrings
-# TODO: add pytest
-
-def non_empty_existing_path(file_or_dir):
-    input_path = Path(file_or_dir)
-    if not input_path.is_file() and not input_path.is_dir():
-        raise FileNotFoundError(errno_ENOENT, os_strerror(errno_ENOENT), file_or_dir)
-    elif not input_path.is_dir() and not input_path.stat().st_size:
-        raise OSError(f'File {file_or_dir} is empty.')
-    elif input_path.is_dir() and file_or_dir[::-1][0] != '/':
-        return f'{file_or_dir}/'
-    return file_or_dir
 
 
 def parse_arguments_and_check(args_in):
@@ -43,31 +35,6 @@ def parse_arguments_and_check(args_in):
     )
     arguments = parser.parse_args(args_in)
     return arguments
-
-
-def parse_ped(ped_file):
-    samples = {}  # 'sample_id': {'family': 'fam_id', 'parents': ['sample_id', 'sample_id']}
-
-    for line in ped_file:
-        ped_data = line.strip().split()
-        family, sample, father, mother, sex, phenotype = ped_data
-
-        # Create samples
-        if sample not in samples:
-            samples[sample] = {'family': family, 'parents': [], 'children': []}
-        if father != '0' and father not in samples:
-            samples[father] = {'family': family, 'parents': [], 'children': []}
-        if mother != '0' and mother not in samples:
-            samples[mother] = {'family': family, 'parents': [], 'children': []}
-
-        # Save sample relations
-        if father != '0':
-            samples[sample]['parents'].append(father)
-            samples[father]['children'].append(sample)
-        if mother != '0':
-            samples[sample]['parents'].append(mother)
-            samples[mother]['children'].append(sample)
-    return samples
 
 
 def read_kinship(kinship_file, kinship_min, kinship_max):
