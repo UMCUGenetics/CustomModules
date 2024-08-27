@@ -105,9 +105,15 @@ while (dim(hmdb_add_iso)[1] > 0) {
       # Compose a list of compounds, adducts or isotopes with corresponding m/z
       if (dim(tmplist_mass)[1] > 0) {
         # metabolites
-        assi_hmdb <- as.character(paste(as.character(tmplist_mass[, "CompoundName"]), 
+        assi_hmdb <- as.character(paste(as.character(tmplist_mass[, "CompoundName"]),
 					collapse = ";"))
-        hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass)), 
+        all_hmdb_names <- as.character(paste(as.character(tmplist_mass[, "HMDB_name_all"]),
+					collapse = ";"))
+        hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass)),
+					collapse = ";"))
+        all_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "HMDB_ID_all"]),
+					collapse = ";"))
+        all_sec_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "sec_HMDB_ID"]),
 					collapse = ";"))
         theormz_hmdb <- as.numeric(tmplist_mass[1, column_label])
 
@@ -115,17 +121,27 @@ while (dim(hmdb_add_iso)[1] > 0) {
         if (!is.null(tmplist_mass_adduct)) {
           if (dim(tmplist_mass_adduct)[1] > 0) {
             if (is.na(assi_hmdb)) {
-              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]),
 					      collapse = ";"))
-              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+	            all_hmdb_names <- as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_name_all"]),
+                collapse = ";"))
+              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)),
+					      collapse = ";"))
+              all_hmdb_ids <- as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_ID_all"]),
+					      collapse = ";"))
+              all_sec_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "sec_HMDB_ID"]),
 					      collapse = ";"))
             } else {
-              assi_hmdb <- paste(assi_hmdb,
-                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+              assi_hmdb <- paste(assi_hmdb, as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]),
 						    collapse = ";")), sep = ";")
-              hmdb_code <- paste(hmdb_code,
-                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+	            all_hmdb_names <- paste(all_hmdb_names, as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_name_all"]),
+                collapse = ";")), sep=";")
+              hmdb_code <- paste(hmdb_code, as.character(paste(as.character(rownames(tmplist_mass_adduct)),
 						    collapse = ";")), sep = ";")
+              all_hmdb_ids <- paste(all_hmdb_ids, as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_ID_all"]),
+					      collapse = ";")),  sep = ";")
+              all_sec_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "sec_HMDB_ID"]),
+					      collapse = ";"))
             }
           }
         }
@@ -146,17 +162,27 @@ while (dim(hmdb_add_iso)[1] > 0) {
         if (!is.null(tmplist_mass_adduct)) {
           if (dim(tmplist_mass_adduct)[1] > 0) {
             if (is.na(assi_hmdb)) {
-              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+              assi_hmdb <- as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]),
 					      collapse = ";"))
-              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+	            all_hmdb_names <- as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_name_all"]),
+                collapse = ";"))
+              hmdb_code <- as.character(paste(as.character(rownames(tmplist_mass_adduct)),
 					      collapse = ";"))
+              all_hmdb_ids <- as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_ID_all"]),
+					      collapse = ";"))
+              all_sec_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "sec_HMDB_ID"]),
+					      collapse = ";"))                
             } else {
-              assi_hmdb <- paste(assi_hmdb,
-                                 as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]), 
+              assi_hmdb <- paste(assi_hmdb, as.character(paste(as.character(tmplist_mass_adduct[, "CompoundName"]),
 						    collapse = ";")), sep = ";")
-              hmdb_code <- paste(hmdb_code,
-                                 as.character(paste(as.character(rownames(tmplist_mass_adduct)), 
+	            all_hmdb_names <- paste(all_hmdb_names, as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_name_all"]),
+                collapse = ";")), sep=";")
+              hmdb_code <- paste(hmdb_code, as.character(paste(as.character(rownames(tmplist_mass_adduct)),
 						    collapse = ";")), sep = ";")
+              all_hmdb_ids <- paste(all_hmdb_ids, as.character(paste(as.character(tmplist_mass_adduct[, "HMDB_ID_all"]),
+					      collapse = ";")),  sep = ";")
+              all_sec_hmdb_ids <- as.character(paste(as.character(tmplist_mass[, "sec_HMDB_ID"]),
+					      collapse = ";"))
             }
           }
         }
@@ -164,7 +190,7 @@ while (dim(hmdb_add_iso)[1] > 0) {
         # isotopes of metabolites
         if (!is.null(tmplist_mass_iso)) {
           if (dim(tmplist_mass_iso)[1] > 0) {
-            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), 
+            iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]),
 					   collapse = ";"))
           }
         }
@@ -173,7 +199,7 @@ while (dim(hmdb_add_iso)[1] > 0) {
       } else if (!is.null(tmplist_mass_iso)) {
         if (dim(tmplist_mass_iso)[1] > 0) {
           theormz_hmdb <- as.numeric(tmplist_mass_iso[1, column_label])
-          iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]), 
+          iso_hmdb <- as.character(paste(as.character(tmplist_mass_iso[, "CompoundName"]),
 					 collapse = ";"))
         }
       }
@@ -184,7 +210,9 @@ while (dim(hmdb_add_iso)[1] > 0) {
       data.frame("mzmed.pgrp" = mzmed_pgrp, "fq.best" = fq_best_pgrp, "fq.worst" = fq_worst_pgrp, nrsamples, 
 		 "mzmin.pgrp" = mzmin_pgrp, "mzmax.pgrp" = mzmax_pgrp),
       t(as.matrix(ints_allsamps)),
-      data.frame("assi_HMDB" = assi_hmdb, "iso_HMDB" = iso_hmdb, "HMDB_code" = hmdb_code, "theormz_HMDB" = theormz_hmdb)
+      # data.frame("assi_HMDB" = assi_hmdb, "iso_HMDB" = iso_hmdb, "HMDB_code" = hmdb_code, "theormz_HMDB" = theormz_hmdb)
+      data.frame("assi_HMDB" = assi_hmdb, "all_hmdb_names" = all_hmdb_names, "iso_HMDB" = iso_hmdb,
+		 "HMDB_code" = hmdb_code, "all_hmdb_ids" = all_hmdb_ids, "sec_hmdb_ids" = all_sec_hmdb_ids, "theormz_HMDB" = theormz_hmdb)
     ))
   }
 

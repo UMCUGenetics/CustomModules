@@ -102,7 +102,8 @@ tmp <- cbind(tmp, "HMDB_name" = tmp_hmdb_name_pos)
 outlist <- rbind(tmp, tmp_pos_left, tmp_neg_left)
 
 # Filter for biological relevance
-peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
+# peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
+peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
 outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc[rownames(outlist)[peaks_in_list], ]))
 # filter out all irrelevant HMDBs
 outlist <- outlist %>%
@@ -568,13 +569,25 @@ if (z_score == 1) {
     pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
     lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
 
-    pa_codes <- c("HMDB00824", "HMDB00783", "HMDB00123")
-    pku_codes <- c("HMDB00159")
-    lpi_codes <- c("HMDB00904", "HMDB00641", "HMDB00182")
+    # pa_codes <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
+    # pku_codes <- c("HMDB0000159")
+    # lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
+    pku_codes <- c("HMDB0000159")
+    lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
+    pku_names <- c("L-Phenylalanine")
+    lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
 
     pa_data <- outlist[pa_codes, c("HMDB_code", "name", pa_sample_name)]
     pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
     colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    # change HMDB names because propionylglycine doesn't have its own line, rowname is HMDB0000725 (4-hydroxyproline)
+    pa_data$HMDB.name <- pa_codes
+    # change HMDB codes so the propionylglycine is the correct HMDB ID
+    pa_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))

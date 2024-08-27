@@ -9,7 +9,7 @@ z_score <- as.numeric(cmd_args[3])
 
 sum_adducts <- function(peaklist, theor_mz, grpnames_long, adducts, batch_number, scanmode, outdir, z_score) {
   hmdb_codes <- rownames(theor_mz)
-  hmdb_names <- theor_mz[, 1, drop = FALSE]
+  hmdb_names <- theor_mz[, "CompoundName", drop = FALSE]
   hmdb_names[] <- lapply(hmdb_names, as.character)
 
   # remove isotopes
