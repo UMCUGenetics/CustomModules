@@ -19,8 +19,8 @@ from CustomModules.Utils.non_empty_existing_path import non_empty_existing_path
 
 def parse_arguments_and_check(args_in):
     parser = argparse.ArgumentParser(description='Check kinship output based on ped file.')
-    parser.add_argument('kinship_file', type=argparse.FileType('r'), help='Kinship file')
-    parser.add_argument('ped_file', type=argparse.FileType('r'), help='PED file')
+    parser.add_argument('kinship_file', type=non_empty_existing_path, help='Kinship file')
+    parser.add_argument('ped_file', type=non_empty_existing_path, help='PED file')
     parser.add_argument(
         '-p', '--output_path', type=non_empty_existing_path, default=None,
         help='Kinship output path where output file will be stored.',
