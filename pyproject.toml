@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "CustomModules"
+version = "1.0.0"
+description = "Util functionality"
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+ "License :: MIT License",
+ "Programming Language :: Python",
+ "Programming Language :: Python :: 3",
+ "Operating System :: MacOS :: MacOS X",
+]
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools]
+py-modules = ["__init__"]
