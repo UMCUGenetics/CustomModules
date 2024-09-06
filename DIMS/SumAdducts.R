@@ -57,6 +57,11 @@ sum_adducts <- function(peaklist, theor_mz, grpnames_long, adducts, batch_number
     if (!is.null(adductsum)) {
       rownames(adductsum) <- names
       adductsum <- cbind(adductsum, "HMDB_name" = names_long)
+      # Add HMDB info
+      cols_hmdb_info <- c("HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all")
+      hmdb_info <- theor_mz[names, cols_hmdb_info]
+      adductsum <- cbind(adductsum, hmdb_info)
+      
       save(adductsum, file = paste(scanmode, "_", batch_number, "_SummedAdducts.RData", sep = ""))
     }
   }
