@@ -88,28 +88,33 @@ index_neg <- which(rownames(outlist_neg_adducts_hmdb) %in% rownames(outlist_pos_
 index_pos <- which(rownames(outlist_pos_adducts_hmdb) %in% rownames(outlist_neg_adducts_hmdb))
 
 # Only continue with HMDB codes (rows) that were found in both positive mode and remove last column (hmdb_name)
-tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_pos_adducts_hmdb)[2] - 1)]
-tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
+tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
+tmp_pos_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>% select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID)
+# tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
 tmp_pos_left <- outlist_pos_adducts_hmdb[-index_pos, ]
 # same for negative mode
-tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_neg_adducts_hmdb)[2] - 1)]
+tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 tmp_neg_left <- outlist_neg_adducts_hmdb[-index_neg, ]
-
+print("combine pos + neg")
 # Combine positive and negative numbers and paste back HMDB column
 tmp <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
 rownames(tmp) <- rownames(tmp_pos)
-tmp <- cbind(tmp, "HMDB_name" = tmp_hmdb_name_pos)
+tmp <- cbind(tmp, tmp_pos_info)
 outlist <- rbind(tmp, tmp_pos_left, tmp_neg_left)
+outlist <- outlist %>% arrange(rownames(outlist))
+print("Add biological relevance")
 
 # Filter for biological relevance
 # peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
 peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
-outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc[rownames(outlist)[peaks_in_list], ]))
+rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist)[peaks_in_list])
+outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
+
 # filter out all irrelevant HMDBs
 outlist <- outlist %>%
   tibble::rownames_to_column("rowname") %>%
-  filter(!grepl("Exogenous|Drug|exogenous", relevance)) %>%
-  tibble::column_to_rownames("rowname")
+  filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
+  tibble::column_to_rownames("rowname")print("Add HMDB_code column")
 
 # Add HMDB_code column with all the HMDB ID and sort on it
 outlist <- cbind(outlist, "HMDB_code" = rownames(outlist))
@@ -260,8 +265,9 @@ if (z_score == 1) {
   openxlsx::setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
   openxlsx::setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
 }
-
+print("Write Excel file")
 # write Excel file
+outlist$name <- stringi::stri_enc_toutf8(outlist$name)
 openxlsx::writeData(wb, sheet = 1, outlist, startCol = 1)
 xlsx_name <- paste0(outdir, "/", project, ".xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
@@ -297,6 +303,7 @@ is_summed$Intensity <- as.numeric(as.character(is_summed$Intensity))
 
 # Retrieve IS positive mode
 is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
+is_pos <- is_pos[c(names(repl_pattern))]
 is_pos$HMDB_name <- is_list[match(row.names(is_pos), is_list$HMDB_code, nomatch = NA), "name"]
 is_pos$HMDB.code <- row.names(is_pos)
 is_pos <- reshape2::melt(is_pos, id.vars = c("HMDB.code", "HMDB_name"))
@@ -308,6 +315,7 @@ is_pos$Intensity <- as.numeric(as.character(is_pos$Intensity))
 
 # Retrieve IS negative mode
 is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
+is_neg <- is_neg[c(names(repl_pattern))]
 is_neg$HMDB_name <- is_list[match(row.names(is_neg), is_list$HMDB_code, nomatch = NA), "name"]
 is_neg$HMDB.code <- row.names(is_neg)
 is_neg <- reshape2::melt(is_neg, id.vars = c("HMDB.code", "HMDB_name"))
@@ -316,7 +324,6 @@ is_neg$Matrix <- dims_matrix
 is_neg$Rundate <- rundate
 is_neg$Project <- project
 is_neg$Intensity <- as.numeric(as.character(is_neg$Intensity))
-
 # Save results
 save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
 
