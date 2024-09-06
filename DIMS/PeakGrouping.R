@@ -77,7 +77,7 @@ while (dim(hmdb_add_iso)[1] > 0) {
     })))
 
     # Initialize
-    assi_hmdb <- iso_hmdb <- hmdb_code <- NA
+    assi_hmdb <- iso_hmdb <- hmdb_code <- all_hmdb_names <- all_hmdb_ids <- all_sec_hmdb_ids <- NA
     tmplist_mass_iso <- tmplist_mass_adduct <- NULL
 
     # find all entries in HMDB part with mass within ppm range
