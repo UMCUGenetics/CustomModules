@@ -18,6 +18,6 @@ process Kinship {
         plink --file out --make-bed --noweb
         king -b plink.bed --kinship
         cp king.kin0 ${analysis_id}.kinship
-        python ${projectDir}/CustomModules/Kinship/check_kinship.py ${analysis_id}.kinship ${ped_file} --output-prefix ${analysis_id} --output_path .
+        python ${projectDir}/CustomModules/Kinship/check_kinship.py ${analysis_id}.kinship ${ped_file} --output_prefix ${analysis_id} --output_path .
         """
 }
