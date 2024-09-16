@@ -25,16 +25,18 @@ def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
 
 
 def compare_gender(sample_id, analysis_id, test_gender, true_gender):
-    if test_gender == true_gender or true_gender == "unknown":  # if gender if unknown/onbekend in database, pass
+    if test_gender == true_gender or true_gender == "unknown":  # if gender is unknown/onbekend in database, pass
         qc = "PASS"
+        msg = ""
     else:  # not_detected in database considered failed
         qc = "FAIL"
-    return f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{qc}\n"
+        msg = f"True gender {true_gender} does not equal estimated gender {test_gender}."
+    return f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{qc}\t{msg}\n"
 
 
 def write_qc_file(sample_id, analysis_id, comparison, outputfolder):
     with open(f"{outputfolder}/{sample_id}_{analysis_id}_gendercheck.txt", 'w') as write_file:
-        write_file.write("sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\n")
+        write_file.write("sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\tmessage\n")
         write_file.write(comparison)
 
 
