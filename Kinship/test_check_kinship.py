@@ -84,7 +84,7 @@ class TestNonEmptyExistingPath():
     ),
 ])
 def test_parse_ped(input_file, exp_dict_samples, datadir):
-    dict_samples = check_kinship.parse_ped(open(f"{datadir}/{input_file}", "r"))
+    dict_samples = check_kinship.parse_ped(f"{datadir}/{input_file}")
     assert dict_samples.keys() == unordered(exp_dict_samples.keys())
     for sample, meta in dict_samples.items():
         assert meta.get("family") == exp_dict_samples.get(sample).get("family")

@@ -84,25 +84,27 @@ def parse_ped(ped_file):
             the family ID (string), parents (list) and children (list).
     """
     samples = {}  # 'sample_id': {'family': 'fam_id', 'parents': ['sample_id', 'sample_id']}
-    for line in ped_file:
-        ped_data = line.strip().split()
-        family, sample, father, mother, sex, phenotype = ped_data
 
-        # Create samples
-        if sample not in samples:
-            samples[sample] = {'family': family, 'parents': [], 'children': []}
-        if father != '0' and father not in samples:
-            samples[father] = {'family': family, 'parents': [], 'children': []}
-        if mother != '0' and mother not in samples:
-            samples[mother] = {'family': family, 'parents': [], 'children': []}
+    with open(ped_file, "r") as ped_file_open:
+        for line in ped_file_open:
+            ped_data = line.strip().split()
+            family, sample, father, mother, sex, phenotype = ped_data
 
-        # Save sample relations
-        if father != '0':
-            samples[sample]['parents'].append(father)
-            samples[father]['children'].append(sample)
-        if mother != '0':
-            samples[sample]['parents'].append(mother)
-            samples[mother]['children'].append(sample)
+            # Create samples
+            if sample not in samples:
+                samples[sample] = {'family': family, 'parents': [], 'children': []}
+            if father != '0' and father not in samples:
+                samples[father] = {'family': family, 'parents': [], 'children': []}
+            if mother != '0' and mother not in samples:
+                samples[mother] = {'family': family, 'parents': [], 'children': []}
+
+            # Save sample relations
+            if father != '0':
+                samples[sample]['parents'].append(father)
+                samples[father]['children'].append(sample)
+            if mother != '0':
+                samples[sample]['parents'].append(mother)
+                samples[mother]['children'].append(sample)
     return samples
 
 
