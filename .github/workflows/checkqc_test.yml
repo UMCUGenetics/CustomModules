@@ -4,6 +4,9 @@ on: pull_request
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./CheckQC/
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -32,7 +35,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: .venv_checkqc
+          path: .venv
           key: venv_checkqc-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
@@ -50,5 +53,5 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
-          source .venv_checkqc/bin/activate
+          source .venv/bin/activate
           pytest tests
