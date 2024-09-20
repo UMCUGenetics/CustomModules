@@ -2,24 +2,94 @@
 # Import statements, alphabetic order of main package.
 from pathlib import Path
 
-import pytest
 
 # Third party libraries alphabetic order of main package.
 from pandas import DataFrame
+import pytest
+from pytest_unordered import unordered
 
 # Custom libraries alphabetic order of main package.
-from CustomModules.Kinship import check_kinship
+import check_kinship
 
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_test_path(tmp_path_factory):
     test_tmp_path = str(tmp_path_factory.mktemp("test")) + "/"
+    open(str(test_tmp_path) + "/empty.txt", "a").close()
     return test_tmp_path
 
 
 @pytest.fixture(scope="module", autouse=True)
 def kinship_settings():
     return 0.177, 0.354
+
+class TestNonEmptyExistingPath():
+    def test_existing_dir(self, setup_test_path):
+        file_or_dir = check_kinship.non_empty_existing_path(setup_test_path)
+        assert file_or_dir
+
+    def test_not_file_not_dir(self):
+        fake_string = "fake_string"
+        with pytest.raises(FileNotFoundError) as file_dir_error:
+            check_kinship.non_empty_existing_path(fake_string)
+        assert fake_string in str(file_dir_error.value)
+
+    def test_empty_file(self, setup_test_path):
+        with pytest.raises(OSError) as empty_error:
+            check_kinship.non_empty_existing_path(setup_test_path + "empty.txt")
+        assert f"File {setup_test_path}empty.txt is empty." in str(empty_error.value)
+
+    def test_append_suffix(self, setup_test_path):
+        dir_without_suffix = setup_test_path.rstrip("/")
+        dir_with_suffix = check_kinship.non_empty_existing_path(dir_without_suffix)
+        assert dir_without_suffix[-1] != "/"
+        assert dir_with_suffix[-1] == "/"
+
+
+@pytest.mark.parametrize("input_file,exp_dict_samples", [
+    (
+        "multi_family.ped",
+        {
+            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
+            "2024D00004": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
+            "2024D00005": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
+            "2024D00006": {'family': 'U000002', 'parents': ["2024D00004", "2024D00005"], 'children': []}
+        },
+    ),
+    (
+        "multi_siblings.ped",
+        {
+            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
+            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
+            "2024D00004": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
+        },
+    ),
+    (
+        "multi_unrelated_samples.ped",
+        {
+            "2024D00001": {'family': 'U000001', 'parents': [], 'children': []},
+            "2024D00002": {'family': 'U000002', 'parents': [], 'children': []}
+        },
+    ),
+    (
+        "single_family.ped",
+        {
+            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
+        },
+    ),
+])
+def test_parse_ped(input_file, exp_dict_samples, datadir):
+    dict_samples = check_kinship.parse_ped(open(f"{datadir}/{input_file}", "r"))
+    assert dict_samples.keys() == unordered(exp_dict_samples.keys())
+    for sample, meta in dict_samples.items():
+        assert meta.get("family") == exp_dict_samples.get(sample).get("family")
+        assert meta.get("parents") == unordered(exp_dict_samples.get(sample).get("parents"))
+        assert meta.get("children") == unordered(exp_dict_samples.get(sample).get("children"))
 
 
 def test_read_kinship_trio(datadir, kinship_settings):

@@ -1,15 +1,38 @@
 #! /usr/bin/env python
 # Import statements, alphabetic order of main package.
 import argparse
+from errno import ENOENT as errno_ENOENT
+from os import strerror as os_strerror
+from pathlib import Path
 from sys import argv
 import tempfile
 
 # Third party libraries alphabetic order of main package.
 from pandas import read_table
 
-# Custom libraries alphabetic order of main package.
-from CustomModules.Utils.parse_child_from_fulltrio import parse_ped
-from CustomModules.Utils.non_empty_existing_path import non_empty_existing_path
+
+def non_empty_existing_path(file_or_dir):
+    """
+    This function checks whether the provided file or dir exists and is not empty.
+
+    Args:
+        file_or_dir (string): Input file or directory
+
+    Raises:
+        FileNotFoundError: If input string file_or_dir is neither a file nor a dir.
+        OSError: If input is not a dir and file is empty.
+
+    Returns:
+        string: Provided input file or directory. If dir, suffix '/' might be added.
+    """
+    input_path = Path(file_or_dir)
+    if not input_path.is_file() and not input_path.is_dir():
+        raise FileNotFoundError(errno_ENOENT, os_strerror(errno_ENOENT), file_or_dir)
+    elif not input_path.is_dir() and not input_path.stat().st_size:
+        raise OSError(f"File {file_or_dir} is empty.")
+    elif input_path.is_dir() and file_or_dir[::-1][0] != '/':
+        return f"{file_or_dir}/"
+    return file_or_dir
 
 
 def parse_arguments_and_check(args_in):
@@ -39,6 +62,48 @@ def parse_arguments_and_check(args_in):
     )
     arguments = parser.parse_args(args_in)
     return arguments
+
+
+def parse_ped(ped_file):
+    """
+    Parse ped file to a samples dict where per sample (key) a metadata dict (value) is created
+    with the family ID (string), parents (list) and children (list) as content.
+
+    Args:
+        ped_file (open file): Open file object to a table with sample metadata, including the following values:
+            familyID (string): Unique identifier per family. In other words, s
+                samples from the same family will have the same familyID.
+            sampleID (string): Unique identifier of sample.
+            father (string): reference to another sampleID.
+            mother (string): reference to another sampleID.
+            sex (int): 0 (unknown), 1 (male) or 2 (female)
+            phenotype (int): 0 (unknown), 1 (unaffected) or 2 (affected)
+
+    Returns:
+        dict: Per sample (key) a metadata dict (value) with
+            the family ID (string), parents (list) and children (list).
+    """
+    samples = {}  # 'sample_id': {'family': 'fam_id', 'parents': ['sample_id', 'sample_id']}
+    for line in ped_file:
+        ped_data = line.strip().split()
+        family, sample, father, mother, sex, phenotype = ped_data
+
+        # Create samples
+        if sample not in samples:
+            samples[sample] = {'family': family, 'parents': [], 'children': []}
+        if father != '0' and father not in samples:
+            samples[father] = {'family': family, 'parents': [], 'children': []}
+        if mother != '0' and mother not in samples:
+            samples[mother] = {'family': family, 'parents': [], 'children': []}
+
+        # Save sample relations
+        if father != '0':
+            samples[sample]['parents'].append(father)
+            samples[father]['children'].append(sample)
+        if mother != '0':
+            samples[sample]['parents'].append(mother)
+            samples[mother]['children'].append(sample)
+    return samples
 
 
 def read_kinship(kinship_file, kinship_min, kinship_max):
