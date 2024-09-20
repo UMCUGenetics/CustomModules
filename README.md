@@ -7,9 +7,6 @@ This repository contains custom nextflow processes and their dependent/linked fi
 ### Utils
 Utility functions are dinstinguished and can be found in Utils.
 
-### Install CustomModules as package
-pip install .
-
 ### Designated folder
 When nextflow processes or their dependent files are linked to another git repository,
 the files will be placed in a designated folder. For example:
