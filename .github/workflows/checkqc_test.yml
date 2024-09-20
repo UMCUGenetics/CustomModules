@@ -1,12 +1,15 @@
 # Source: https://github.com/marketplace/actions/install-poetry-action
 name: CheckQC Test
-on: pull_request
+on:
+  pull_request:
+    paths: CheckQC/**
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./CheckQC/
+        working-directory: CheckQC/
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -54,4 +57,4 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest tests
+          pytest .
