@@ -32,24 +32,28 @@ class TestGetGenderFromBam():
 
 
 class TestCompareGender():
-    @pytest.mark.parametrize("sample_id,analysis_id,test_gender,true_gender,expected", [
+    @pytest.mark.parametrize("test_gender,true_gender,expected_qc,expected_msg", [
         # test_gender and true_gender identical, should be PASS
-        ("test_sample", "test_analyse", "male", "male", "test_sample\ttest_analyse\tmale\tmale\tPASS\n"),
+        ("male", "male", "PASS", ""),
         # test_gender and true_gender not identical , should be FAIL
-        ("test_sample", "test_analyse", "male", "female", "test_sample\ttest_analyse\tmale\tfemale\tFAIL\n"),
+        ("male", "female", "FAIL", "True gender female does not equal estimated gender male."),
         # true_gender unknown, should be PASS
-        ("test_sample", "test_analyse", "male", "unknown", "test_sample\ttest_analyse\tmale\tunknown\tPASS\n"),
+        ("male", "unknown", "PASS", ""),
         # true_gender not_detected, should be FAIL
-        ("test_sample", "test_analyse", "male", "not_detected", "test_sample\ttest_analyse\tmale\tnot_detected\tFAIL\n"),
+        ("male", "not_detected", "FAIL", "True gender not_detected does not equal estimated gender male."),
     ])
-    def test_compare_gender(self, sample_id, analysis_id, test_gender, true_gender, expected):
-        assert expected == calculate_gender.compare_gender(sample_id, analysis_id, test_gender, true_gender)
+    def test_compare_gender(self, test_gender, true_gender, expected_qc, expected_msg):
+        status, message = calculate_gender.compare_gender(test_gender, true_gender)
+        assert status == expected_qc
+        assert message == expected_msg
 
 
 def test_write_qc_file(tmp_path):
     path = tmp_path / "qc_folder"
     path.mkdir()
     qc_file = path / "test_sample_test_analyse_gendercheck.txt"
-    calculate_gender.write_qc_file("test_sample", "test_analyse", "test_sample\ttest_analyse\tmale\tmale\tPASS\n", path)
-    message = "sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\ntest_sample\ttest_analyse\tmale\tmale\tPASS\n"
-    assert message in qc_file.read_text()
+    calculate_gender.write_qc_file("test_sample", "test_analyse", "male", "male", "PASS", "", path)
+    lines = qc_file.read_text().splitlines()
+    assert len(lines) == 2
+    assert lines[0] == "sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\tmessage"
+    assert lines[1] == "test_sample\ttest_analyse\tmale\tmale\tPASS\t"
