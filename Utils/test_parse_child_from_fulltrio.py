@@ -6,7 +6,7 @@ import pytest
 from pytest_unordered import unordered
 
 # Custom libraries alphabetic order of main package.
-from CustomModules.Utils.parse_child_from_fulltrio import parse_ped
+from parse_child_from_fulltrio import parse_ped
 @pytest.mark.parametrize("input_file,exp_dict_samples", [
     ("multi_family.ped",
         {
