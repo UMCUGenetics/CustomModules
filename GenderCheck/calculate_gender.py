@@ -26,12 +26,12 @@ def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
 
 def compare_gender(test_gender, true_gender):
     if test_gender == true_gender or true_gender == "unknown":  # if gender is unknown/onbekend in database, pass
-        qc = "PASS"
-        msg = ""
-    else:  # not_detected in database considered failed
-        qc = "FAIL"
-        msg = f"True gender {true_gender} does not equal estimated gender {test_gender}."
-    return qc, msg
+        return "PASS", ""
+    elif true_gender == "not_detected":  # not_detected in database considered failed
+        return "FAIL", f"Gender has value '{true_gender}' in LIMS. Observed gender '{test_gender}' could not be verified."
+    else:
+        return "FAIL", f"True gender {true_gender} does not equal estimated gender {test_gender}."
+
 
 
 def write_qc_file(sample_id, analysis_id, test_gender, true_gender, status, message, outputfolder):

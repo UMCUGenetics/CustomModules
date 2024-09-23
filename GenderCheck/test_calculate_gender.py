@@ -40,7 +40,10 @@ class TestCompareGender():
         # true_gender unknown, should be PASS
         ("male", "unknown", "PASS", ""),
         # true_gender not_detected, should be FAIL
-        ("male", "not_detected", "FAIL", "True gender not_detected does not equal estimated gender male."),
+        (
+            "male", "not_detected", "FAIL",
+            "Gender has value 'not_detected' in LIMS. Observed gender 'male' could not be verified."
+        ),
     ])
     def test_compare_gender(self, test_gender, true_gender, expected_qc, expected_msg):
         status, message = calculate_gender.compare_gender(test_gender, true_gender)
