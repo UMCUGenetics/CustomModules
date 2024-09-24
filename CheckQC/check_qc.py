@@ -177,7 +177,9 @@ def create_and_write_output(qc_output, output_path, output_prefix):
 
 def read_and_judge_metrics(qc, metrics):
     for qc_file in metrics:
-        qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
+        qc_metric_raw = read_csv(
+            qc_file, comment=qc.get("comment", None), delimiter=qc.get("delim", "\t"), quotechar=qc.get("quotechar", '"')
+        )
         report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
         qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
         failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
