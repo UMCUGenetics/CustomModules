@@ -2,7 +2,9 @@
 name: Utils Test
 on:
   pull_request:
-    paths: Utils/**
+  push:
+    branches: [master, develop]
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
