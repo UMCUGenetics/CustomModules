@@ -2,6 +2,8 @@ name: Kinship Lint
 on:
   pull_request:
     paths: Kinship/**
+  push:
+    branches: [master, develop]
 
 jobs:
   ruff:
