@@ -1,6 +1,7 @@
 name: Utils Lint
 on:
   pull_request:
+    paths: [Utils/**]
   push:
     branches: [master, develop]
 
