@@ -3,6 +3,8 @@ name: MosaicHunter Test
 on:
   pull_request:
     paths: MosaicHunter/**
+  push:
+    branches: [master, develop]
 
 jobs:
   pytest:

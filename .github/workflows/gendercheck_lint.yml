@@ -2,6 +2,8 @@ name: GenderCheck Lint
 on:
   pull_request:
     paths: GenderCheck/**
+  push:
+    branches: [master, develop]
 
 jobs:
   ruff:
