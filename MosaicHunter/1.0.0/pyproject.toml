@@ -2,7 +2,7 @@
 name = "mosaichunter"
 version = "1.0.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Bioinformatica Genetica <bioinformatica-genetica@umcutrecht.nl>"]
 license = "MIT"
 package-mode = false
 
