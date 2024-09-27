@@ -2,7 +2,8 @@
 name: GenderCheck Test
 on:
   pull_request:
-    paths: GenderCheck/**
+    paths: [GenderCheck/**]
+  push:
 
 jobs:
   pytest:

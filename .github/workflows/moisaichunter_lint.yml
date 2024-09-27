@@ -1,7 +1,7 @@
 name: MosaicHunter Lint
 on:
   pull_request:
-    paths: MosaicHunter/**
+    paths: [MosaicHunter/**]
   push:
     branches: [master, develop]
 

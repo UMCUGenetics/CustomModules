@@ -1,7 +1,7 @@
 name: CheckQC Lint
 on:
   pull_request:
-    paths: CheckQC/**
+    paths: [CheckQC/**]
   push:
     branches: [master, develop]
 
