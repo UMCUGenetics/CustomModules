@@ -10,9 +10,11 @@ package-mode = false
 python = "^3.11"
 iniconfig = "2.0.0"
 packaging = "23.2"
-pluggy = "1.4.0"
+pluggy = "^1.5.0"
 pysam = "0.22.0"
-pytest = "8.0.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
 pytest-datadir = "^1.5.0"
 
 [tool.ruff]
