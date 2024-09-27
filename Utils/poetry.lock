@@ -84,19 +84,19 @@ pytest = ">=5.0"
 
 [[package]]
 name = "pytest-unordered"
-version = "0.5.2"
+version = "0.6.1"
 description = "Test equality of unordered collections in pytest"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pytest-unordered-0.5.2.tar.gz", hash = "sha256:8187e6d68a7d54e5447e88c229cbeafa38205e55baf7da7ae57cc965c1ecdbb3"},
-    {file = "pytest_unordered-0.5.2-py3-none-any.whl", hash = "sha256:b01bb0e8ba80db6dd8c840fe24ad1804c8672919303dc9302688221390a7dc29"},
+    {file = "pytest_unordered-0.6.1-py3-none-any.whl", hash = "sha256:baa809a0ff811d97cfd85f138dbca52e2d7831612b4e19225b3a65ebd9fce068"},
+    {file = "pytest_unordered-0.6.1.tar.gz", hash = "sha256:061f7a538247f8adc97a4fcf7415d36e0db4b16548c42d5b49168e6ec2cd95b0"},
 ]
 
 [package.dependencies]
-pytest = ">=6.0.0"
+pytest = ">=7.0.0"
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "07591259b461b1aa2970733af6e659dabf84d7da3c85939ef9fabf78daec6443"
+content-hash = "11fc8a51958bd98a8dfbe9a192117e26c4b736dae0d46cecbf43137d15632915"
