@@ -198,6 +198,8 @@ def read_and_judge_metrics(qc, metrics):
             # Check for duplicate sampleIDs before merge.
             if any(qc_judged_renamed["sample"].isin(output["sample"])):
                 is_duplicate_sample = True
+            output = output.astype(object)
+            qc_judged_renamed = qc_judged_renamed.astype(object)
             output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
             if is_duplicate_sample:
                 dup_sampleIDs = output[output['sample'].duplicated()]['sample'].to_list()
