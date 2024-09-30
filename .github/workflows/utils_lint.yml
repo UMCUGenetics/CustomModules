@@ -4,6 +4,7 @@ on:
     paths: [Utils/**]
   push:
     branches: [master, develop]
+    paths: [Utils/**]
 
 jobs:
   ruff:
