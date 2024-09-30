@@ -4,7 +4,6 @@ import argparse
 
 def parse_ped(ped_file):
     samples = {}  # 'sample_id': {'family': 'fam_id', 'parents': ['sample_id', 'sample_id']}
-
     for line in ped_file:
         ped_data = line.strip().split()
         family, sample, father, mother, sex, phenotype = ped_data
