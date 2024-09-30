@@ -3,8 +3,8 @@ on:
   pull_request:
     paths: [CheckQC/**]
   push:
-    paths: [CheckQC/**]
     branches: [master, develop]
+    paths: [CheckQC/**]
 
 jobs:
   ruff:

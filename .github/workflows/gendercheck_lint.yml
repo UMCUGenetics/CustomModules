@@ -3,8 +3,8 @@ on:
   pull_request:
     paths: [GenderCheck/**]
   push:
-    paths: [GenderCheck/**]
     branches: [master, develop]
+    paths: [GenderCheck/**]
 
 jobs:
   ruff:

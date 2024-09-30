@@ -3,8 +3,8 @@ on:
   pull_request:
     paths: [MosaicHunter/**]
   push:
-    paths: [MosaicHunter/**]
     branches: [master, develop]
+    paths: [MosaicHunter/**]
 
 jobs:
   ruff:
