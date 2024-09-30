@@ -4,8 +4,8 @@ on:
   pull_request:
     paths: [Utils/**]
   push:
-    paths: [Utils/**]
     branches: [master, develop]
+    paths: [Utils/**]
 
 jobs:
   pytest:
