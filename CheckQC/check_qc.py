@@ -176,6 +176,16 @@ def create_and_write_output(qc_output, output_path, output_prefix):
 
 
 def read_and_judge_metrics(qc, metrics):
+    """
+    Read and judge each single qc metric and join results.
+
+    Args:
+        qc (dict): qc settings of the metric
+        metrics (list): List of input files specific for single qc metric
+
+    Returns:
+        pandas DataFrame: Joined and judged qc metrics.
+    """
     for qc_file in metrics:
         qc_metric_raw = read_csv(
             qc_file, comment=qc.get("comment", None), delimiter=qc.get("delim", "\t"), quotechar=qc.get("quotechar", '"')
