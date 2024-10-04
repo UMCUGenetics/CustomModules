@@ -2,9 +2,10 @@
 name: Kinship Test
 on:
   pull_request:
-    paths: Kinship/**
+    paths: [Kinship/**]
   push:
     branches: [master, develop]
+    paths: [Kinship/**]
 
 jobs:
   pytest:
