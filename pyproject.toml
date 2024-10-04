@@ -2,7 +2,7 @@
 name = "custommodules"
 version = "0.1.0"
 description = "custom nextflow processes and their linked files"
-authors = ["Your Name <you@example.com>"]
+authors = ["Bioinformatica Genetica <bioinformatica-genetica@umcutrecht.nl>"]
 license = "MIT"
 readme = "README.md"
 
