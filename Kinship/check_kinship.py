@@ -32,7 +32,8 @@ def non_empty_existing_path(file_or_dir):
         raise OSError(f"File {file_or_dir} is empty.")
     elif input_path.is_dir() and file_or_dir[::-1][0] != '/':
         return f"{file_or_dir}/"
-    return file_or_dir
+    else:
+        return file_or_dir
 
 
 def parse_arguments_and_check(args_in):
