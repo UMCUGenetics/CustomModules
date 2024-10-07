@@ -1,7 +1,7 @@
 process Kinship {
     tag {"Kinship ${analysis_id}"}
     label 'Kinship'
-    container = 'ghcr.io/umcugenetics/kinship:1.1.0'
+    container = 'ghcr.io/umcugenetics/kinship:1.1.1'
 
     shell = ['/bin/bash', '-euo', 'pipefail']
 
