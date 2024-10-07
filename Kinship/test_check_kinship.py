@@ -92,9 +92,9 @@ def test_parse_ped(input_file, exp_dict_samples, datadir):
         assert meta.get("children") == unordered(exp_dict_samples.get(sample).get("children"))
 
 
-def test_read_kinship_trio(datadir, kinship_settings):
+def test_read_and_modify_kinship_trio(datadir, kinship_settings):
     kinship_min, kinship_max = kinship_settings
-    df_out = check_kinship.read_kinship(f"{datadir}/trio.kinship", kinship_min, kinship_max)
+    df_out = check_kinship.read_and_modify_kinship(f"{datadir}/trio.kinship", kinship_min, kinship_max)
     # Assert succeeded read_table
     assert not df_out.empty
     # Assert renaming columns
@@ -143,7 +143,7 @@ class TestCheckAndAnnotateKinship():
     ])
     def test_single_rows_ok(self, samples, file, related, type, datadir, kinship_settings):
         kinship_min, kinship_max = kinship_settings
-        df_in = check_kinship.read_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
+        df_in = check_kinship.read_and_modify_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
         df_out = check_kinship.check_and_annotate_kinship(df_in, samples, kinship_min, kinship_max)
         assert df_out.shape == (1, 8)
         assert df_out.loc[0, "related"] == related
@@ -203,7 +203,7 @@ class TestCheckAndAnnotateKinship():
     ])
     def test_single_rows_fail(self, samples, file, related, type, msg, datadir, kinship_settings):
         kinship_min, kinship_max = kinship_settings
-        df_in = check_kinship.read_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
+        df_in = check_kinship.read_and_modify_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
         df_out = check_kinship.check_and_annotate_kinship(df_in, samples, kinship_min, kinship_max)
         assert df_out.shape == (1, 8)
         assert df_out.loc[0, "related"] == related
@@ -233,7 +233,7 @@ class TestCheckAndAnnotateKinship():
     ])
     def test_multi_rows_trio_ok(self, samples, file, datadir, kinship_settings):
         kinship_min, kinship_max = kinship_settings
-        df_in = check_kinship.read_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
+        df_in = check_kinship.read_and_modify_kinship(f"{datadir}/{file}", kinship_min, kinship_max)
         df_out = check_kinship.check_and_annotate_kinship(df_in, samples, kinship_min, kinship_max)
         assert df_out.shape == (3, 8)
         assert "parent_child" in df_out.type.values

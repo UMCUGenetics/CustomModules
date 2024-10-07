@@ -108,7 +108,7 @@ def parse_ped(ped_file):
     return samples
 
 
-def read_kinship(kinship_file, kinship_min, kinship_max):
+def read_and_modify_kinship(kinship_file, kinship_min, kinship_max):
     """
     Read and modify kinship file content by renaming and adding columns.
 
@@ -240,6 +240,6 @@ if __name__ == '__main__':
     kinship_min, kinship_max = arguments.kinship_settings
 
     samples = parse_ped(arguments.ped_file)
-    df_kinship_in = read_kinship(arguments.kinship_file, kinship_min, kinship_max)
+    df_kinship_in = read_and_modify_kinship(arguments.kinship_file, kinship_min, kinship_max)
     df_kinship_out = check_and_annotate_kinship(df_kinship_in, samples, kinship_min, kinship_max)
     write_kinship(df_kinship_out, arguments.output_path, arguments.output_prefix)
