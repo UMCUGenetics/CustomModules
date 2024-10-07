@@ -11,7 +11,7 @@ import tempfile
 from pandas import read_table
 
 
-def non_empty_existing_path(file_or_dir):
+def validate_non_empty_existing_path(file_or_dir):
     """
     This function checks whether the provided file or dir exists and is not empty.
 
@@ -47,10 +47,10 @@ def parse_arguments_and_check(args_in):
         Namespace: Convert argument strings to objects and assign them as attributes of the namespace.
     """
     parser = argparse.ArgumentParser(description='Check kinship output based on ped file.')
-    parser.add_argument('kinship_file', type=non_empty_existing_path, help='Kinship file')
-    parser.add_argument('ped_file', type=non_empty_existing_path, help='PED file')
+    parser.add_argument('kinship_file', type=validate_non_empty_existing_path, help='Kinship file')
+    parser.add_argument('ped_file', type=validate_non_empty_existing_path, help='PED file')
     parser.add_argument(
-        '-p', '--output_path', type=non_empty_existing_path, default=None,
+        '-p', '--output_path', type=validate_non_empty_existing_path, default=None,
         help='Kinship output path where output file will be stored.',
     )
     parser.add_argument(

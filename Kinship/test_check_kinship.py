@@ -25,23 +25,23 @@ def kinship_settings():
 
 class TestNonEmptyExistingPath():
     def test_existing_dir(self, setup_test_path):
-        file_or_dir = check_kinship.non_empty_existing_path(setup_test_path)
+        file_or_dir = check_kinship.validate_non_empty_existing_path(setup_test_path)
         assert file_or_dir
 
     def test_not_file_not_dir(self):
         fake_string = "fake_string"
         with pytest.raises(FileNotFoundError) as file_dir_error:
-            check_kinship.non_empty_existing_path(fake_string)
+            check_kinship.validate_non_empty_existing_path(fake_string)
         assert fake_string in str(file_dir_error.value)
 
     def test_empty_file(self, setup_test_path):
         with pytest.raises(OSError) as empty_error:
-            check_kinship.non_empty_existing_path(setup_test_path + "empty.txt")
+            check_kinship.validate_non_empty_existing_path(setup_test_path + "empty.txt")
         assert f"File {setup_test_path}empty.txt is empty." in str(empty_error.value)
 
     def test_append_suffix(self, setup_test_path):
         dir_without_suffix = setup_test_path.rstrip("/")
-        dir_with_suffix = check_kinship.non_empty_existing_path(dir_without_suffix)
+        dir_with_suffix = check_kinship.validate_non_empty_existing_path(dir_without_suffix)
         assert dir_without_suffix[-1] != "/"
         assert dir_with_suffix[-1] == "/"
 
