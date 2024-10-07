@@ -46,50 +46,66 @@ class TestNonEmptyExistingPath():
         assert dir_with_suffix[-1] == "/"
 
 
-@pytest.mark.parametrize("input_file,exp_dict_samples", [
-    (
-        "multi_family.ped",
-        {
-            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
-            "2024D00004": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
-            "2024D00005": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
-            "2024D00006": {'family': 'U000002', 'parents': ["2024D00004", "2024D00005"], 'children': []}
-        },
-    ),
-    (
-        "multi_siblings.ped",
-        {
-            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
-            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
-            "2024D00004": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
-        },
-    ),
-    (
-        "multi_unrelated_samples.ped",
-        {
-            "2024D00001": {'family': 'U000001', 'parents': [], 'children': []},
-            "2024D00002": {'family': 'U000002', 'parents': [], 'children': []}
-        },
-    ),
-    (
-        "single_family.ped",
-        {
-            "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
-            "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
-        },
-    ),
-])
-def test_parse_ped(input_file, exp_dict_samples, datadir):
-    dict_samples = check_kinship.parse_ped(f"{datadir}/{input_file}")
-    assert dict_samples.keys() == unordered(exp_dict_samples.keys())
-    for sample, meta in dict_samples.items():
-        assert meta.get("family") == exp_dict_samples.get(sample).get("family")
-        assert meta.get("parents") == unordered(exp_dict_samples.get(sample).get("parents"))
-        assert meta.get("children") == unordered(exp_dict_samples.get(sample).get("children"))
+class TestParsePed():
+    @pytest.mark.parametrize("input_file,exp_dict_samples", [
+        (
+            "multi_family.ped",
+            {
+                "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+                "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+                "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
+                "2024D00004": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
+                "2024D00005": {'family': 'U000002', 'parents': [], 'children': ["2024D00006"]},
+                "2024D00006": {'family': 'U000002', 'parents': ["2024D00004", "2024D00005"], 'children': []}
+            },
+        ),
+        (
+            "multi_siblings.ped",
+            {
+                "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
+                "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003", "2024D00004"]},
+                "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []},
+                "2024D00004": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
+            },
+        ),
+        (
+            "multi_unrelated_samples.ped",
+            {
+                "2024D00001": {'family': 'U000001', 'parents': [], 'children': []},
+                "2024D00002": {'family': 'U000002', 'parents': [], 'children': []}
+            },
+        ),
+        (
+            "single_family.ped",
+            {
+                "2024D00001": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+                "2024D00002": {'family': 'U000001', 'parents': [], 'children': ["2024D00003"]},
+                "2024D00003": {'family': 'U000001', 'parents': ["2024D00001", "2024D00002"], 'children': []}
+            },
+        ),
+    ])
+    def test_parse_ped_ok(self, input_file, exp_dict_samples, datadir):
+        dict_samples = check_kinship.parse_ped(f"{datadir}/{input_file}")
+        assert dict_samples.keys() == unordered(exp_dict_samples.keys())
+        for sample, meta in dict_samples.items():
+            assert meta.get("family") == exp_dict_samples.get(sample).get("family")
+            assert meta.get("parents") == unordered(exp_dict_samples.get(sample).get("parents"))
+            assert meta.get("children") == unordered(exp_dict_samples.get(sample).get("children"))
+
+    @pytest.mark.parametrize("input_file,exp_data_line,exp_error", [
+        ("wrong_separator.ped", "U000001,2024D00001,0,0,1,1", "not enough values to unpack (expected 6, got 1)"),
+        ("missing_field.ped", "U000001\t2024D00002\t0\t0\t2", "not enough values to unpack (expected 6, got 5)"),
+
+    ])
+    def test_incorrect_ped(self, input_file, exp_data_line, exp_error, datadir, capsys, mocker):
+        with pytest.raises(SystemExit) as pytest_wrapped_e:
+            check_kinship.parse_ped(f"{datadir}/{input_file}")
+        assert pytest_wrapped_e.type == SystemExit
+        assert pytest_wrapped_e.value.code == 1
+
+        out, err = capsys.readouterr()
+        assert exp_data_line in out
+        assert exp_error in out
 
 
 def test_read_and_modify_kinship_trio(datadir, kinship_settings):

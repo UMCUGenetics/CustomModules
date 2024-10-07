@@ -4,7 +4,7 @@ import argparse
 from errno import ENOENT as errno_ENOENT
 from os import strerror as os_strerror
 from pathlib import Path
-from sys import argv
+from sys import argv, exit
 import tempfile
 
 # Third party libraries alphabetic order of main package.
@@ -89,7 +89,11 @@ def parse_ped(ped_file):
     with open(ped_file, "r") as ped_file_open:
         for line in ped_file_open:
             ped_data = line.strip().split()
-            family, sample, father, mother, sex, phenotype = ped_data
+            try:
+                family, sample, father, mother, sex, phenotype = ped_data
+            except ValueError as error:
+                print(f"Failed to parse ped file data {line}; {error}")
+                exit(1)
 
             # Create samples
             if sample not in samples:
