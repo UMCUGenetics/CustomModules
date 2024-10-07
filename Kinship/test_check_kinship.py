@@ -100,7 +100,7 @@ class TestParsePed():
     def test_incorrect_ped(self, input_file, exp_data_line, exp_error, datadir, capsys, mocker):
         with pytest.raises(SystemExit) as pytest_wrapped_e:
             check_kinship.parse_ped(f"{datadir}/{input_file}")
-        assert pytest_wrapped_e.type == SystemExit
+        assert pytest_wrapped_e.type is SystemExit
         assert pytest_wrapped_e.value.code == 1
 
         out, err = capsys.readouterr()
