@@ -21,6 +21,21 @@ class TestIsValidRead():
     def test_is_valid_read(self, read, mapping_qual, expected):
         assert expected == calculate_gender.is_valid_read(read, mapping_qual)
 
+
+@pytest.mark.parametrize("input_gender,exp_output", [
+    # Given gender should return translated gender
+    ("Man", "male"),
+    ("Vrouw", "female"),
+    ("Onbekend", "unknown"),
+    ("unknown", "not_detected"),
+    # Given gender should be returned
+    ("MAN", "MAN")
+])
+def test_translate_gender(input_gender, exp_output):
+    out = calculate_gender.translate_gender(input_gender)
+    assert out == exp_output
+
+
 class TestValidateGender():
     @pytest.mark.parametrize("input_gender", [("male"), ("female"), ("unknown"), ("not_detected")])
     def test_allowed_genders(self, input_gender):

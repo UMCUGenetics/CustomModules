@@ -11,6 +11,14 @@ def is_valid_read(read, mapping_qual):
     return False
 
 
+def translate_gender(gender):
+    translation = {"Man": "male", "Vrouw": "female", "Onbekend": "unknown", "unknown": "not_detected"}
+    if gender in translation:
+        return translation[gender]
+    return gender
+
+
+
 def validate_gender(gender):
     allowed_gender_options = ["male", "female"]
     allowed_unknown_options = ["unknown", "not_detected"]
