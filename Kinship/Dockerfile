@@ -28,8 +28,10 @@ ENV POETRY_NO_INTERACTION=1
 ENV POETRY_VIRTUALENVS_IN_PROJECT=1
 ENV POETRY_VIRTUALENVS_CREATE=1
 
-# Prepend venv to path
-ENV PATH="${PATH}:${POETRY_VENV}/bin"
+# Set virtual_env variable
+ENV VIRTUAL_ENV=/.venv
+# Prepend virtual environments path
+ENV PATH="${VIRTUAL_ENV}/bin:${POETRY_VENV}/bin:${PATH}"
 
 # Creating a virtual environment just for poetry and install it with pip
 RUN python3 -m venv $POETRY_VENV \
