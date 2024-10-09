@@ -4,9 +4,7 @@ import argparse
 import pysam
 
 
-def is_valid_read(read, mapping_qual):
-    """Check if a read is properly mapped."""
-    if (read.mapping_quality >= mapping_qual and read.reference_end and read.reference_start):
+def is_valid_read(read, min_mapping_qual):
         return True
     return False
 
@@ -26,10 +24,10 @@ def validate_gender(gender):
         raise ValueError(f"Provided gender {gender} is not allowed. Should be one of {allowed_gender_options + allowed_unknown_options}.")
 
 
-def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
+def get_gender_from_bam(bam, min_mapping_qual, locus_y, ratio_y):
     with pysam.AlignmentFile(bam, "rb") as bam_file:
         y_reads = float(
-                      sum([is_valid_read(read, mapping_qual) for read in bam_file.fetch(region=locus_y)])
+                      sum([is_valid_read(read, min_mapping_qual) for read in bam_file.fetch(region=locus_y)])
                   )
         total_reads = float(bam_file.mapped)
         y_ratio_perc = (y_reads / total_reads) * 100
@@ -66,14 +64,14 @@ if __name__ == "__main__":
         type=float,
         help="maximunum chromosome Y ratio for females [float]"
     )
-    parser.add_argument('mapping_qual', type=int, help='minimum mapping quality of reads to be considered [int]')
+    parser.add_argument('min_mapping_qual', type=int, help='minimum mapping quality of reads to be considered [int]')
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
     stated_gender = translate_gender(args.stated_gender)
     validate_gender(stated_gender)
 
-    measured_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y)
+    measured_gender = get_gender_from_bam(args.bam, args.min_mapping_qual, args.locus_y, args.ratio_y)
     validate_gender(measured_gender)
 
     qc, msg = compare_gender(measured_gender, stated_gender)
