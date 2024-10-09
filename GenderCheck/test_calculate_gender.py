@@ -21,6 +21,21 @@ class TestIsValidRead():
     def test_is_valid_read(self, read, mapping_qual, expected):
         assert expected == calculate_gender.is_valid_read(read, mapping_qual)
 
+class TestValidateGender():
+    @pytest.mark.parametrize("input_gender", [("male"), ("female"), ("unknown"), ("not_detected")])
+    def test_allowed_genders(self, input_gender):
+        try:
+            calculate_gender.validate_gender(input_gender)
+        except ValueError:
+            assert False
+        assert True
+
+    @pytest.mark.parametrize("input_gender", [("Man"), ("Vrouw"), ("Onbekend"), ("fakeGender")])
+    def test_not_allowed_genders(self, input_gender):
+        with pytest.raises(ValueError) as value_error:
+            calculate_gender.validate_gender(input_gender)
+        assert f"Provided gender {input_gender} is not allowed. Should be one of ['male', 'female', 'unknown', 'not_detected']." == str(value_error.value)
+
 
 class TestGetGenderFromBam():
     @pytest.mark.parametrize("bam,mapping_qual,locus_y,ratio_y,expected", [

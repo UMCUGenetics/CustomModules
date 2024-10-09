@@ -11,6 +11,13 @@ def is_valid_read(read, mapping_qual):
     return False
 
 
+def validate_gender(gender):
+    allowed_gender_options = ["male", "female"]
+    allowed_unknown_options = ["unknown", "not_detected"]
+    if gender not in allowed_gender_options and gender not in allowed_unknown_options:
+        raise ValueError(f"Provided gender {gender} is not allowed. Should be one of {allowed_gender_options + allowed_unknown_options}.")
+
+
 def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
     with pysam.AlignmentFile(bam, "rb") as bam_file:
         y_reads = float(
