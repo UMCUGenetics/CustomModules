@@ -62,21 +62,27 @@ class TestGetGenderFromBam():
 
 
 class TestCompareGender():
-    @pytest.mark.parametrize("test_gender,true_gender,expected_qc,expected_msg", [
-        # test_gender and true_gender identical, should be PASS
+    @pytest.mark.parametrize("measured_gender,stated_gender,expected_qc,expected_msg", [
+        # measured_gender and stated_gender identical, should be PASS
         ("male", "male", "PASS", ""),
-        # test_gender and true_gender not identical , should be FAIL
+        # measured_gender and stated_gender not identical (upper vs lowercase), should fail
+        ("MALE", "male", "FAIL", "True gender male does not equal estimated gender MALE."),
+        # measured_gender and stated_gender not identical (upper vs lowercase), should fail
+        ("FEMALE", "female", "FAIL", "True gender female does not equal estimated gender FEMALE."),
+        # measured_gender and stated_gender not identical , should be FAIL
         ("male", "female", "FAIL", "True gender female does not equal estimated gender male."),
-        # true_gender unknown, should be PASS
+        # measured_gender and stated_gender not identical , should be FAIL
+        ("fakegender", "female", "FAIL", "True gender female does not equal estimated gender fakegender."),
+        # stated_gender unknown, should be PASS
         ("male", "unknown", "PASS", ""),
-        # true_gender not_detected, should be FAIL
+        # stated_gender not_detected, should be FAIL
         (
             "male", "not_detected", "FAIL",
             "Gender has value 'not_detected' in LIMS. Observed gender 'male' could not be verified."
         ),
     ])
-    def test_compare_gender(self, test_gender, true_gender, expected_qc, expected_msg):
-        status, message = calculate_gender.compare_gender(test_gender, true_gender)
+    def test_compare_gender(self, measured_gender, stated_gender, expected_qc, expected_msg):
+        status, message = calculate_gender.compare_gender(measured_gender, stated_gender)
         assert status == expected_qc
         assert message == expected_msg
 
@@ -88,5 +94,5 @@ def test_write_qc_file(tmp_path):
     calculate_gender.write_qc_file("test_sample", "test_analyse", "male", "male", "PASS", "", path)
     lines = qc_file.read_text().splitlines()
     assert len(lines) == 2
-    assert lines[0] == "sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\tmessage"
+    assert lines[0] == "sample_id\tanalysis_id\tmeasured_gender\tstated_gender\tstatus\tmessage"
     assert lines[1] == "test_sample\ttest_analyse\tmale\tmale\tPASS\t"

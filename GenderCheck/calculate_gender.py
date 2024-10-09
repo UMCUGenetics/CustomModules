@@ -39,21 +39,19 @@ def get_gender_from_bam(bam, mapping_qual, locus_y, ratio_y):
         return "male"
 
 
-def compare_gender(test_gender, true_gender):
-    if test_gender == true_gender or true_gender == "unknown":  # if gender is unknown/onbekend in database, pass
+def compare_gender(measured_gender, stated_gender):
+    if measured_gender == stated_gender or stated_gender == "unknown":  # if gender is unknown/onbekend in database, pass
         return "PASS", ""
-    elif true_gender == "not_detected":  # not_detected in database considered failed
-        return "FAIL", f"Gender has value '{true_gender}' in LIMS. Observed gender '{test_gender}' could not be verified."
+    elif stated_gender == "not_detected":  # not_detected in database considered failed
+        return "FAIL", f"Gender has value '{stated_gender}' in LIMS. Observed gender '{measured_gender}' could not be verified."
     else:
-        return "FAIL", f"True gender {true_gender} does not equal estimated gender {test_gender}."
+        return "FAIL", f"True gender {stated_gender} does not equal estimated gender {measured_gender}."
 
 
-
-def write_qc_file(sample_id, analysis_id, test_gender, true_gender, status, message, outputfolder):
-
+def write_qc_file(sample_id, analysis_id, measured_gender, stated_gender, status, message, outputfolder):
     with open(f"{outputfolder}/{sample_id}_{analysis_id}_gendercheck.txt", 'w') as write_file:
-        write_file.write("sample_id\tanalysis_id\ttest_gender\ttrue_gender\tstatus\tmessage\n")
-        write_file.write(f"{sample_id}\t{analysis_id}\t{test_gender}\t{true_gender}\t{status}\t{message}\n")
+        write_file.write("sample_id\tanalysis_id\tmeasured_gender\tstated_gender\tstatus\tmessage\n")
+        write_file.write(f"{sample_id}\t{analysis_id}\t{measured_gender}\t{stated_gender}\t{status}\t{message}\n")
 
 
 if __name__ == "__main__":
@@ -62,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument('analysis_id', help='analysis_id')
     parser.add_argument('bam', help='path to bam file')
     parser.add_argument('outputfolder', help='path to output folder')
-    parser.add_argument('true_gender', help='gender regarded as the truth')
+    parser.add_argument('stated_gender', help='gender regarded as the truth')
     parser.add_argument(
         "ratio_y",
         type=float,
@@ -72,11 +70,11 @@ if __name__ == "__main__":
     parser.add_argument('locus_y', help='Coordinates for includes region on chromosome Y (chr:start-stop)')
     args = parser.parse_args()
 
-    translation = {"Man": "male", "Vrouw": "female", "Onbekend": "unknown", "unknown": "not_detected"}
-    true_gender = args.true_gender
-    if true_gender in translation:
-        true_gender = translation[true_gender]
+    stated_gender = translate_gender(args.stated_gender)
+    validate_gender(stated_gender)
 
-    test_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y)
-    qc, msg = compare_gender(test_gender, true_gender)
-    write_qc_file(args.sample_id, args.analysis_id, test_gender, true_gender, qc, msg, args.outputfolder)
+    measured_gender = get_gender_from_bam(args.bam, args.mapping_qual, args.locus_y, args.ratio_y)
+    validate_gender(measured_gender)
+
+    qc, msg = compare_gender(measured_gender, stated_gender)
+    write_qc_file(args.sample_id, args.analysis_id, measured_gender, stated_gender, qc, msg, args.outputfolder)
