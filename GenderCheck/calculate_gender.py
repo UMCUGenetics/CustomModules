@@ -37,7 +37,8 @@ def get_gender_from_bam(bam, min_mapping_qual, locus_y, ratio_y):
         return "male"
 
 
-def compare_gender(measured_gender, stated_gender):
+def compare_and_evaluate_gender(measured_gender, stated_gender):
+    """
     if measured_gender == stated_gender or stated_gender == "unknown":  # if gender is unknown/onbekend in database, pass
         return "PASS", ""
     elif stated_gender == "not_detected":  # not_detected in database considered failed
@@ -74,5 +75,5 @@ if __name__ == "__main__":
     measured_gender = get_gender_from_bam(args.bam, args.min_mapping_qual, args.locus_y, args.ratio_y)
     validate_gender(measured_gender)
 
-    qc, msg = compare_gender(measured_gender, stated_gender)
+    qc, msg = compare_and_evaluate_gender(measured_gender, stated_gender)
     write_qc_file(args.sample_id, args.analysis_id, measured_gender, stated_gender, qc, msg, args.outputfolder)

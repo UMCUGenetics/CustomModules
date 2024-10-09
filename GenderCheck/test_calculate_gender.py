@@ -81,8 +81,8 @@ class TestCompareGender():
             "Gender has value 'not_detected' in LIMS. Observed gender 'male' could not be verified."
         ),
     ])
-    def test_compare_gender(self, measured_gender, stated_gender, expected_qc, expected_msg):
-        status, message = calculate_gender.compare_gender(measured_gender, stated_gender)
+    def test_compare_and_evaluate_gender(self, measured_gender, stated_gender, expected_qc, expected_msg):
+        status, message = calculate_gender.compare_and_evaluate_gender(measured_gender, stated_gender)
         assert status == expected_qc
         assert message == expected_msg
 
