@@ -15,7 +15,7 @@ def is_valid_read(read, min_mapping_qual):
     Returns:
         Boolean: Whether the read is valid and properly mapped.
     """
-    if (read.min_mapping_quality >= min_mapping_qual and read.reference_end and read.reference_start):
+    if (read.mapping_quality >= min_mapping_qual and read.reference_end and read.reference_start):
         return True
     return False
 

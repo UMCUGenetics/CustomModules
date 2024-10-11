@@ -7,7 +7,7 @@ class TestIsValidRead():
 
     class MyObject:
         def __init__(self, qual, start, end):
-            self.min_mapping_quality = qual
+            self.mapping_quality = qual
             self.reference_start = start
             self.reference_end = end
 
