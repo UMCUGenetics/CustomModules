@@ -30,7 +30,6 @@ ENV PATH="${VIRTUAL_ENV}/bin:${POETRY_VENV}/bin:${PATH}"
 
 # Creating a virtual environment just for poetry and install it with pip
 RUN python3 -m venv $POETRY_VENV \
-	&& $POETRY_VENV/bin/pip3 install -U pip3 setuptools \
 	&& $POETRY_VENV/bin/pip3 install poetry==${POETRY_VERSION}
 
 # Copy project requirement files here to ensure they will be cached.
