@@ -5,13 +5,13 @@ process EditSummaryFileHappy {
 
     input:
         // meta should have the keys 'id', 'query' and 'truth'
-        tuple(val(meta), path(summary_csv))
+        tuple val(meta), path(summary_csv)
 
     output:
-        path("${meta.truth}_${meta.query}_INDEL_PASS.summary.csv"), emit: indel_pass_csv
-        path("${meta.truth}_${meta.query}_INDEL_ALL.summary.csv"), emit: indel_all_csv
-        path("${meta.truth}_${meta.query}_SNP_PASS.summary.csv"), emit: snp_pass_csv
-        path("${meta.truth}_${meta.query}_SNP_ALL.summary.csv"), emit: snp_all_csv
+        path("*_INDEL_PASS.summary.csv"), emit: indel_pass_csv
+        path("*_INDEL_ALL.summary.csv"), emit: indel_all_csv
+        path("*_SNP_PASS.summary.csv"), emit: snp_pass_csv
+        path("*_SNP_ALL.summary.csv"), emit: snp_all_csv
 
     script:
         """
