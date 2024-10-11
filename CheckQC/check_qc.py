@@ -175,18 +175,48 @@ def create_and_write_output(qc_output, output_path, output_prefix):
     qc_output.to_csv(output_path + output_prefix + "_summary.csv", index=False, header=True)
 
 
-def read_and_judge_metrics(qc, metrics):
-    for qc_file in metrics:
-        qc_metric_raw = read_csv(qc_file, comment=qc.get("comment", None), delimiter="\t", quotechar='"')
-        report_cols = get_columns_to_report(qc["report_cols"], qc_metric_raw.columns.to_list(), qc["qc_col"])
-        qc_metric_edit = add_and_rename_columns(qc_metric_raw, qc["title"], qc["qc_col"], qc["operator"], qc["threshold"])
-        failed_rows = get_failed_rows(qc_metric_edit, "qc_value", qc["operator"], qc["threshold"])
+def read_and_judge_metrics(metric_settings, qc_report_files):
+    """
+    Read and judge each qc report file against predefined threshold (aka metrics) and join results.
+
+    Args:
+        metric_settings (dict): predefined qc thresholds for the qc_report_files
+        qc_report_files (list): list of input files obtained from select_metrics()
+
+    Returns:
+        output (pandas DataFrame): combined dataframe with annotated qc (PASS or FAIL) for each qc_report_file
+    """
+    for qc_report_file in qc_report_files:
+        qc_metric_raw = read_csv(
+            qc_report_file,
+            comment=metric_settings.get("comment", None),
+            delimiter=metric_settings.get("delim", "\t"),
+            quotechar=metric_settings.get("quotechar", '"')
+        )
+        report_cols = get_columns_to_report(
+            metric_settings["report_cols"],
+            qc_metric_raw.columns.to_list(),
+            metric_settings["qc_col"]
+        )
+        qc_metric_edit = add_and_rename_columns(
+            qc_metric_raw,
+            metric_settings["title"],
+            metric_settings["qc_col"],
+            metric_settings["operator"],
+            metric_settings["threshold"]
+        )
+        failed_rows = get_failed_rows(
+            qc_metric_edit,
+            "qc_value",
+            metric_settings["operator"],
+            metric_settings["threshold"]
+        )
         qc_metric_subset, qc_metric_judged = add_failed_samples_metric(
-            qc_metric_edit, failed_rows, report_cols, qc["sample_cols"]
+            qc_metric_edit, failed_rows, report_cols, metric_settings["sample_cols"]
             )
-        qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, qc["sample_cols"])
+        qc_metric_judged = add_passed_samples_metric(qc_metric_subset, qc_metric_judged, metric_settings["sample_cols"])
         # Rename columns
-        suffix = f"_{qc['title'].lower()}"
+        suffix = f"_{metric_settings['title'].lower()}"
         qc_judged_renamed = qc_metric_judged.add_suffix(suffix).rename(columns={f"sample{suffix}": "sample"})
         # Concatenate/merge metric output
         if "output" not in locals():  # First time
@@ -196,6 +226,8 @@ def read_and_judge_metrics(qc, metrics):
             # Check for duplicate sampleIDs before merge.
             if any(qc_judged_renamed["sample"].isin(output["sample"])):
                 is_duplicate_sample = True
+            output = output.astype(object)
+            qc_judged_renamed = qc_judged_renamed.astype(object)
             output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
             if is_duplicate_sample:
                 dup_sampleIDs = output[output['sample'].duplicated()]['sample'].to_list()

@@ -7,9 +7,9 @@ process CheckQC {
     input:
         val(identifier)
         path(input_files)
-     
+
     output:
-        path("${identifier}_summary.csv", emit: qc_output)
+        path("${identifier}_summary.csv"), emit: qc_output
 
     script:
         """
