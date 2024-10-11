@@ -34,11 +34,8 @@ ENV VIRTUAL_ENV=/.venv
 ENV PATH="${VIRTUAL_ENV}/bin:${POETRY_VENV}/bin:${PATH}"
 
 # Creating a virtual environment just for poetry and install it with pip
-RUN ls -l `which pip`
-RUN ls -l `which pip3`
 RUN python3 -m venv $POETRY_VENV \
-	&& $POETRY_VENV/bin/pip install -U pip setuptools \
-	&& $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
+	&& $POETRY_VENV/bin/pip3 install poetry==${POETRY_VERSION}
 
 # Copy project requirement files here to ensure they will be cached.
 COPY pyproject.toml poetry.lock ./
