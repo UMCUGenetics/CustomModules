@@ -66,13 +66,13 @@ class TestCompareGender():
         # measured_gender and stated_gender identical, should be PASS
         ("male", "male", "PASS", ""),
         # measured_gender and stated_gender not identical (upper vs lowercase), should fail
-        ("MALE", "male", "FAIL", "True gender male does not equal estimated gender MALE."),
+        ("MALE", "male", "FAIL", "Stated gender male does not equal observed gender MALE."),
         # measured_gender and stated_gender not identical (upper vs lowercase), should fail
-        ("FEMALE", "female", "FAIL", "True gender female does not equal estimated gender FEMALE."),
+        ("FEMALE", "female", "FAIL", "Stated gender female does not equal observed gender FEMALE."),
         # measured_gender and stated_gender not identical , should be FAIL
-        ("male", "female", "FAIL", "True gender female does not equal estimated gender male."),
+        ("male", "female", "FAIL", "Stated gender female does not equal observed gender male."),
         # measured_gender and stated_gender not identical , should be FAIL
-        ("fakegender", "female", "FAIL", "True gender female does not equal estimated gender fakegender."),
+        ("fakegender", "female", "FAIL", "Stated gender female does not equal observed gender fakegender."),
         # stated_gender unknown, should be PASS
         ("male", "unknown", "PASS", ""),
         # stated_gender not_detected, should be FAIL

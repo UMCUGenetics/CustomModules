@@ -96,7 +96,7 @@ def compare_and_evaluate_gender(measured_gender, stated_gender):
     elif stated_gender == "not_detected":  # not_detected in database considered failed
         return "FAIL", f"Gender has value '{stated_gender}' in LIMS. Observed gender '{measured_gender}' could not be verified."
     else:
-        return "FAIL", f"True gender {stated_gender} does not equal estimated gender {measured_gender}."
+        return "FAIL", f"Stated gender {stated_gender} does not equal observed gender {measured_gender}."
 
 
 def write_qc_file(sample_id, analysis_id, measured_gender, stated_gender, status, message, outputfolder):
