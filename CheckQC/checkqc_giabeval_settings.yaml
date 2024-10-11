@@ -1,0 +1,64 @@
+metrics:
+  - filename: "summary_snp.*truth.txt"
+    qc_col: "Sensitivity"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "Sensitivity"]
+    sample_cols: ["sample_1"]
+    title: "PK_C_SNPs"
+  - filename: "summary_indel.*truth.txt"
+    qc_col: "Sensitivity"
+    threshold: 0.90
+    operator: "<="
+    report_cols: ["sample_1", "Sensitivity"]
+    sample_cols: ["sample_1"]
+    title: "PK_C_INDELs"
+  - filename: "summary_snp.*truth.txt"
+    qc_col: "Precision"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "Precision"]
+    sample_cols: ["sample_1"]
+    title: "PK_D_SNPs"
+  - filename: "summary_indel.*truth.txt"
+    qc_col: "Precision"
+    threshold: 0.85
+    operator: "<="
+    report_cols: ["sample_1", "Precision"]
+    sample_cols: ["sample_1"]
+    title: "PK_D_INDELs"
+  - filename: "summary_snp_.*_((?!truth).)*$"
+    qc_col: "Sensitivity"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "sample_2", "Sensitivity"]
+    sample_cols: ["sample_1", "sample_2"]
+    title: "PK_E_SNPs"
+  - filename: "summary_indel_.*_((?!truth).)*$"
+    qc_col: "Sensitivity"
+    threshold: 0.90
+    operator: "<="
+    report_cols: ["sample_1", "sample_2", "Sensitivity"]
+    sample_cols: ["sample_1", "sample_2"]
+    title: "PK_E_INDELs"
+  - filename: "summary_high_conf_snp.*truth.txt"
+    qc_col: "Sensitivity"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "Sensitivity"]
+    sample_cols: ["sample_1"]
+    title: "PK_C_SNPs_high_conf"
+  - filename: "summary_high_conf_snp.*truth.txt"
+    qc_col: "Precision"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "Precision"]
+    sample_cols: ["sample_1"]
+    title: "PK_D_SNPs_high_conf"
+  - filename: "summary_high_conf_snp_.*_((?!truth).)*$"
+    qc_col: "Sensitivity"
+    threshold: 0.98
+    operator: "<="
+    report_cols: ["sample_1", "sample_2", "Sensitivity"]
+    sample_cols: ["sample_1", "sample_2"]
+    title: "PK_E_SNPs_high_conf"
