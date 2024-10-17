@@ -158,3 +158,4 @@ for (i in 1:nsegment) {
 
 # Save various outputs in an R object
 save(breaks.fwhm, breaks.fwhm.avg, trimLeft, trimRight, file = "breaks.fwhm.RData")
+save(highMZ, file = "highest_mz.RData")

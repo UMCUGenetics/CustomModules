@@ -10,6 +10,7 @@ process GenerateBreaksStitching {
 
     output:
        path('breaks.fwhm.RData'), emit: breaks
+       path('highest_mz.RData'), emit: highest_mz
 
     script:
         """
