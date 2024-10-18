@@ -114,7 +114,7 @@ outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
 outlist <- outlist %>%
   tibble::rownames_to_column("rowname") %>%
   filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
-  tibble::column_to_rownames("rowname")print("Add HMDB_code column")
+  tibble::column_to_rownames("rowname")
 
 # Add HMDB_code column with all the HMDB ID and sort on it
 outlist <- cbind(outlist, "HMDB_code" = rownames(outlist))
