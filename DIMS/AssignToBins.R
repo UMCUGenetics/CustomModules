@@ -44,8 +44,8 @@ raw_data_matrix <- xcms::rawMat(raw_data)
 pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
 neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
 # Select scans between trim_left and trim_right
-pos_times <- pos_times[pos_times > trim_left & pos_times < trim_right]
-neg_times <- neg_times[neg_times > trim_left & neg_times < trim_right]
+pos_times <- pos_times[pos_times > trim_left_pos & pos_times < trim_right_pos]
+neg_times <- neg_times[neg_times > trim_left_neg & neg_times < trim_right_neg]
 
 # Generate an index with which to select values for each mode
 pos_index <- which(raw_data_matrix[, "time"] %in% pos_times)

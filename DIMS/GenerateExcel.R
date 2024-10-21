@@ -16,6 +16,8 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
+sst_components_file <- cmd_args[6]
+outlier_threshold <- 2
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -41,6 +43,25 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   sorted_control_intensities <- sort(as.numeric(control_intensities))
   trimmed_control_intensities <- sorted_control_intensities[(nr_to_remove + 1) : 
 							    (length(sorted_control_intensities) - nr_to_remove)]
+  return(trimmed_control_intensities)
+}
+
+remove_outliers_for_Zscore <- function(control_intensities, outlier_threshold = 2) {
+  #' Remove outliers per metabolite before calculating Z-scores
+  #'
+  #' @param control_intensities: Vector with intensities for control samples
+  #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
+  #'
+  #' @return trimmed_control_intensities: Intensities trimmed for outliers
+  mean_permetabolite <- mean(as.numeric(control_intensities))
+  stdev_permetabolite <- sd(as.numeric(control_intensities))
+  zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
+  # remove intensities with a zscore_permetabolite greater than outlier_threshold
+  if (sum(zscores_permetabolite > outlier_threshold) > 0) {
+    trimmed_control_intensities <- control_intensities[-which(zscores_permetabolite > outlier_threshold)]
+  } else {
+    trimmed_control_intensities <- control_intensities
+  }
   return(trimmed_control_intensities)
 }
 
@@ -88,26 +109,31 @@ index_neg <- which(rownames(outlist_neg_adducts_hmdb) %in% rownames(outlist_pos_
 index_pos <- which(rownames(outlist_pos_adducts_hmdb) %in% rownames(outlist_neg_adducts_hmdb))
 
 # Only continue with HMDB codes (rows) that were found in both positive mode and remove last column (hmdb_name)
-tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_pos_adducts_hmdb)[2] - 1)]
-tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
+tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
+tmp_pos_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>% select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID)
+# tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
 tmp_pos_left <- outlist_pos_adducts_hmdb[-index_pos, ]
 # same for negative mode
-tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_neg_adducts_hmdb)[2] - 1)]
+tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 tmp_neg_left <- outlist_neg_adducts_hmdb[-index_neg, ]
 
 # Combine positive and negative numbers and paste back HMDB column
 tmp <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
 rownames(tmp) <- rownames(tmp_pos)
-tmp <- cbind(tmp, "HMDB_name" = tmp_hmdb_name_pos)
+tmp <- cbind(tmp, tmp_pos_info)
 outlist <- rbind(tmp, tmp_pos_left, tmp_neg_left)
+outlist <- outlist %>% arrange(rownames(outlist))
 
 # Filter for biological relevance
-peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
-outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc[rownames(outlist)[peaks_in_list], ]))
+# peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
+peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
+rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist)[peaks_in_list])
+outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
+
 # filter out all irrelevant HMDBs
 outlist <- outlist %>%
   tibble::rownames_to_column("rowname") %>%
-  filter(!grepl("Exogenous|Drug|exogenous", relevance)) %>%
+  filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
   tibble::column_to_rownames("rowname")
 
 # Add HMDB_code column with all the HMDB ID and sort on it
@@ -142,7 +168,7 @@ if (z_score == 1) {
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
   # save outlist as it is and use it to calculate robust scaler
-  outlist_noZ <- outlist
+  outlist_robustZ <- outlist_nooutliers <- outlist
 
   # calculate mean and sd for Control group
   outlist$avg.ctrls <- apply(control_columns, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
@@ -159,15 +185,18 @@ if (z_score == 1) {
   colnames(outlist)[startcol:ncol(outlist)] <- colnames_z
 
   # calculate robust scaler (Zscores minus outliers in Controls)
-  outlist_noZ$avg.ctrls <- 0
-  outlist_noZ$sd.ctrls  <- 0
+  outlist_robustZ$avg.ctrls <- 0
+  outlist_robustZ$sd.ctrls  <- 0
+  outlist_nooutliers$avg.ctrls <- 0
+  outlist_nooutliers$sd.ctrls <- 0
+  outlist_nooutliers$nr.ctrls <- 0
 
   # only calculate robust Z-scores if there are enough Controls
   if (length(control_col_ids) > 10) {
     for (metabolite_index in 1:nrow(outlist)) {
-      outlist_noZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
-      outlist_noZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
     }
   }
@@ -175,17 +204,39 @@ if (z_score == 1) {
   # Make and add columns with robust zscores
   cnames_robust <- gsub("_Zscore", "_RobustZscore", colnames_z)
   for (i in intensity_col_ids) {
-    zscores_1col <- (as.numeric(as.vector(unlist(outlist_noZ[, i]))) - outlist_noZ$avg.ctrls) / outlist_noZ$sd.ctrls
-    outlist_noZ <- cbind(outlist_noZ, zscores_1col)
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_robustZ[, i]))) - outlist_robustZ$avg.ctrls) / outlist_robustZ$sd.ctrls
+    outlist_robustZ <- cbind(outlist_robustZ, zscores_1col)
   }
-  colnames(outlist_noZ)[startcol:ncol(outlist_noZ)] <- cnames_robust
+  colnames(outlist_robustZ)[startcol:ncol(outlist_robustZ)] <- cnames_robust
+
+  # calculate Z-scores after removal of outliers in Control samples
+  if (length(control_col_ids) > 10) {
+    for (metabolite_index in 1:nrow(outlist_nooutliers)) {
+      intensities_without_outliers <- remove_outliers_for_Zscore(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
+      outlist_nooutliers$avg.ctrls[metabolite_index] <-   mean(intensities_without_outliers)
+      outlist_nooutliers$sd.ctrls[metabolite_index]  <-     sd(intensities_without_outliers)
+      outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
+    }
+  }
+ 
+  cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
+  for (i in intensity_col_ids) {
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_nooutliers[, i]))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+    outlist_nooutliers <- cbind(outlist_nooutliers, zscores_1col)
+  }
+  # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
+  colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
+
 
   # output metabolites filtered on relevance
   save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
   write.table(outlist, file = paste0("AdductSums_filtered_Zscores.txt"), sep = "\t", row.names = FALSE)
   # output filtered metabolites with robust scaled Zscores
-  save(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.RData"))
-  write.table(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  save(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.RData"))
+  write.table(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  # output filtered metabolites after removal of outliers
+  save(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.RData"))
+  write.table(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.txt"), sep = "\t", row.names = FALSE)
 
   # get the IDs of the patients and sort
   patient_ids <- unique(as.vector(unlist(lapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), function(x) x[1]))))
@@ -568,13 +619,25 @@ if (z_score == 1) {
     pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
     lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
 
-    pa_codes <- c("HMDB00824", "HMDB00783", "HMDB00123")
-    pku_codes <- c("HMDB00159")
-    lpi_codes <- c("HMDB00904", "HMDB00641", "HMDB00182")
+    # pa_codes <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
+    # pku_codes <- c("HMDB0000159")
+    # lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
+    pku_codes <- c("HMDB0000159")
+    lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
+    pku_names <- c("L-Phenylalanine")
+    lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
 
     pa_data <- outlist[pa_codes, c("HMDB_code", "name", pa_sample_name)]
     pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
     colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    # change HMDB names because propionylglycine doesn't have its own line, rowname is HMDB0000725 (4-hydroxyproline)
+    pa_data$HMDB.name <- pa_codes
+    # change HMDB codes so the propionylglycine is the correct HMDB ID
+    pa_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
@@ -602,6 +665,82 @@ if (z_score == 1) {
 		row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
 }
+
+### SST components output ####
+calculate_coefficient_of_variation <- function(intensity_list) {
+  for (col_nr in 1:ncol(intensity_list)) {
+    intensity_list[, col_nr] <- as.numeric(intensity_list[, col_nr])
+    intensity_list[, col_nr] <- round(intensity_list[, col_nr], 0)
+  }
+  sd_allsamples <- round(apply(intensity_list, 1, sd), 0)
+  mean_allsamples <- round(apply(intensity_list, 1, mean), 0)
+  cv_allsamples <- round(100 * sd_allsamples / mean_allsamples, 1)
+  intensity_list_with_cv <- cbind(CV_perc = cv_allsamples,
+                                  mean = mean_allsamples,
+                                  sd = sd_allsamples,
+                                  intensity_list)
+  return(intensity_list_with_cv)
+}
+
+# Internal standards lists, calculate coefficients of variation
+if ("plots" %in% colnames(is_list)) {
+  intensity_col_ids <- 2:(which(colnames(is_list) == "HMDB_name") - 1)
+} else {
+  intensity_col_ids <- 1:(which(colnames(is_list) == "HMDB_name") - 1)
+}
+# previous intensity_col_ids is based on the assumption that there are Controls and Patients
+is_list_intensities <- is_list[ , intensity_col_ids]
+is_list_intensities <- calculate_coefficient_of_variation(is_list_intensities)
+is_list_intensities <- cbind(IS_name = is_list$HMDB_name, is_list_intensities)
+
+# separate adducts of IS
+is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
+is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
+is_pos_intensities <- is_pos[ , -which(colnames(is_pos) == "HMDB_name")]
+is_neg_intensities <- is_neg[ , -which(colnames(is_neg) == "HMDB_name")]
+is_pos_intensities <- calculate_coefficient_of_variation(is_pos_intensities)
+is_neg_intensities <- calculate_coefficient_of_variation(is_neg_intensities)
+is_pos_intensities <- cbind(IS_name = is_pos$HMDB_name, is_pos_intensities)
+is_neg_intensities <- cbind(IS_name = is_neg$HMDB_name, is_neg_intensities)
+
+# SST components. 
+sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_rows <- which(outlist$HMDB_code %in% sst_comp$HMDB_ID)
+sst_list <- outlist[sst_rows, ]
+sst_colnrs <- grep("P1001", colnames(sst_list))
+if (length(sst_colnrs) > 0) {
+  sst_list_intensities <- sst_list[ , sst_colnrs]
+} else {
+  sst_list_intensities <- sst_list[ , intensity_col_ids]
+}
+for (col_nr in 1:ncol(sst_list_intensities)) {
+  sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
+  if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
+  } else {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr])
+  }
+}
+sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_intensities)
+
+# Create Excel file
+wb <- createWorkbook("IS_SST")
+addWorksheet(wb, "Internal Standards")
+openxlsx::writeData(wb, sheet = 1, is_list_intensities)
+setColWidths(wb, 1, cols = 1, widths = 24)
+addWorksheet(wb, "IS pos")
+openxlsx::writeData(wb, sheet = 2, is_pos_intensities)
+setColWidths(wb, 2, cols = 1, widths = 24)
+addWorksheet(wb, "IS neg")
+openxlsx::writeData(wb, sheet = 3, is_neg_intensities)
+setColWidths(wb, 3, cols = 1, widths = 24)
+addWorksheet(wb, "SST components")
+openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
+setColWidths(wb, 4, cols = 1:3, widths = 24)
+xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
+openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
+rm(wb)
+
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
