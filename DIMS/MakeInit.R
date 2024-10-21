@@ -3,7 +3,8 @@
 # define parameters
 args <- commandArgs(trailingOnly = TRUE)
 
-sample_sheet <- read.csv(args[1], sep = "\t")
+#sample_sheet <- read.csv(args[1], sep = "\t")
+sample_sheet <- read.csv(args[1], sep = "\t", nrows = 8)  # For debugging purposes
 nr_replicates <- as.numeric(args[2])
 
 sample_names <- trimws(as.vector(unlist(sample_sheet[1])))

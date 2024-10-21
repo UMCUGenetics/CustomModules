@@ -10,7 +10,6 @@ suppressPackageStartupMessages(library(stringr))
 ## DEFINE PARAMETERS AND VARIABLES
 
 cmd_args <- commandArgs(trailingOnly = TRUE)
-#cmd_args <- c("/Users/nbuter/Documents/DIMS_data/DIMS_stitch_oefen_2/RES_20240827_UR_RUN7_002.mzML", "/Users/nbuter/Documents/DIMS_data/DIMS_stitch_oefen_2/", "0.1", "140000", "2", "1")  # NINA
 for (arg in cmd_args) cat("  ", arg, "\n", sep="")
 
 filepath <- cmd_args[1]

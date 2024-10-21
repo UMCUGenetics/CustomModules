@@ -21,8 +21,8 @@ for (scanmode in scanmodes) {
   }
 
   # filter mass range measured
-  outlist <- HMDB_add_iso[which(HMDB_add_iso[ , column_label] >= breaks_fwhm[1] & 
-             HMDB_add_iso[ ,column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
+  outlist <- HMDB_add_iso[which(HMDB_add_iso[ , column_label] >= breaks.fwhm[1] &
+             HMDB_add_iso[ ,column_label] <= breaks.fwhm[length(breaks.fwhm)]), ]
 
   # remove adducts and isotopes, put internal standard at the beginning
   outlist <- outlist[grep("HMDB", rownames(outlist), fixed = TRUE), ]
