@@ -95,14 +95,12 @@ tmp_pos_left <- outlist_pos_adducts_hmdb[-index_pos, ]
 # same for negative mode
 tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 tmp_neg_left <- outlist_neg_adducts_hmdb[-index_neg, ]
-print("combine pos + neg")
 # Combine positive and negative numbers and paste back HMDB column
 tmp <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
 rownames(tmp) <- rownames(tmp_pos)
 tmp <- cbind(tmp, tmp_pos_info)
 outlist <- rbind(tmp, tmp_pos_left, tmp_neg_left)
 outlist <- outlist %>% arrange(rownames(outlist))
-print("Add biological relevance")
 
 # Filter for biological relevance
 # peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
@@ -265,7 +263,6 @@ if (z_score == 1) {
   openxlsx::setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
   openxlsx::setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
 }
-print("Write Excel file")
 # write Excel file
 outlist$name <- stringi::stri_enc_toutf8(outlist$name)
 openxlsx::writeData(wb, sheet = 1, outlist, startCol = 1)
