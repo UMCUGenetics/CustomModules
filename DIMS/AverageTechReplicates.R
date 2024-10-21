@@ -69,7 +69,7 @@ for (sample_nr in 1:length(repl_pattern)) {
   nr_pos <- 0
   nr_neg <- 0
   for (file_nr in 1:length(tech_reps)) {
-    load(paste("AverageTechReplicates/", tech_reps[file_nr], ".RData", sep = ""))
+    load(paste(tech_reps[file_nr], ".RData", sep = ""))
     cat("\n\nParsing", tech_reps[file_nr])
     # negative scanmode
     cat("\n\tNegative peak_list sum", sum(peak_list$neg[, 1]))

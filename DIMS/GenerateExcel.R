@@ -16,6 +16,8 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
+sst_components_file <- cmd_args[6]
+print(sst_components_file)
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -602,6 +604,82 @@ if (z_score == 1) {
 		row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
 }
+
+### SST components output ####
+calculate_coefficient_of_variation <- function(intensity_list) {
+  for (col_nr in 1:ncol(intensity_list)) {
+    intensity_list[, col_nr] <- as.numeric(intensity_list[, col_nr])
+    intensity_list[, col_nr] <- round(intensity_list[, col_nr], 0)
+  }
+  sd_allsamples <- round(apply(intensity_list, 1, sd), 0)
+  mean_allsamples <- round(apply(intensity_list, 1, mean), 0)
+  cv_allsamples <- round(100 * sd_allsamples / mean_allsamples, 1)
+  intensity_list_with_cv <- cbind(CV_perc = cv_allsamples,
+                                  mean = mean_allsamples,
+                                  sd = sd_allsamples,
+                                  intensity_list)
+  return(intensity_list_with_cv)
+}
+
+# Internal standards lists, calculate coefficients of variation
+if ("plots" %in% colnames(is_list)) {
+  intensity_col_ids <- 2:(which(colnames(is_list) == "HMDB_name") - 1)
+} else {
+  intensity_col_ids <- 1:(which(colnames(is_list) == "HMDB_name") - 1)
+}
+# previous intensity_col_ids is based on the assumption that there are Controls and Patients
+is_list_intensities <- is_list[ , intensity_col_ids]
+is_list_intensities <- calculate_coefficient_of_variation(is_list_intensities)
+is_list_intensities <- cbind(IS_name = is_list$HMDB_name, is_list_intensities)
+
+# separate adducts of IS
+is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
+is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
+is_pos_intensities <- is_pos[ , -which(colnames(is_pos) == "HMDB_name")]
+is_neg_intensities <- is_neg[ , -which(colnames(is_neg) == "HMDB_name")]
+is_pos_intensities <- calculate_coefficient_of_variation(is_pos_intensities)
+is_neg_intensities <- calculate_coefficient_of_variation(is_neg_intensities)
+is_pos_intensities <- cbind(IS_name = is_pos$HMDB_name, is_pos_intensities)
+is_neg_intensities <- cbind(IS_name = is_neg$HMDB_name, is_neg_intensities)
+
+# SST components. 
+sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_rows <- which(outlist$HMDB_code %in% sst_comp$HMDB_ID)
+sst_list <- outlist[sst_rows, ]
+sst_colnrs <- grep("P1001", colnames(sst_list))
+if (length(sst_colnrs) > 0) {
+  sst_list_intensities <- sst_list[ , sst_colnrs]
+} else {
+  sst_list_intensities <- sst_list[ , intensity_col_ids]
+}
+for (col_nr in 1:ncol(sst_list_intensities)) {
+  sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
+  if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
+  } else {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr])
+  }
+}
+sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_intensities)
+
+# Create Excel file
+wb <- createWorkbook("IS_SST")
+addWorksheet(wb, "Internal Standards")
+openxlsx::writeData(wb, sheet = 1, is_list_intensities)
+setColWidths(wb, 1, cols = 1, widths = 24)
+addWorksheet(wb, "IS pos")
+openxlsx::writeData(wb, sheet = 2, is_pos_intensities)
+setColWidths(wb, 2, cols = 1, widths = 24)
+addWorksheet(wb, "IS neg")
+openxlsx::writeData(wb, sheet = 3, is_neg_intensities)
+setColWidths(wb, 3, cols = 1, widths = 24)
+addWorksheet(wb, "SST components")
+openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
+setColWidths(wb, 4, cols = 1:3, widths = 24)
+xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
+openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
+rm(wb)
+
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
