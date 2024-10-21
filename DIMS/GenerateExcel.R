@@ -187,6 +187,9 @@ if (z_score == 1) {
   # calculate robust scaler (Zscores minus outliers in Controls)
   outlist_robustZ$avg.ctrls <- 0
   outlist_robustZ$sd.ctrls  <- 0
+  outlist_nooutliers$avg.ctrls <- 0
+  outlist_nooutliers$sd.ctrls <- 0
+  outlist_nooutliers$nr.ctrls <- 0
 
   # only calculate robust Z-scores if there are enough Controls
   if (length(control_col_ids) > 10) {
