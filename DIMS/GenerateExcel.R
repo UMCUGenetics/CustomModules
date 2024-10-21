@@ -16,6 +16,7 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
+outlier_threshold <- 2
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -41,6 +42,25 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   sorted_control_intensities <- sort(as.numeric(control_intensities))
   trimmed_control_intensities <- sorted_control_intensities[(nr_to_remove + 1) : 
 							    (length(sorted_control_intensities) - nr_to_remove)]
+  return(trimmed_control_intensities)
+}
+
+remove_outliers_for_Zscore <- function(control_intensities, outlier_threshold = 2) {
+  #' Remove outliers per metabolite before calculating Z-scores
+  #'
+  #' @param control_intensities: Vector with intensities for control samples
+  #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
+  #'
+  #' @return trimmed_control_intensities: Intensities trimmed for outliers
+  mean_permetabolite <- mean(as.numeric(control_intensities))
+  stdev_permetabolite <- sd(as.numeric(control_intensities))
+  zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
+  # remove intensities with a zscore_permetabolite greater than outlier_threshold
+  if (sum(zscores_permetabolite > outlier_threshold) > 0) {
+    trimmed_control_intensities <- control_intensities[-which(zscores_permetabolite > outlier_threshold)]
+  } else {
+    trimmed_control_intensities <- control_intensities
+  }
   return(trimmed_control_intensities)
 }
 
@@ -95,6 +115,7 @@ tmp_pos_left <- outlist_pos_adducts_hmdb[-index_pos, ]
 # same for negative mode
 tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 tmp_neg_left <- outlist_neg_adducts_hmdb[-index_neg, ]
+
 # Combine positive and negative numbers and paste back HMDB column
 tmp <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
 rownames(tmp) <- rownames(tmp_pos)
@@ -146,7 +167,7 @@ if (z_score == 1) {
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
   # save outlist as it is and use it to calculate robust scaler
-  outlist_noZ <- outlist
+  outlist_robustZ <- outlist_nooutliers <- outlist
 
   # calculate mean and sd for Control group
   outlist$avg.ctrls <- apply(control_columns, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
@@ -163,15 +184,15 @@ if (z_score == 1) {
   colnames(outlist)[startcol:ncol(outlist)] <- colnames_z
 
   # calculate robust scaler (Zscores minus outliers in Controls)
-  outlist_noZ$avg.ctrls <- 0
-  outlist_noZ$sd.ctrls  <- 0
+  outlist_robustZ$avg.ctrls <- 0
+  outlist_robustZ$sd.ctrls  <- 0
 
   # only calculate robust Z-scores if there are enough Controls
   if (length(control_col_ids) > 10) {
     for (metabolite_index in 1:nrow(outlist)) {
-      outlist_noZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
-      outlist_noZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
     }
   }
@@ -179,17 +200,39 @@ if (z_score == 1) {
   # Make and add columns with robust zscores
   cnames_robust <- gsub("_Zscore", "_RobustZscore", colnames_z)
   for (i in intensity_col_ids) {
-    zscores_1col <- (as.numeric(as.vector(unlist(outlist_noZ[, i]))) - outlist_noZ$avg.ctrls) / outlist_noZ$sd.ctrls
-    outlist_noZ <- cbind(outlist_noZ, zscores_1col)
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_robustZ[, i]))) - outlist_robustZ$avg.ctrls) / outlist_robustZ$sd.ctrls
+    outlist_robustZ <- cbind(outlist_robustZ, zscores_1col)
   }
-  colnames(outlist_noZ)[startcol:ncol(outlist_noZ)] <- cnames_robust
+  colnames(outlist_robustZ)[startcol:ncol(outlist_robustZ)] <- cnames_robust
+
+  # calculate Z-scores after removal of outliers in Control samples
+  if (length(control_col_ids) > 10) {
+    for (metabolite_index in 1:nrow(outlist_nooutliers)) {
+      intensities_without_outliers <- remove_outliers_for_Zscore(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
+      outlist_nooutliers$avg.ctrls[metabolite_index] <-   mean(intensities_without_outliers)
+      outlist_nooutliers$sd.ctrls[metabolite_index]  <-     sd(intensities_without_outliers)
+      outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
+    }
+  }
+ 
+  cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
+  for (i in intensity_col_ids) {
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_nooutliers[, i]))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+    outlist_nooutliers <- cbind(outlist_nooutliers, zscores_1col)
+  }
+  # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
+  colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
+
 
   # output metabolites filtered on relevance
   save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
   write.table(outlist, file = paste0("AdductSums_filtered_Zscores.txt"), sep = "\t", row.names = FALSE)
   # output filtered metabolites with robust scaled Zscores
-  save(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.RData"))
-  write.table(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  save(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.RData"))
+  write.table(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  # output filtered metabolites after removal of outliers
+  save(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.RData"))
+  write.table(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.txt"), sep = "\t", row.names = FALSE)
 
   # get the IDs of the patients and sort
   patient_ids <- unique(as.vector(unlist(lapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), function(x) x[1]))))
@@ -263,8 +306,8 @@ if (z_score == 1) {
   openxlsx::setRowHeights(wb, filelist, rows = c(1:nrow(outlist)), heights = 18)
   openxlsx::setColWidths(wb, filelist, cols = c(1:ncol(outlist)), widths = 20)
 }
+
 # write Excel file
-outlist$name <- stringi::stri_enc_toutf8(outlist$name)
 openxlsx::writeData(wb, sheet = 1, outlist, startCol = 1)
 xlsx_name <- paste0(outdir, "/", project, ".xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
@@ -300,7 +343,6 @@ is_summed$Intensity <- as.numeric(as.character(is_summed$Intensity))
 
 # Retrieve IS positive mode
 is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
-is_pos <- is_pos[c(names(repl_pattern))]
 is_pos$HMDB_name <- is_list[match(row.names(is_pos), is_list$HMDB_code, nomatch = NA), "name"]
 is_pos$HMDB.code <- row.names(is_pos)
 is_pos <- reshape2::melt(is_pos, id.vars = c("HMDB.code", "HMDB_name"))
@@ -312,7 +354,6 @@ is_pos$Intensity <- as.numeric(as.character(is_pos$Intensity))
 
 # Retrieve IS negative mode
 is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
-is_neg <- is_neg[c(names(repl_pattern))]
 is_neg$HMDB_name <- is_list[match(row.names(is_neg), is_list$HMDB_code, nomatch = NA), "name"]
 is_neg$HMDB.code <- row.names(is_neg)
 is_neg <- reshape2::melt(is_neg, id.vars = c("HMDB.code", "HMDB_name"))
@@ -321,6 +362,7 @@ is_neg$Matrix <- dims_matrix
 is_neg$Rundate <- rundate
 is_neg$Project <- project
 is_neg$Intensity <- as.numeric(as.character(is_neg$Intensity))
+
 # Save results
 save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
 
