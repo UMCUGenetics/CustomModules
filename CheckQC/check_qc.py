@@ -162,8 +162,9 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
             if drop_index.to_list():
                 qc_metric.drop(drop_index, inplace=True)
 
-    # qc_value is stored as string while this should be float.
-    # If ValueError is raised, probably because qc_value is a string (i.e. PASS/FAIL), continue.
+    # qc_value can either be a string (i.e., PASS/FAIL), of a floating point value, depending on the QC metric that was used.
+    # Float values need to be cast to float types in the dataframe to prevent errors in merging of dataframes.
+    # For string values a ValueError is raised which can be ignored
     try:
         qc_metric["qc_value"] = qc_metric["qc_value"].astype("float")
         qc_metric_out["qc_value"] = qc_metric_out["qc_value"].astype("float")
