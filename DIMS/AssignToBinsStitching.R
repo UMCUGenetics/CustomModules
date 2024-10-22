@@ -281,5 +281,5 @@ negResT <- t(negRes)
 
 
 # Pack results in a list and save
-pklist <- list("pos" = posResT, "neg" = negResT, "breaksFwhm" = breaks.fwhm)
-save(pklist, file = paste0(sampname, ".RData"))
+peak_list <- list("pos" = posResT, "neg" = negResT, "breaksFwhm" = breaks.fwhm)
+save(peak_list, file = paste0(sampname, ".RData"))
