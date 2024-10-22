@@ -121,6 +121,19 @@ def get_failed_rows(qc_metric, qc_col, qc_operator, qc_threshold):
 
 
 def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
+    """
+    Failed samples are added to the output metric, and removed from qc_metric.
+
+    Args:
+        qc_metric (pandas DataFrame): DataFrame with columns required to judge qc values
+        failed_rows (object): Object with indexes of failed rows in qc_metric
+        report_cols (list): Valid column names (strings) to include in report.
+        sample_cols (list): Columnames (strings) of sample names.
+
+    Returns:
+        qc_metric (DataFrame): DataFrame of qc metric without failed rows
+        qc_metric_out (DataFrame): DataFrame of qc metric to report with failed rows
+    """
     qc_metric_out = DataFrame(columns=["sample", "qc_check", "qc_status", "qc_msg", "qc_value"])
     failed_samples = []
     if failed_rows.to_list():
@@ -148,6 +161,14 @@ def add_failed_samples_metric(qc_metric, failed_rows, report_cols, sample_cols):
             drop_index = qc_metric[qc_metric[sample_col].isin(set(failed_samples))].index
             if drop_index.to_list():
                 qc_metric.drop(drop_index, inplace=True)
+
+    # qc_value is stored as string while this should be float.
+    # If ValueError is raised, probably because qc_value is a string (i.e. PASS/FAIL), continue.
+    try:
+        qc_metric["qc_value"] = qc_metric["qc_value"].astype("float")
+        qc_metric_out["qc_value"] = qc_metric_out["qc_value"].astype("float")
+    except ValueError:
+        pass
     return qc_metric, qc_metric_out
 
 
@@ -226,10 +247,6 @@ def read_and_judge_metrics(metric_settings, qc_report_files):
             # Check for duplicate sampleIDs before merge.
             if any(qc_judged_renamed["sample"].isin(output["sample"])):
                 is_duplicate_sample = True
-            # Both panda dataframes converted to object-type to prevent merge problems
-            output = output.astype(object)
-            qc_judged_renamed = qc_judged_renamed.astype(object)
-
             output = merge(output, qc_judged_renamed, on=output.columns.tolist(), how="outer")
             if is_duplicate_sample:
                 dup_sampleIDs = output[output['sample'].duplicated()]['sample'].to_list()
