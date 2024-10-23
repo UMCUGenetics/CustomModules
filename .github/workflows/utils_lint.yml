@@ -1,0 +1,17 @@
+name: Utils Lint
+on:
+  pull_request:
+    paths: [Utils/**]
+  push:
+    branches: [master, develop]
+    paths: [Utils/**]
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Utils/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
