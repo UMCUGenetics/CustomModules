@@ -210,9 +210,16 @@ class TestAddFailedSamplesMetric():
             assert passed_sample in list(qc_metric[["sample_col1", "sample_col2"]].values.ravel())
 
     def test_only_passed_rows(self):
-        fake_qc_metric = DataFrame({"sample": ["sample1"], "fake_qc_col": ["0.1"]})
-        failed_rows = DataFrame().index
-        qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(fake_qc_metric, failed_rows, None, None)
+        fake_qc_metric = DataFrame({
+            "sample_col": ["sample1"],
+            "qc_check": [None],
+            "qc_status": ["PASS"],
+            "qc_msg": [None],
+            "qc_value": [0.1],
+        })
+        qc_metric, qc_metric_out = check_qc.add_failed_samples_metric(
+            fake_qc_metric, DataFrame().index, fake_qc_metric.columns.to_list(), ["sample"]
+        )
         assert qc_metric_out.empty
         assert fake_qc_metric.equals(qc_metric)
 
