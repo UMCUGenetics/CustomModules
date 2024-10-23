@@ -1,18 +1,18 @@
 # Source: https://github.com/marketplace/actions/install-poetry-action
-name: MosaicHunter Test
+name: Utils Test
 on:
   pull_request:
-    paths: [MosaicHunter/**]
+    paths: [Utils/**]
   push:
     branches: [master, develop]
-    paths: [MosaicHunter/**]
+    paths: [Utils/**]
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: MosaicHunter/1.0.0/
+        working-directory: Utils/
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv_mosaichunter-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv_utils-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
       #----------------------------------------------
@@ -59,4 +59,5 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
-          poetry run pytest .
+          source .venv/bin/activate
+          pytest .
