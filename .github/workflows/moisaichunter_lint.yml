@@ -1,0 +1,17 @@
+name: MosaicHunter Lint
+on:
+  pull_request:
+    paths: [MosaicHunter/**]
+  push:
+    branches: [master, develop]
+    paths: [MosaicHunter/**]
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MosaicHunter/1.0.0//
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
