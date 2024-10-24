@@ -136,7 +136,7 @@ hdr <- Replace_low_high_MZ_and_pkCount(hdr, pks)
 
 # Creates table for TIC plots
 TIC_intensity_persample <- cbind(round(hdr$retentionTime, 2), hdr$totIonCurrent)
-colnames(TIC_intensity_persample) <- c("retentionTime", "TIC")
+colnames(TIC_intensity_persample) <- c("retention_time", "tic_intensity")
 write.table(TIC_intensity_persample, file = paste0(sampname, "_TIC.txt"))
 
 
