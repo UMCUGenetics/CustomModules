@@ -28,8 +28,8 @@ pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
 neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
 
 # trim (remove) scans at the start and end for positive
-trim_left_pos  <- round(pos_times[length(pos_times) * trim])
-trim_right_pos <- round(pos_times[length(pos_times) * (1 - trim)])
+trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)]) # 15% aan het begin
+trim_right_pos <- round(pos_times[length(pos_times) * (1 - (trim * 0.5))]) # 5% aan het eind
 
 # trim (remove) scans at the start and end for negative
 trim_left_neg  <- round(neg_times[length(neg_times) * trim])
