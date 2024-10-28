@@ -709,7 +709,10 @@ sst_rows <- which(outlist$HMDB_code %in% sst_comp$HMDB_ID)
 sst_list <- outlist[sst_rows, ]
 sst_colnrs <- grep("P1001", colnames(sst_list))
 if (length(sst_colnrs) > 0) {
-  sst_list_intensities <- sst_list[ , sst_colnrs]
+  sst_list_intensities <- sst_list[, sst_colnrs]
+  control_list_intensities <- sst_list[, control_col_ids]
+  control_list_cv <- calculate_coefficient_of_variation(control_list_intensities)
+  sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[ , "CV_perc"])
 } else {
   sst_list_intensities <- sst_list[ , intensity_col_ids]
 }
