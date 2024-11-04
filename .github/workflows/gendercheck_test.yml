@@ -7,12 +7,15 @@ on:
     branches: [master, develop]
     paths: [GenderCheck/**]
 
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    env:
+        working-directory: GenderCheck/
     defaults:
       run:
-        working-directory: GenderCheck/
+        working-directory: ${{ env.working-directory }}
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -41,7 +44,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: .venv
+          path: ${{ env.working-directory }}/.venv
           key: venv_gendercheck-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
