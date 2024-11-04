@@ -12,7 +12,7 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-        working-directory: ./GenderCheck/
+        working-directory: GenderCheck/
     defaults:
       run:
         working-directory: ${{ env.working-directory }}
