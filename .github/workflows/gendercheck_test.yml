@@ -7,14 +7,15 @@ on:
     branches: [master, develop]
     paths: [GenderCheck/**]
 
-defaults:
-  run:
-    working-directory: GenderCheck/
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
-
+    env:
+        working-directory: ./GenderCheck/
+    defaults:
+      run:
+        working-directory: ${{ env.working-directory }}
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -25,6 +26,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5
         with:
+          working-directory: ${{ env.working-directory }}
           python-version: '3.11.5'
       #----------------------------------------------
       # install & configure poetry
@@ -32,6 +34,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
+          working-directory: ${{ env.working-directory }}
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
@@ -43,6 +46,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
+          working-directory: ${{ env.working-directory }}
           path: .venv
           key: venv_gendercheck-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
