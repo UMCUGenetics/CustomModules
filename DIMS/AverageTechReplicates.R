@@ -41,10 +41,11 @@ remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   return(list("pattern" = repl_pattern))
 }
 
-# get repl_pattern
+# load init_file: contains repl_pattern
 load(init_file)
 
-# get trim parameters
+# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
+# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(breaks_filepath)
 
 # lower the threshold below which a sample will be removed for DBS and for high m/z
