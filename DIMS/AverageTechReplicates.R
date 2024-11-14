@@ -53,7 +53,7 @@ if (dims_matrix == "DBS") {
   thresh2remove <- 500000000
 }
 if (highest_mz > 700) {
-  thresh2remove <- 10000000
+  thresh2remove <- 1000000
 }
 
 

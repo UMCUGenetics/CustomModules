@@ -46,8 +46,8 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   return(trimmed_control_intensities)
 }
 
-remove_outliers_for_Zscore <- function(control_intensities, outlier_threshold = 2) {
-  #' Remove outliers per metabolite before calculating Z-scores
+remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
+  #' Remove outliers per metabolite according to Grubb's test
   #'
   #' @param control_intensities: Vector with intensities for control samples
   #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
@@ -211,7 +211,7 @@ if (z_score == 1) {
   # calculate Z-scores after removal of outliers in Control samples
   if (length(control_col_ids) > 10) {
     for (metabolite_index in 1:nrow(outlist_nooutliers)) {
-      intensities_without_outliers <- remove_outliers_for_Zscore(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
+      intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
       outlist_nooutliers$avg.ctrls[metabolite_index] <- mean(intensities_without_outliers)
       outlist_nooutliers$sd.ctrls[metabolite_index]  <- sd(intensities_without_outliers)
       outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
