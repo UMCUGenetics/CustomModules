@@ -668,6 +668,11 @@ if (z_score == 1) {
 
 ### SST components output ####
 calculate_coefficient_of_variation <- function(intensity_list) {
+  #' Calculate coefficent of variation (cv) based on standard deviation (sd) and mean
+  #'
+  #' @param intensity_list: Matrix with intensities
+  #'
+  #' @return intensity_list_with_cv: Matrix with intensities and cv, mean, sd
   for (col_nr in 1:ncol(intensity_list)) {
     intensity_list[, col_nr] <- as.numeric(intensity_list[, col_nr])
     intensity_list[, col_nr] <- round(intensity_list[, col_nr], 0)
