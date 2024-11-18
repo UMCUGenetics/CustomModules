@@ -12,7 +12,8 @@ resol <- as.numeric(cmd_args[3])
 trim <- 0.1
 dims_thresh <- 100
 
-# load breaks_fwhm
+# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
+# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(breaks_filepath)
 
 # get sample name
@@ -44,8 +45,8 @@ raw_data_matrix <- xcms::rawMat(raw_data)
 pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
 neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
 # Select scans between trim_left and trim_right
-pos_times <- pos_times[pos_times > trim_left & pos_times < trim_right]
-neg_times <- neg_times[neg_times > trim_left & neg_times < trim_right]
+pos_times <- pos_times[pos_times > trim_left_pos & pos_times < trim_right_pos]
+neg_times <- neg_times[neg_times > trim_left_neg & neg_times < trim_right_neg]
 
 # Generate an index with which to select values for each mode
 pos_index <- which(raw_data_matrix[, "time"] %in% pos_times)
