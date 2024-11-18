@@ -19,6 +19,6 @@ process GenerateExcel {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_file $analysis_id $params.matrix $relevance_file $params.zscore 
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_file $analysis_id $params.matrix $relevance_file $params.zscore $params.sst_components_file
         """
 }

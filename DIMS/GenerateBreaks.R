@@ -12,8 +12,10 @@ trim <- as.numeric(cmd_args[3])
 resol <- as.numeric(cmd_args[4])
 
 # initialize
-trim_left <- NULL
-trim_right <- NULL
+trim_left_pos <- NULL
+trim_right_pos <- NULL
+trim_left_neg <- NULL
+trim_right_neg <- NULL
 breaks_fwhm <- NULL
 breaks_fwhm_avg <- NULL
 bins <- NULL
@@ -21,9 +23,17 @@ bins <- NULL
 # read in mzML file
 raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 
-# trim (remove) scans at the start and end
-trim_left  <- round(raw_data@scantime[length(raw_data@scantime) * trim])
-trim_right <- round(raw_data@scantime[length(raw_data@scantime) * (1 - trim)])
+# Get time values for positive and negative scans
+pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
+neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
+
+# trim (remove) scans at the start and end for positive
+trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)]) # 15% aan het begin
+trim_right_pos <- round(pos_times[length(pos_times) * (1 - (trim * 0.5))]) # 5% aan het eind
+
+# trim (remove) scans at the start and end for negative
+trim_left_neg  <- round(neg_times[length(neg_times) * trim])
+trim_right_neg <- round(neg_times[length(neg_times) * (1 - trim)])
 
 # Mass range m/z
 low_mz  <- raw_data@mzrange[1]
@@ -47,5 +57,5 @@ for (i in 1:nr_segments) {
 }
 
 # generate output file
-save(breaks_fwhm, breaks_fwhm_avg, trim_left, trim_right, file = "breaks.fwhm.RData")
+save(breaks_fwhm, breaks_fwhm_avg, trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "breaks.fwhm.RData")
 save(high_mz, file = "highest_mz.RData")

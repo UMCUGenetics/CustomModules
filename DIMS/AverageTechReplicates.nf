@@ -12,6 +12,7 @@ process AverageTechReplicates {
        val(analysis_id)
        val(matrix)
        path(highest_mz_file)
+       path(breaks_file)
 
     output:
        path('*_repl_pattern.RData'), emit: pattern_files
@@ -26,7 +27,8 @@ process AverageTechReplicates {
                                                                       $params.nr_replicates \
                                                                       $analysis_id \
                                                                       $matrix \
-                                                                      $highest_mz_file
+                                                                      $highest_mz_file \
+                                                                      $breaks_file
         """
 }
 

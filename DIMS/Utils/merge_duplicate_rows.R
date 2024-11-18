@@ -41,7 +41,10 @@ merge_duplicate_rows <- function(peakgroup_list) {
     single_peakgroup[, "assi_noise"] <- collapse("assi_noise", peakgroup_list, peaklist_index)
     if (single_peakgroup[, "assi_noise"] == ";") single_peakgroup[, "assi_noise"] <- NA
     single_peakgroup[, "theormz_noise"] <- collapse("theormz_noise", peakgroup_list, peaklist_index)
-    if (single_peakgroup[,"theormz_noise"] == "0;0") single_peakgroup[, "theormz_noise"] <- NA
+    if (single_peakgroup[, "theormz_noise"] == "0;0") single_peakgroup[, "theormz_noise"] <- NA
+    single_peakgroup[, "all_hmdb_ids"] <- collapse("all_hmdb_ids", peakgroup_list, peaklist_index)
+    single_peakgroup[, "sec_hmdb_ids"] <- collapse("sec_hmdb_ids", peakgroup_list, peaklist_index)
+    if (single_peakgroup[, "sec_hmdb_ids"] == ";") single_peakgroup[, "sec_hmdb_ids"] < NA
 
     # keep track of deduplicated entries
     collect <- rbind(collect, single_peakgroup)
