@@ -220,7 +220,7 @@ if (z_score == 1) {
   }
 
   cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
-  outlist_nooutliers %>% apply(outlist_nooutliers, 2, function(col) {
+  outlist_nooutliers <- outlist_nooutliers %>% apply(outlist_nooutliers, 2, function(col) {
     (as.numeric(as.vector(unlist(col))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
   }) %>%
     cbind(outlist_nooutliers)
