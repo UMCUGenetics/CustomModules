@@ -220,10 +220,10 @@ if (z_score == 1) {
   }
 
   cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
-  outlist_nooutliers <- outlist_nooutliers %>% apply(outlist_nooutliers, 2, function(col) {
-    (as.numeric(as.vector(unlist(col))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
-  }) %>%
-    cbind(outlist_nooutliers)
+  outlist_nooutliers_zscores <- apply(outlist_nooutliers[, intensity_col_ids, drop = FALSE], 2, function(col) {
+    (as.numeric(col) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+  }) 
+  outlist_nooutliers <- cbind(outlist_nooutliers, outlist_nooutliers_zscores)
 
   # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
   colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
