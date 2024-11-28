@@ -27,7 +27,6 @@ trimRight=NULL
 # leaving the scans with minimum values unchanged
 TrimlowerMZrange <- function(hdr){
   for(i in 1:length(hdr$scanWindowLowerLimit)){
-    #if (70%in%hdr$scanWindowLowerLimit[[i]]){print('Lowerlimit of current scan is 70')}
     if (hdr$scanWindowLowerLimit[[i]] == min(hdr$scanWindowLowerLimit)) {
       cat('Lowerlimit has reached:', hdr$scanWindowLowerLimit[[i]])
       }
@@ -41,7 +40,6 @@ TrimlowerMZrange <- function(hdr){
 # leaving the scans with maximum values unchanged
 TrimupperMZrange <- function(hdr){
   for(i in 1:length(hdr$scanWindowUpperLimit)){
-    #if (1280%in%hdr$scanWindowUpperLimit[[i]]){print('Upperlimit of current scan is 1280')}
     if (hdr$scanWindowUpperLimit[[i]] == max(hdr$scanWindowUpperLimit)) {
       cat('Upperlimit has reached:', hdr$scanWindowUpperLimit[[i]])
       }

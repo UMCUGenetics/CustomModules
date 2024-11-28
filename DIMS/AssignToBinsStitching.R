@@ -182,12 +182,6 @@ posTimes <- hdr$retentionTime[hdr$polarity == 1]
 negTimes <- hdr$retentionTime[hdr$polarity == 0]
 
 
-# Set trimLeft and trimRight (limits in terms of retention times) stitching vs.
-# non-stitching data (NOT NECESSARY - NINA)
-#trimLeft <- round(hdr$retentionTime[2] + 0.5)
-#trimRight <- round(hdr$retentionTime[length(hdr$retentionTime)-1] - 0.5)
-
-
 # Filtering retention times
 posTimes <- posTimes[posTimes > trimLeft & posTimes < trimRight]
 negTimes <- negTimes[negTimes > trimLeft & negTimes < trimRight]
@@ -271,13 +265,6 @@ colnames(negRes) <- b
 # Transpose matrices back to their original orientation, so that the m/z bins are in rows, and the samples are in columns
 posResT <- t(posRes)
 negResT <- t(negRes)
-
-
-# Omit rows with only zeros (was commented out?)
-#  sumsp <- apply(posResT,1,sum)
-#  posResT.nonzero <- posResT[(sumsp != 0), ] # <=============================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#  sums <- apply(negResT,1,sum)
-#  negResT.nonzero <- negResT[(sums != 0), ] # <=============================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # Pack results in a list and save

@@ -7,7 +7,7 @@ sample_file <- cmd_args[1]
 breaks_file <- cmd_args[2]
 resol <- as.numeric(cmd_args[3])
 scripts_dir <- cmd_args[4]
-thresh <- 2000
+thresh <- 20
 outdir <- "./"
 
 # load in function scripts
