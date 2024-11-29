@@ -127,6 +127,7 @@ outlist <- outlist %>% arrange(rownames(outlist))
 # Filter for biological relevance
 peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
 rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist)[peaks_in_list])
+rlvnc_in_list <- rlvnc_in_list %>% rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID)
 outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
 
 # filter out all irrelevant HMDBs
