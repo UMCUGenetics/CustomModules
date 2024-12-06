@@ -637,16 +637,18 @@ if (z_score == 1) {
     pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
     colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
     # change HMDB names because propionylglycine doesn't have its own line, rowname is HMDB0000725 (4-hydroxyproline)
-    pa_data$HMDB.name <- pa_codes
+    pa_data$HMDB.name <- pa_names
     # change HMDB codes so the propionylglycine is the correct HMDB ID
     pa_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
+    pku_data$HMDB.name <- pku_names
     colnames(pku_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
     lpi_data <- outlist[lpi_codes, c("HMDB_code", "name", lpi_sample_name)]
     lpi_data <- reshape2::melt(lpi_data, id.vars = c("HMDB_code", "name"))
+    lpi_data$HMDB.name <- lpi_names
     colnames(lpi_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
     positive_control <- rbind(pa_data, pku_data, lpi_data)
