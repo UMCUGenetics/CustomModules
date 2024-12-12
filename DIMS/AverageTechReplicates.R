@@ -13,6 +13,7 @@ run_name <- cmd_args[3]
 dims_matrix <- cmd_args[4]
 highest_mz_file <- cmd_args[5]
 highest_mz <- get(load(highest_mz_file))
+breaks_filepath <- cmd_args[6]
 thresh2remove <- 1000000000
 dims_thresh <- 100
 
@@ -40,8 +41,12 @@ remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   return(list("pattern" = repl_pattern))
 }
 
-# get repl_pattern
+# load init_file: contains repl_pattern
 load(init_file)
+
+# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
+# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+load(breaks_filepath)
 
 # lower the threshold below which a sample will be removed for DBS and for high m/z
 if (dims_matrix == "DBS") {
@@ -50,6 +55,7 @@ if (dims_matrix == "DBS") {
 if (highest_mz > 700) {
   thresh2remove <- 1000000
 }
+
 
 # remove technical replicates which are below the threshold
 remove_neg <- NULL
@@ -162,6 +168,10 @@ for (sample_nr in c(1:length(repl_pattern))) {
     tic_plot <- ggplot(repl1_nr, aes(retention_time, tic_intensity)) +
       geom_line(linewidth = 0.3) +
       geom_hline(yintercept = highest_tic_max, col = "grey", linetype = 2, linewidth = 0.3) +
+      geom_vline(xintercept = trim_left_pos, col = "red", linetype = 2, linewidth = 0.3) +
+      geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
+      geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
+      geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
