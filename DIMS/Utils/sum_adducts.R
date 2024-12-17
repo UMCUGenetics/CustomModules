@@ -1,9 +1,8 @@
-sum_adducts <- function(peakgroup_list, hmdb_part, sample_names, adducts, z_score) {
+sum_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score) {
   #' Sum intensities for different adducts of the same metabolite
   #'
   #' @param peakgroup_list: Peak group list (matrix)
   #' @param hmdb_part: List of metabolites, part of the HMDB (matrix)
-  #' @param sample_names: sample names (array of strings)
   #' @param adducts: List of adducts (array of integers)
   #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
   #'
@@ -12,7 +11,7 @@ sum_adducts <- function(peakgroup_list, hmdb_part, sample_names, adducts, z_scor
   hmdb_names <- hmdb_part[, 1]
 
   # create overview of row indices for each metabolite_adduct combination in peaklist
-  hmdb_in_peaklist <- peaklist$HMDB_code
+  hmdb_in_peaklist <- peakgroup_list$HMDB_code
   # avoid rows with only "" in HMDB_code column
   hmdb_in_peaklist[which(hmdb_in_peaklist == "")] <- ";"
   hmdb_in_peaklist_rownr <- c()
@@ -27,13 +26,15 @@ sum_adducts <- function(peakgroup_list, hmdb_part, sample_names, adducts, z_scor
     hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr[-which(is.na(hmdb_in_peaklist_rownr$hmdb_split)), ]
   }
   
-  # find intensity columns in peaklist
+  # find intensity columns in peakgroup_list
   if (z_score == 1) {
-    int_cols_C <- grep("C", colnames(peaklist)[1:which(colnames(peaklist) == "avg.ctrls")])
-    int_cols_P <- grep("P", colnames(peaklist)[1:which(colnames(peaklist) == "avg.ctrls")])
+    int_cols_C <- grep("C", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
+    int_cols_P <- grep("P", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
     int_cols <- c(int_cols_C, int_cols_P)
   } else {
-    int_cols <- c(3:(length(sample_names) + 2)) # check later in a research project
+    int_cols_start <- which(colnames(peakgroup_list) == "nrsamples") + 1
+    int_cols_end <- which(colnames(peakgroup_list) == "assi_HMDB") - 1
+    int_cols <- c(int_cols_start:int_cols_end)
   }
   
   # initialize
@@ -52,14 +53,14 @@ sum_adducts <- function(peakgroup_list, hmdb_part, sample_names, adducts, z_scor
       metab_indices <- as.numeric(hmdb_in_peaklist_rownr$row_nr[metab_row])
       
       # find intensities and sum them
-      ints <- peaklist[metab_indices, int_cols]
+      ints <- peakgroup_list[metab_indices, int_cols]
       total <- apply(ints, 2, sum)
       
       # add to adductsum
       if (sum(total) != 0) {
         names <- c(names, compound)
         adductsum <- rbind(adductsum, total)
-        names_long <- c(names_long, hmdb_names[i])
+        names_long <- c(names_long, hmdb_names[hmdb_index])
       }
     }
     

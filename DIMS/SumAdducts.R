@@ -20,14 +20,13 @@ if (grepl("positive_hmdb", hmdbpart_main_file)) {
 
 # load input files
 collect_file <- paste0("outlist_identified_", scanmode, ".RData")
-load(collect_file)
+peakgroup_list <- get(load(collect_file))
 repl_file <- paste0(scanmode, "_repl_pattern.RData")
-load(repl_file)
 hmdb_main_part <- get(load(hmdbpart_main_file))
 
 # get the number from the file name
 batch_number <- strsplit(basename(hmdbpart_main_file), ".", fixed = TRUE)[[1]][2]
 
 # sum adducts and save output
-summed_list <- sum_adducts(outlist_total, hmdb_main_part, names(repl_pattern_filtered), adducts, z_score)
-save(summed_list, file = paste(scanmode, "_", batch_number, "_SummedAdducts.RData", sep = ""))
+adductsum <- sum_adducts(peakgroup_list, hmdb_main_part, adducts, z_score)
+save(adductsum, file = paste(scanmode, "_", batch_number, "_SummedAdducts.RData", sep = ""))
