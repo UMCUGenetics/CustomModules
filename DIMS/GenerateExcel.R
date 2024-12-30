@@ -125,7 +125,9 @@ outlist <- rbind(combi_pos_neg, tmp_pos_left, tmp_neg_left)
 outlist <- outlist %>% arrange(rownames(outlist))
 
 # Filter for biological relevance
-rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist))
+peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
+rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist)[peaks_in_list])
+rlvnc_in_list <- rlvnc_in_list %>% rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID)
 outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
 
 # filter out all irrelevant HMDBs
@@ -219,10 +221,10 @@ if (z_score == 1) {
   }
 
   cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
-  outlist_nooutliers %>% apply(outlist_nooutliers, 2, function(col) {
-    (as.numeric(as.vector(unlist(col))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
-  }) %>%
-    cbind(outlist_nooutliers)
+  outlist_nooutliers_zscores <- apply(outlist_nooutliers[, intensity_col_ids, drop = FALSE], 2, function(col) {
+    (as.numeric(col) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+  }) 
+  outlist_nooutliers <- cbind(outlist_nooutliers, outlist_nooutliers_zscores)
 
   # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
   colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
@@ -635,16 +637,18 @@ if (z_score == 1) {
     pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
     colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
     # change HMDB names because propionylglycine doesn't have its own line, rowname is HMDB0000725 (4-hydroxyproline)
-    pa_data$HMDB.name <- pa_codes
+    pa_data$HMDB.name <- pa_names
     # change HMDB codes so the propionylglycine is the correct HMDB ID
     pa_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
+    pku_data$HMDB.name <- pku_names
     colnames(pku_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
     lpi_data <- outlist[lpi_codes, c("HMDB_code", "name", lpi_sample_name)]
     lpi_data <- reshape2::melt(lpi_data, id.vars = c("HMDB_code", "name"))
+    lpi_data$HMDB.name <- lpi_names
     colnames(lpi_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
 
     positive_control <- rbind(pa_data, pku_data, lpi_data)
