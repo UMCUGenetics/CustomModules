@@ -27,7 +27,8 @@ class TestIsValidRead():
     ("Man", "male"),
     ("Vrouw", "female"),
     ("Onbekend", "unknown"),
-    ("unknown", "not_detected"),
+    ("unknown", "gender_data_not_found"),
+    ("no_sample_found", "sample_not_found"),
     # Given gender should be returned
     ("MAN", "MAN")
 ])
@@ -37,7 +38,7 @@ def test_translate_gender(input_gender, exp_output):
 
 
 class TestValidateGender():
-    @pytest.mark.parametrize("input_gender", [("male"), ("female"), ("unknown"), ("not_detected")])
+    @pytest.mark.parametrize("input_gender", [("male"), ("female"), ("unknown"), ("gender_data_not_found"), ("sample_not_found")])
     def test_allowed_genders(self, input_gender):
         try:
             calculate_gender.validate_gender(input_gender)
@@ -49,7 +50,7 @@ class TestValidateGender():
     def test_not_allowed_genders(self, input_gender):
         with pytest.raises(ValueError) as value_error:
             calculate_gender.validate_gender(input_gender)
-        assert f"Provided gender {input_gender} is not allowed. Should be one of ['male', 'female', 'unknown', 'not_detected']." == str(value_error.value)
+        assert f"Provided gender {input_gender} is not allowed. Should be one of ['male', 'female', 'unknown', 'gender_data_not_found', 'sample_not_found']." == str(value_error.value)
 
 
 class TestGetGenderFromBam():
@@ -75,10 +76,15 @@ class TestCompareGender():
         ("fakegender", "female", "FAIL", "Stated gender female does not equal observed gender fakegender."),
         # stated_gender unknown, should be PASS
         ("male", "unknown", "PASS", ""),
-        # stated_gender not_detected, should be FAIL
+        # stated_gender gender_data_not_found, should be FAIL
         (
-            "male", "not_detected", "FAIL",
-            "Gender has value 'not_detected' in LIMS. Observed gender 'male' could not be verified."
+            "male", "gender_data_not_found", "FAIL",
+            "Gender has value 'gender_data_not_found' in LIMS. Observed gender 'male' could not be verified."
+        ),
+        # stated_gender sample_not_found, should be FAIL
+        (
+            "male", "sample_not_found", "FAIL",
+            "Gender has value 'sample_not_found' in LIMS. Observed gender 'male' could not be verified."
         ),
     ])
     def test_compare_and_evaluate_gender(self, measured_gender, stated_gender, expected_qc, expected_msg):
