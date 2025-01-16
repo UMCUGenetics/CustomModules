@@ -643,13 +643,13 @@ if (z_score == 1) {
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
-    pku_data$HMDB.name <- pku_names
     colnames(pku_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    pku_data$HMDB.name <- pku_names
 
     lpi_data <- outlist[lpi_codes, c("HMDB_code", "name", lpi_sample_name)]
     lpi_data <- reshape2::melt(lpi_data, id.vars = c("HMDB_code", "name"))
-    lpi_data$HMDB.name <- lpi_names
     colnames(lpi_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    lpi_data$HMDB.name <- lpi_names
 
     positive_control <- rbind(pa_data, pku_data, lpi_data)
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
