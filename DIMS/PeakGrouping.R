@@ -9,8 +9,8 @@ scripts_dir <- cmd_args[2]
 ppm <- as.numeric(cmd_args[3])
 
 # load in function scripts
-source(paste0(scripts_dir, "find_peak_groups"))
-source(paste0(scripts_dir, "annotate_peak_groups"))
+source(paste0(scripts_dir, "find_peak_groups.R"))
+source(paste0(scripts_dir, "annotate_peak_groups.R"))
 
 options(digits = 16)
 
@@ -48,7 +48,7 @@ outlist_mzrange <- outlist_df[outlist_df$mzmed.pkt > (minmz_hmdbpart - mz_tolera
 # sort by descending intensity
 outlist_mzrange$mzmed.pkt <- as.numeric(outlist_mzrange$mzmed.pkt)  # lapply?
 outlist_mzrange$height.pkt <- as.numeric(outlist_mzrange$height.pkt)
-outlist_sorted <- outlist_mzrange %>% arrange(desc(height.pkt))
+outlist_sorted <- outlist_mzrange %>% dplyr::arrange(desc(height.pkt))
 
 # find peak groups
 ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance)
@@ -57,7 +57,7 @@ ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance)
 nrsamples <- apply(ints_sorted[, 4:ncol(ints_sorted)], 1, function(x) sum(x > 0))
 
 # do annotation
-peakgrouplist_identified <- annotate_peak_groups(ints_allsamps, hmdb_add_iso)
+peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso)
 
 # write output to file
 save(peakgrouplist_identified, file = paste0(batch_number, "_", scanmode, "_identified.RData"))

@@ -1,4 +1,11 @@
 find_peak_groups <- function(outlist_sorted, mz_tolerance) {
+  #' find peaks in all samples with query m/z values and form peak groups
+  #'
+  #' @param outlist_sorted: matrix of peaks (mzmed, intensity) in all samples
+  #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
+  #'
+  #' @return ints_sorted: matrix of peak groups
+
   # set up object for intensities for all samples
   ints_allsamps <- matrix(0, nrow = nrow(outlist_sorted), ncol = 3 + (length(sample_names)))
   colnames(ints_allsamps) <- c("mzmed.pgrp", "mzmin.pgrp", "mzmax.pgrp", sample_names)
@@ -20,7 +27,7 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance) {
     if (nrsamples > 0) {
       # if any sample has more than one peak, choose the one with the lowest absolute ppm deviation
       select_peaks$abs_ppmdev <- abs(10^6 * (select_peaks$mzmed.pkt - reference_mass) / reference_mass)
-      select_peaks %>% group_by(samplenr) %>% slice_min(order_by = abs_ppmdev, n = 1)
+      select_peaks %>% dplyr::group_by(samplenr) %>% dplyr::slice_min(order_by = abs_ppmdev, n = 1)
       # calculate m/z values for peak group
       ints_allsamps[row_index, "mzmed.pgrp"] <- mean(select_peaks$mzmed.pkt)
       ints_allsamps[row_index, "mzmin.pgrp"] <- min(select_peaks$mzmed.pkt)
@@ -46,7 +53,7 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance) {
   ints_allsamps <- ints_allsamps[-which(apply(ints_allsamps, 1, sum) == 0), ]
   # sort by ascending m/z
   ints_allsamps_df <- as.data.frame(ints_allsamps) 
-  ints_sorted <- ints_allsamps_df %>% arrange(mzmed.pgrp)
+  ints_sorted <- ints_allsamps_df %>% dplyr::arrange(mzmed.pgrp)
  
   return(ints_sorted)
 }

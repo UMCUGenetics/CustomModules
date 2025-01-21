@@ -1,17 +1,25 @@
-annotate_peak_groups <- function(ints_allsamps, hmdb_add_iso) {
+annotate_peak_groups <- function(ints_sorted, hmdb_add_iso) {
+  #' annotate peak groups; assign  metabolites (adducts, isotopes) with suitable mass from HMDB
+  #'
+  #' @param ints_sorted: matrix of peak groups
+  #' @param hmdb_add_iso: subset of HMDB (matrix)
+  #'
+  #' @return peakgrouplist_identified: matrix of peak groups with annotation
+
   # Initialize matrix for annotation
   assigned_hmdb <- matrix("", nrow = nrow(ints_sorted), ncol = 7)
   colnames(assigned_hmdb) <- c("assi_HMDB", "all_hmdb_names", "iso_HMDB", "HMDB_code",
                                "all_hmdb_ids", "sec_hmdb_ids", "theormz_HMDB")
  
   # for each peak group, find all entries in HMDB part with mass within ppm range
-  for (row_number in 1:nrow(ints_allsamps)) {
-    # initialize; make sure there's no information from the previous peak group
+  for (row_number in 1:nrow(ints_sorted)) {
+    # initialize to make sure there's no information from the previous peak group
     select_metabolites <- NULL
     select_adducts <- NULL
     select_isotopes <- NULL
     all_hmdb_names <- ""
     all_hmdb_ids <- ""
+    all_isotope_names <- ""
     first_hmdb_name <- ""
     first_hmdb_code <- ""
     sec_hmdb_ids <- ""
