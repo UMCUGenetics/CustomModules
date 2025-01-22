@@ -6,7 +6,6 @@ library("gridExtra")
 
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
-
 init_file <- cmd_args[1]
 nr_replicates <- as.numeric(cmd_args[2])
 run_name <- cmd_args[3]
@@ -159,9 +158,9 @@ for (sample_nr in c(1:length(repl_pattern))) {
     } else {
       plot_color <- "white"
     }
-    tic_plot <- ggplot(repl1_nr, aes(retention_time, log(tic_intensity))) +
+    tic_plot <- ggplot(repl1_nr, aes(retention_time, tic_intensity)) +
       geom_line(linewidth = 0.3) +
-      geom_hline(yintercept = log(highest_tic_max), col = "grey", linetype = 2, linewidth = 0.3) +
+      geom_hline(yintercept = highest_tic_max, col = "grey", linetype = 2, linewidth = 0.3) +
       labs(x = "Retention time (s)", y = "TIC intensity (log)", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
