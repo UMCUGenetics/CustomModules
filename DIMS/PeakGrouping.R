@@ -5,12 +5,11 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 library("dplyr")
 
 hmdb_part_file <- cmd_args[1]
-scripts_dir <- cmd_args[2]
+preprocessing_scripts_dir <- cmd_args[2]
 ppm <- as.numeric(cmd_args[3])
 
 # load in function scripts
-source(paste0(scripts_dir, "find_peak_groups.R"))
-source(paste0(scripts_dir, "annotate_peak_groups.R"))
+source(paste0(preprocessing_scripts_dir, "peak_grouping_functions.R"))
 
 options(digits = 16)
 
@@ -39,7 +38,6 @@ sample_names <- unique(outlist_df$samplenr)
 ## peak grouping
 peakgrouplist <- NULL
 # limit the peaklist to the m/z range in the HMDB part, with ppm tolerance
-
 minmz_hmdbpart <- min(hmdb_add_iso[ , column_label])
 maxmz_hmdbpart <- max(hmdb_add_iso[ , column_label])
 mz_tolerance <- (maxmz_hmdbpart * ppm) / 10^6
@@ -51,7 +49,7 @@ outlist_mzrange$height.pkt <- as.numeric(outlist_mzrange$height.pkt)
 outlist_sorted <- outlist_mzrange %>% dplyr::arrange(desc(height.pkt))
 
 # find peak groups
-ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance)
+ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance, sample_names)
 
 # count the number of non-zero intensities per row. First 3 columns are m/z
 nrsamples <- apply(ints_sorted[, 4:ncol(ints_sorted)], 1, function(x) sum(x > 0))
