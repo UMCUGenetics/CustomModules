@@ -4,6 +4,7 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   #'
   #' @param outlist_sorted: matrix of peaks (mzmed, intensity) in all samples
   #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
+  #' @param sample_names: vector of sample names (vector of strings)
   #'
   #' @return ints_sorted: matrix of peak groups
 
@@ -22,7 +23,6 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
     maxmz_ref <- reference_mass + mz_tolerance
     select_peak_indices <- which((outlist_sorted$mzmed.pkt > minmz_ref) & (outlist_sorted$mzmed.pkt < maxmz_ref))
     select_peaks <- outlist_sorted[select_peak_indices, ]
-    # list_of_peaks_used_in_peak_groups_identified <- rbind(list_of_peaks_used_in_peak_groups_identified, tmplist)
     nrsamples <- length(select_peak_indices)
     # if peaks have been found, create a peak group
     if (nrsamples > 0) {
@@ -40,7 +40,7 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
         column_indices <- c(column_indices, column_number)
       }
       ints_allsamps[row_index, column_indices] <- select_peaks$height.pkt
-      # remove selected peaks from peaklist # Dit gaat niet goed! Indices shiften.
+      # remove selected peaks from peaklist
       outlist_sorted <- outlist_sorted[-select_peaks$rownr, ]
       row_index <- row_index + 1
     } else {
@@ -53,16 +53,22 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   ints_allsamps <- ints_allsamps[-which(apply(ints_allsamps, 1, sum) == 0), ]
   # sort by ascending m/z
   ints_allsamps_df <- as.data.frame(ints_allsamps) 
-  ints_sorted <- ints_allsamps_df %>% dplyr::arrange(mzmed.pgrp)
+  ints_sorted_bymz <- ints_allsamps_df %>% dplyr::arrange(mzmed.pgrp)
  
+  # count the number of non-zero intensities per row. First 3 columns are m/z
+  nr_nonzero <- apply(ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)], 1, function(x) sum(x > 0))
+  # add nrsamples column before intensity columns
+  ints_sorted <- cbind(ints_sorted_bymz[, 1:3], nrsamples = nr_nonzero, ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)])
+  
   return(ints_sorted)
 }
 
-annotate_peak_groups <- function(ints_sorted, hmdb_add_iso) {
+annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label) {
   #' annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
   #'
   #' @param ints_sorted: matrix of peak groups
   #' @param hmdb_add_iso: subset of HMDB (matrix)
+  #' @param column_label: column name with appropriate m/z values for scan mode (string)
   #'
   #' @return peakgrouplist_identified: matrix of peak groups with annotation
 
@@ -108,31 +114,32 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso) {
       }
       # take metabolite info first, then adducts. Isotope info in separate column.
       if (length(select_metabolites) > 0) {
-        all_hmdb_names <- paste(select_metabolites[, "HMDB_name_all"], collapse = ";")
-        all_hmdb_ids   <- paste(select_metabolites[, "HMDB_ID_all"], collapse = ";")
-        sec_hmdb_ids   <- paste(select_metabolites[, "sec_HMDB_ID"], collapse = ";")
+        all_hmdb_names <- paste0(select_metabolites[, "HMDB_name_all"], collapse = ";")
+        all_hmdb_ids   <- paste0(select_metabolites[, "HMDB_ID_all"], collapse = ";")
+        sec_hmdb_ids   <- paste0(select_metabolites[, "sec_HMDB_ID"], collapse = ";")
         theor_mz       <- select_metabolites[, column_label][1]
       }
       if (length(select_adducts) > 0) {
-        all_hmdb_names <- paste(all_hmdb_names, paste(select_adducts[, "HMDB_name_all"], collapse =  ";"), collapse = ";")
-        all_hmdb_ids   <- paste(all_hmdb_ids, paste(select_adducts[, "HMDB_ID_all"], collapse = ";"), collapse = ";")
+        all_hmdb_names <- paste0(all_hmdb_names, paste0(select_adducts[, "HMDB_name_all"], collapse =  ";"), collapse = ";")
+        all_hmdb_ids   <- paste0(all_hmdb_ids, paste0(select_adducts[, "HMDB_ID_all"], collapse = ";"), collapse = ";")
         theor_mz <- select_adducts[, column_label][1]
       }
       if (length(select_isotopes) > 0) {
-        all_isotope_names <- paste(select_isotopes[, "CompoundName"], collapse = ";")
+        all_isotope_names <- paste0(select_isotopes[, "CompoundName"], collapse = ";")
       }
-      assigned_hmdb[row_number, "assi_HMDB"] <- strsplit(all_hmdb_names, ";")[[1]][1]
-      assigned_hmdb[row_number, "all_hmdb_names"] <- all_hmdb_names
-      assigned_hmdb[row_number, "iso_HMDB"] <- all_isotope_names
-      assigned_hmdb[row_number, "HMDB_code"] <- strsplit(all_hmdb_ids, ";")[[1]][1]
-      assigned_hmdb[row_number, "all_hmdb_ids"] <- all_hmdb_ids
-      assigned_hmdb[row_number, "sec_hmdb_ids"] <- sec_hmdb_ids
-      assigned_hmdb[row_number, "theormz_HMDB"] <- theor_mz
     }
+    print(all_hmdb_names)
+    assigned_hmdb[row_number, "assi_HMDB"] <- strsplit(all_hmdb_names, ";")[[1]][1]
+    assigned_hmdb[row_number, "all_hmdb_names"] <- all_hmdb_names
+    assigned_hmdb[row_number, "iso_HMDB"] <- all_isotope_names
+    assigned_hmdb[row_number, "HMDB_code"] <- strsplit(all_hmdb_ids, ";")[[1]][1]
+    assigned_hmdb[row_number, "all_hmdb_ids"] <- all_hmdb_ids
+    assigned_hmdb[row_number, "sec_hmdb_ids"] <- sec_hmdb_ids
+    assigned_hmdb[row_number, "theormz_HMDB"] <- theor_mz
   }
+
   # combine all information
-  peakgrouplist_identified <- cbind(ints_sorted[, 1:3], nrsamples = nrsamples, 
-                                    ints_sorted[, 4:ncol(ints_sorted)], assigned_hmdb)
+  peakgrouplist_identified <- cbind(ints_sorted, assigned_hmdb)
  
   return(peakgrouplist_identified)
 }

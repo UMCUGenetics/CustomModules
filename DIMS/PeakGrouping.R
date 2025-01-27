@@ -32,6 +32,8 @@ batch_number <- strsplit(basename(hmdb_part_file), ".", fixed = TRUE)[[1]][2]
 spec_peaks_file <- paste0("SpectrumPeaks_", scanmode, ".RData")
 load(spec_peaks_file)
 outlist_df <- as.data.frame(outlist_total)
+outlist_df$mzmed.pkt <- as.numeric(outlist_df$mzmed.pkt)
+outlist_df$height.pkt <- as.numeric(outlist_df$height.pkt)
 rm(outlist_total)
 sample_names <- unique(outlist_df$samplenr)
 
@@ -44,18 +46,13 @@ mz_tolerance <- (maxmz_hmdbpart * ppm) / 10^6
 outlist_mzrange <- outlist_df[outlist_df$mzmed.pkt > (minmz_hmdbpart - mz_tolerance) &
                               outlist_df$mzmed.pkt < (maxmz_hmdbpart + mz_tolerance), ]
 # sort by descending intensity
-outlist_mzrange$mzmed.pkt <- as.numeric(outlist_mzrange$mzmed.pkt)  # lapply?
-outlist_mzrange$height.pkt <- as.numeric(outlist_mzrange$height.pkt)
 outlist_sorted <- outlist_mzrange %>% dplyr::arrange(desc(height.pkt))
 
 # find peak groups
 ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance, sample_names)
 
-# count the number of non-zero intensities per row. First 3 columns are m/z
-nrsamples <- apply(ints_sorted[, 4:ncol(ints_sorted)], 1, function(x) sum(x > 0))
-
 # do annotation
-peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso)
+peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso, column_label)
 
 # write output to file
 save(peakgrouplist_identified, file = paste0(batch_number, "_", scanmode, "_identified.RData"))
