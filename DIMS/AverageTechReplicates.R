@@ -160,8 +160,9 @@ for (sample_nr in c(1:length(repl_pattern))) {
     }
     tic_plot <- ggplot(repl1_nr, aes(retention_time, tic_intensity)) +
       geom_line(linewidth = 0.3) +
-      geom_hline(yintercept = highest_tic_max, col = "grey", linetype = 2, linewidth = 0.3) +
-      labs(x = "Retention time (s)", y = "TIC intensity (log)", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
+      geom_hline(yintercept = log10(highest_tic_max), col = "grey", linetype = 2, linewidth = 0.3) +
+      scale_y_log10() +
+      labs(x = "Retention time (s)", y = "TIC intensity (log10)", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
             axis.title = element_text(size = 4),
