@@ -28,5 +28,5 @@ hmdb_main_part <- get(load(hmdbpart_main_file))
 batch_number <- strsplit(basename(hmdbpart_main_file), ".", fixed = TRUE)[[1]][2]
 
 # sum adducts and save output
-adductsum <- sum_adducts(peakgroup_list, hmdb_main_part, adducts, z_score)
+adductsum <- sum_intensities_adducts(peakgroup_list, hmdb_main_part, adducts, z_score)
 save(adductsum, file = paste(scanmode, "_", batch_number, "_SummedAdducts.RData", sep = ""))
