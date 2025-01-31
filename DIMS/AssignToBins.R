@@ -1,5 +1,3 @@
-## adapted from 2-DIMS.R
-
 # load required packages
 suppressPackageStartupMessages(library("xcms"))
 
@@ -8,13 +6,15 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 
 mzml_filepath <- cmd_args[1]
 breaks_filepath <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
+trimparams_filepath <- cmd_args[3]
+resol <- as.numeric(cmd_args[4])
 trim <- 0.1
 dims_thresh <- 100
 
-# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
-# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg
 load(breaks_filepath)
+# load trim paramters: trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+load(trimparams_filepath)
 
 # get sample name
 sample_name <- sub("\\..*$", "", basename(mzml_filepath))

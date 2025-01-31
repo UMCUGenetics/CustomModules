@@ -57,5 +57,6 @@ for (i in 1:nr_segments) {
 }
 
 # generate output file
-save(breaks_fwhm, breaks_fwhm_avg, trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "breaks.fwhm.RData")
+save(breaks_fwhm, breaks_fwhm_avg, file = "breaks.fwhm.RData")
+save(trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "trim_params.RData")
 save(high_mz, file = "highest_mz.RData")
