@@ -25,6 +25,6 @@ test_hmdb_main_part[, 1] <- c("HMDB1234567;HMDB0000567", "HMDB7654321;HMDB000032
 
 test_that("input is a directory", expect_equal(dir.exists("./testthat"), TRUE))
 # use the function and test the output
-test_sum_adduct_output <- sum_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)
+test_sum_adduct_output <- sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)
 test_that("adduct sums are correctly calculated", expect_equal(as.vector(test_sum_adduct_output[1, c(1:4)]), c("6000", "18000", "60000", "180000"), TRUE))
 
