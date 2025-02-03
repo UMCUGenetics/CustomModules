@@ -12,6 +12,6 @@ process PeakFinding {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $rdata_file $breaks_file $params.resolution $params.scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $rdata_file $breaks_file $params.resolution $params.preprocessing_scripts_dir
         """
 }
