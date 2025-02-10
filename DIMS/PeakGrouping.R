@@ -22,7 +22,7 @@ if (grepl("negative", basename(hmdb_part_file))) {
 batch_number <- strsplit(basename(hmdb_part_file), ".", fixed = TRUE)[[1]][2]
 
 # load file with spectrum peaks
-spec_peaks_file <- paste0("SpectrumPeaks_", scanmode, ".RData")
+spec_peaks_file <- paste0("AvgPeaks_", scanmode, ".RData")
 load(spec_peaks_file)
 outlist_copy <- outlist_total
 rm(outlist_total)

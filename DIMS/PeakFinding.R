@@ -1,30 +1,26 @@
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-replicate_mzmlfile <- cmd_args[1]
+replicate_rdatafile <- cmd_args[1]
 breaks_file <- cmd_args[2]
 resol <- as.numeric(cmd_args[3])
-scripts_dir <- cmd_args[4]
+preprocessing_scripts_dir <- cmd_args[4]
 peak_thresh <- 2000
 
 # load in function scripts
-preprocessing_scripts_dir <- gsub("Utils", "preprocessing", scripts_dir)
 source(paste0(preprocessing_scripts_dir, "peak_finding_functions.R"))
 
 load(breaks_file)
 
 # Load output of AssignToBins for a sample
-sample_techrepl <- get(load(replicate_mzmlfile))
-scanmodes <- c("positive", "negative")
-ints_pos <- peak_list$pos
-ints_neg <- peak_list$neg
+sample_techrepl <- get(load(replicate_rdatafile))
+techrepl_name <- colnames(peak_list$pos)[1]
 
 # Initialize
 options(digits = 16)
 
 # run the findPeaks function
-techrepl_name <- colnames(ints_pos)[1]
-
+scanmodes <- c("positive", "negative")
 for (scanmode in scanmodes) {
   # turn dataframe with intensities into a named list
   if (scanmode == "positive") {
@@ -36,18 +32,12 @@ for (scanmode in scanmodes) {
   ints_fullrange <- as.vector(ints_perscanmode)
   names(ints_fullrange) <- rownames(ints_perscanmode)
   
-  start.time <- Sys.time()
-  
   # look for m/z range for all peaks
-  allpeaks_values <- search_mzrange(ints_fullrange, resol, techrepl_name, scanmode, peak_thresh)
-  
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  time.taken
+  allpeaks_values <- search_mzrange(ints_fullrange, resol, techrepl_name, peak_thresh)
   
   # turn the list into a dataframe
-  outlist_persample <- NULL
-  outlist_persample <- cbind("samplenr" = allpeaks_values$nr,
+  outlist_techrep <- NULL
+  outlist_techrep <- cbind("samplenr" = allpeaks_values$nr,
                              "mzmed.pkt" = allpeaks_values$mean,
                              "fq" = allpeaks_values$qual,
                              "mzmin.pkt" = allpeaks_values$min,
@@ -55,10 +45,10 @@ for (scanmode in scanmodes) {
                              "height.pkt" = allpeaks_values$area)
   
   # remove peaks with height = 0
-  outlist_persample <- outlist_persample[outlist_persample[, "height.pkt"] != 0, ]
+  outlist_techrep <- outlist_techrep[outlist_techrep[, "height.pkt"] != 0, ]
   
   # save output to file
-  save(outlist_persample, file = paste0(techrepl_name, "_", scanmode, ".RData"))
+  save(outlist_techrep, file = paste0(techrepl_name, "_", scanmode, ".RData"))
   
   # generate text output to log file on number of spikes for this sample
   # spikes are peaks that are too narrow, e.g. 1 data point
