@@ -5,7 +5,9 @@ suppressMessages(library("dplyr"))
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-source(paste0(scripts_dir, "collect_sum_adducts_functions.R"))
+preprocessing_scripts_dir <- cmd_args[1]
+
+source(paste0(preprocessing_scripts_dir, "collect_sum_adducts_functions.R"))
 
 # collect all AdductSums part files for each scanmode and save to RData file
 outlist_tot_pos <- combine_sum_adduct_parts("positive")
