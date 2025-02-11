@@ -38,8 +38,8 @@ search_mzrange <- function(ints_fullrange, resol, sample_name, peak_thresh) {
       }
       # check if there are more intensities than maximum for region of interest
       if (length(int_vector) > max_roi_length) {
+        print("vector of intensities is longer than max")
         print(length(int_vector))
-        print(running_index)
         # trim lowest intensities to zero
         #int_vector[which(int_vector < min(int_vector) * 1.1)] <- 0
         # split the range into multiple sub ranges
@@ -107,7 +107,7 @@ search_mzrange <- function(ints_fullrange, resol, sample_name, peak_thresh) {
 
 fit_gaussian <- function(mass_vector_eq, mass_vector, int_vector,  
                          resol, force_nr, use_bounds) {
-  #' Fit 1, 2, 3 or 4 Gaussian peaks in small region of m/z
+  #' Fit 1 or 2 Gaussian peaks in small region of m/z
   #'
   #' @param mass_vector_eq: Vector of equally spaced m/z values (float)
   #' @param mass_vector: Vector of m/z values for a region of interest (float)
@@ -329,14 +329,15 @@ fit_1peak <- function(mass_vector_eq, mass_vector, int_vector, max_index,
       # optimize scaling factor
       fq <- 0
       scale_factor <- 0
-      if (sum(int_vector) > sum(params1[2] * dnorm(mass_vector, fitted_mz, sigma))) {
+      if (sum(int_vector) > sum(fitted_nr * dnorm(mass_vector, fitted_mz, sigma))) {
         # increase scale_factor until convergence
         while ((round(fq, digits = 3) != round(fq_new, digits = 3)) && (scale_factor_new < 10000)) {
           fq <- fq_new
           scale_factor <- scale_factor_new
           # fit 1 peak
           fitted_peak <- optimize_1gaussian(mass_vector, int_vector, sigma, weighted_mu, scale_factor, use_bounds)
-          params1 <- fitted_peak$par
+          fitted_mz <- fitted_peak$par[1]
+          fitted_nr <- fitted_peak$par[2]
           # get new value for fit quality and scale_factor
           fq_new <- get_fit_quality(mass_vector, int_vector, fitted_mz, resol, fitted_nr, sigma)$fq_new
           scale_factor_new <- 1.2 * scale_factor
@@ -348,11 +349,11 @@ fit_1peak <- function(mass_vector_eq, mass_vector, int_vector, max_index,
           scale_factor <- scale_factor_new
           # fit 1 peak
           fitted_peak <- optimize_1gaussian(mass_vector, int_vector, sigma, weighted_mu, scale_factor, use_bounds)
-          params1 <- fitted_peak$par
+          fitted_mz <- fitted_peak$par[1]
+          fitted_nr <- fitted_peak$par[2]
           # get new value for fit quality and scale_factor
           fq_new <- get_fit_quality(mass_vector, int_vector, fitted_mz, resol, fitted_nr, sigma)$fq_new
           scale_factor_new <- 0.8 * scale_factor
-          print(scale_factor_new)
         }
       }
       # use optimized scale_factor factor to fit 1 peak
