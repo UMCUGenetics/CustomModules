@@ -113,86 +113,151 @@ TIC_intensity_persample <- cbind(round(hdr$retentionTime, 2), hdr$totIonCurrent)
 colnames(TIC_intensity_persample) <- c("retention_time", "tic_intensity")
 write.table(TIC_intensity_persample, file = paste0(sampname, "_TIC.txt"))
 
-# Generate a matrix; y will contain a matrix with three columns: retention time,
-# m/z, and intensity for all the scans combined
-y <- do.call(rbind, lapply(1:length(pks), function(i) {
-  rt <- hdr$retentionTime[i]
-  scan_peaks <- pks[[i]]  
-  cbind(rt, scan_peaks)  
- }))
-colnames(y) <- c("time", "mz", "intensity")
+# # Generate a matrix; y will contain a matrix with three columns: retention time,
+# # m/z, and intensity for all the scans combined
+# y <- do.call(rbind, lapply(1:length(pks), function(i) {
+#   rt <- hdr$retentionTime[i]
+#   scan_peaks <- pks[[i]]
+#   cbind(rt, scan_peaks)
+#  }))
+# colnames(y) <- c("time", "mz", "intensity")
+# 
+# # Get time values for positive and negative scans
+# posTimes <- hdr$retentionTime[hdr$polarity == 1]
+# negTimes <- hdr$retentionTime[hdr$polarity == 0]
+# 
+# # Filtering retention times
+# posTimes <- posTimes[posTimes > trimLeft & posTimes < trimRight]
+# negTimes <- negTimes[negTimes > trimLeft & negTimes < trimRight]
+# 
+# # Generating indices for scan modes
+# posInd <- which(y[, "time"] %in% posTimes)
+# negInd <- which(y[, "time"] %in% negTimes)
+# 
+# # Separate scan modes into own matrices
+# posY <- y[posInd, ]
+# negY <- y[negInd, ]
+# 
+# # Divides the m/z values into discrete bins based on breaks.fwhm
+# yp <- cut(posY[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
+# yn <- cut(negY[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
+# 
+# # Get the list of intensity values for each bin, and average the intensity values
+# # which are in the same bin
+# if (nrow(posY) > 0) {
+#   ap <- aggregate(posY[, "intensity"], list(yp), FUN = function(x) {
+#     if (is.na(mean(x[which(x > dimsThresh)]))) {
+#       0
+#     } else {
+#       mean(x[which(x > dimsThresh)])
+#     }
+#   })
+#   posBins[ap[, 1]] <- ap[, 2]
+# }
+# 
+# if (nrow(negY) > 0) {
+#   an <- aggregate(negY[, "intensity"], list(yn), FUN = function(x) {
+#     if (is.na(mean(x[which(x > dimsThresh)]))) {
+#       0
+#     } else {
+#       mean(x[which(x > dimsThresh)])
+#     }
+#   })
+#   negBins[an[, 1]] <- an[, 2]
+# }
+# 
+# # Zero any values that are below the threshold
+# posBins[posBins < dimsThresh] <- 0
+# negBins[negBins < dimsThresh] <- 0
+# 
+# 
+# # Creates results matrices
+# posRes <- cbind(posRes, posBins)
+# negRes <- cbind(negRes, negBins)
+# 
+# # Transpose the result matrices
+# posRes <- t(posRes)
+# negRes <- t(negRes)
+# 
+# # Add sample names as row names (one row per sample)
+# rownames(posRes) <- sampname
+# rownames(negRes) <- sampname
+# 
+# # Adjust breaks.fwhm.avg and create column names
+# a <- breaks.fwhm.avg[-length(breaks.fwhm.avg)]
+# b <- sprintf("%.5f", a)
+# colnames(posRes) <- b
+# colnames(negRes) <- b
+# 
+# # Transpose matrices back to their original orientation, so that the m/z bins are in rows, and the samples are in columns
+# posResT <- t(posRes)
+# negResT <- t(negRes)
 
-# Get time values for positive and negative scans
-posTimes <- hdr$retentionTime[hdr$polarity == 1]
-negTimes <- hdr$retentionTime[hdr$polarity == 0]
 
-# Filtering retention times
-posTimes <- posTimes[posTimes > trimLeft & posTimes < trimRight]
-negTimes <- negTimes[negTimes > trimLeft & negTimes < trimRight]
+# New noise reduction step
+hdr_pos <- hdr[hdr$polarity == 1, ]
+hdr_neg <- hdr[hdr$polarity == 0, ]
+hdr_pos$sim_windows <- paste(hdr_pos$scanWindowLowerLimit,
+                            hdr_pos$scanWindowUpperLimit, sep = "_")
+hdr_neg$sim_windows <-paste(hdr_neg$scanWindowLowerLimit,
+                           hdr_neg$scanWindowUpperLimit, sep = "_")
 
-# Generating indices for scan modes
-posInd <- which(y[, "time"] %in% posTimes)
-negInd <- which(y[, "time"] %in% negTimes)  
+mz <- breaks.fwhm.avg[-length(breaks.fwhm.avg)]
+mz <- sprintf("%.5f", mz)
+posRes <- matrix(0, nrow = length(mz), ncol = 1)
+negRes <- matrix(0, nrow = length(mz), ncol = 1)
+rownames(posRes) <- mz
+rownames(negRes) <- mz
+colnames(posRes) <- sampname
+colnames(negRes) <- sampname
 
-# Separate scan modes into own matrices
-posY <- y[posInd, ]
-negY <- y[negInd, ]
-
-# Divides the m/z values into discrete bins based on breaks.fwhm
-yp <- cut(posY[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE) 
-yn <- cut(negY[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
-
-# Get the list of intensity values for each bin, and average the intensity values
-# which are in the same bin
-if (nrow(posY) > 0) {
-  ap <- aggregate(posY[, "intensity"], list(yp), FUN = function(x) {
-    if (is.na(mean(x[which(x > dimsThresh)]))) {  
-      0 
-    } else {
-      mean(x[which(x > dimsThresh)])
-    }
-  })
-  posBins[ap[, 1]] <- ap[, 2]
+# Process each group of positive scan mode
+unique_windows_pos <- unique(hdr_pos$sim_windows)
+for (sim_window in unique_windows_pos) {
+  group <- hdr_pos[hdr_pos$sim_windows == sim_window, ]
+  bin_intensities <- matrix(0, nrow = length(breaks.fwhm) - 1, ncol = nrow(group))
+  bin_counts <- rep(0, length(breaks.fwhm) - 1)
+  for (i in seq_along(group$seqNum)) {
+    scan_number <- group$seqNum[i]
+    peaks_data <- pks[[scan_number]]
+    bin_ids <- cut(peaks_data[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
+    spectrum_bins <- tapply(peaks_data[, "intensity"], bin_ids, function(x) {
+      if (sum(x > dimsThresh, na.rm = TRUE) >= 1) mean(x, na.rm = TRUE) else 0
+    })
+    spectrum_bins[is.na(spectrum_bins)] <- 0
+    valid_bins <- as.numeric(names(spectrum_bins))
+    bin_intensities[valid_bins, i] <- spectrum_bins
+    bin_counts[valid_bins] <- bin_counts[valid_bins] + (spectrum_bins > 0)
+  }
+  bin_intensities[bin_counts < 3, ] <- 0
+  intensity_filtered <- rowMeans(bin_intensities, na.rm = TRUE)
+  posRes[, 1] <- posRes[, 1] + intensity_filtered
 }
 
-if (nrow(negY) > 0) {
-  an <- aggregate(negY[, "intensity"], list(yn), FUN = function(x) {
-    if (is.na(mean(x[which(x > dimsThresh)]))) {
-      0
-    } else {
-      mean(x[which(x > dimsThresh)])
-    }
-  })
-  negBins[an[, 1]] <- an[, 2]
+# Process each group of negative scan mode
+unique_windows_neg <- unique(hdr_neg$sim_windows)
+for (sim_window in unique_windows_neg) {
+  group <- hdr_neg[hdr_neg$sim_windows == sim_window, ]
+  bin_intensities <- matrix(0, nrow = length(breaks.fwhm) - 1, ncol = nrow(group))
+  bin_counts <- rep(0, length(breaks.fwhm) - 1)
+  for (i in seq_along(group$seqNum)) {
+    scan_number <- group$seqNum[i]
+    peaks_data <- pks[[scan_number]]
+    bin_ids <- cut(peaks_data[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
+    spectrum_bins <- tapply(peaks_data[, "intensity"], bin_ids, function(x) {
+      if (sum(x > dimsThresh, na.rm = TRUE) >= 1) mean(x, na.rm = TRUE) else 0
+    })
+    spectrum_bins[is.na(spectrum_bins)] <- 0
+    valid_bins <- as.numeric(names(spectrum_bins))
+    bin_intensities[valid_bins, i] <- spectrum_bins
+    bin_counts[valid_bins] <- bin_counts[valid_bins] + (spectrum_bins > 0)
+  }
+  bin_intensities[bin_counts < 3, ] <- 0
+  intensity_filtered <- rowMeans(bin_intensities, na.rm = TRUE)
+  negRes[, 1] <- negRes[, 1] + intensity_filtered
 }
 
-# Zero any values that are below the threshold
-posBins[posBins < dimsThresh] <- 0
-negBins[negBins < dimsThresh] <- 0
-
-
-# Creates results matrices
-posRes <- cbind(posRes, posBins)
-negRes <- cbind(negRes, negBins)
-
-# Transpose the result matrices
-posRes <- t(posRes)
-negRes <- t(negRes)
-
-# Add sample names as row names (one row per sample)
-rownames(posRes) <- sampname
-rownames(negRes) <- sampname
-
-# Adjust breaks.fwhm.avg and create column names
-a <- breaks.fwhm.avg[-length(breaks.fwhm.avg)]  
-b <- sprintf("%.5f", a)  
-colnames(posRes) <- b
-colnames(negRes) <- b
-
-# Transpose matrices back to their original orientation, so that the m/z bins are in rows, and the samples are in columns
-posResT <- t(posRes)
-negResT <- t(negRes)
 
 # Pack results in a list and save
-peak_list <- list("pos" = posResT, "neg" = negResT, "breaksFwhm" = breaks.fwhm)
+peak_list <- list("pos" = posRes, "neg" = negRes, "breaksFwhm" = breaks.fwhm)
 save(peak_list, file = paste0(sampname, ".RData"))
