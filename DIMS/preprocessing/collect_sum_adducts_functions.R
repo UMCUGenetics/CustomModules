@@ -23,21 +23,21 @@ combine_scanmodes_intensities <- function(outlist_pos_adducts_hmdb, outlist_neg_
   #' @returns: outlist: dataframe with intensities for all metabolites present in either or both scanmodes
 
   # Only continue with patients (columns) that are in both pos and neg, so patients that are in both
-  samples_both_modi <- intersect(colnames(outlist_neg_adducts_hmdb), colnames(outlist_pos_adducts_hmdb))
-  outlist_neg_adducts_hmdb <- outlist_neg_adducts_hmdb[, samples_both_modi]
-  outlist_pos_adducts_hmdb <- outlist_pos_adducts_hmdb[, samples_both_modi]
+  samples_both_modes <- intersect(colnames(outlist_neg_adducts_hmdb), colnames(outlist_pos_adducts_hmdb))
+  outlist_neg_adducts_hmdb <- outlist_neg_adducts_hmdb[, samples_both_modes]
+  outlist_pos_adducts_hmdb <- outlist_pos_adducts_hmdb[, samples_both_modes]
 
   # Find indexes of neg hmdb code that are also found in pos and vice versa
   index_neg <- which(rownames(outlist_neg_adducts_hmdb) %in% rownames(outlist_pos_adducts_hmdb))
   index_pos <- which(rownames(outlist_pos_adducts_hmdb) %in% rownames(outlist_neg_adducts_hmdb))
 
-  # Get intensities of metabs present in both modi from pos modus
+  # Get intensities of metabs present in both modes from pos modus
   outlist_combi_pos_ints <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 
-  # Get intensities of metabs present in both modi from neg modus
+  # Get intensities of metabs present in both modes from neg modus
   outlist_combi_neg_ints <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 
-  # HMDB info for metabs present in both modi
+  # HMDB info for metabs present in both modes
   outlist_combi_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>% select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID)
 
   # Combine positive and negative numbers and paste back HMDB column
