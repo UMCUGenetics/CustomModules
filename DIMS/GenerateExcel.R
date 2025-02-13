@@ -4,6 +4,7 @@
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
+suppressMessages(library("tidyr"))
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
@@ -35,11 +36,6 @@ perc <- 5
 # Z-score for removing outliers with grubbs test
 outlier_threshold <- 2
 
-# create a directory for plots in project directory
-dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
-plot_dir <- paste0(outdir, "/plots/adducts")
-dir.create(plot_dir, showWarnings = FALSE)
-
 # load HMDB rlvnc table
 load(hmdb_rlvc_file)
 
@@ -63,9 +59,9 @@ outlist <- cbind(outlist, "HMDB_code" = rownames(outlist))
 outlist <- outlist[order(outlist[, "HMDB_code"]), ]
 
 # Create excel
-filelist <- "AllPeakGroups"
+sheetname <- "AllPeakGroups"
 wb_intensities <- createWorkbook("SinglePatient")
-addWorksheet(wb_intensities, filelist)
+addWorksheet(wb_intensities, sheetname)
 
 # Add Z-scores and create plots
 if (z_score == 1) {
@@ -109,8 +105,6 @@ if (z_score == 1) {
   patient_ids <- unique(sapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), "[", 1))
   patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
 
-  # for every row make a plot and insert into excel
-  temp_png <- NULL
   for (p in seq_len(nrow(outlist))) {
     # get HMDB ID
     hmdb_name <- rownames(outlist[p, ])
@@ -120,47 +114,47 @@ if (z_score == 1) {
     # set Intensities to numeric.
     intensities <- outlist %>%
       slice(p) %>%
-      select(intensity_col_ids) %>%
+      select(all_of(intensity_col_ids)) %>%
       as.data.frame() %>%
       pivot_longer(everything(), names_to = "Samples", values_to = "Intensities") %>%
       arrange(nchar(Samples)) %>%
-      group_by(Samples) %>%
       mutate(Samples = gsub("\\..*", "", Samples),
              Samples = gsub("(C).*", "\\1", Samples),
-             group_size = n()) %>%
-      ungroup() %>%
-      as.numeric(Intensities)
-
-    plot.new()
+             Intensities = as.numeric(Intensities),
+             type = ifelse(Samples == "C", "Control", "Patients")) %>%
+      group_by(Samples) %>%
+      mutate(group_size = n()) %>% 
+      ungroup()
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2)) +
+    metab_plot <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       theme_bw() +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 5, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("green", "#930000")) +
-      theme(legend.position = "none", axis.text.x = element_text(angle = 90),
-            axis.title = element_blank(), plot.title = element_text(hjust = 0.5)) +
+      theme(legend.position = "none", axis.text.x = element_text(angle = 90), axis.title = element_blank(), 
+            plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
       ggtitle(hmdb_name)
 
     # set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities$Samples)) * 40
-
+    
+    # print plot so it can be inserted in the Excel file
+    print(metab_plot)
     # place the plot in the Excel file
-    openxlsx::insertImage(wb_intensities,
+    openxlsx::insertPlot(wb_intensities,
                           filelist,
-                          file_png,
                           startRow = p + 1,
                           startCol = 1,
                           height = 560,
                           width = plot_width,
                           units = "px")
   }
-
-  openxlsx::setRowHeights(wb_intensities, filelist, rows = c(seq_len(1, nrow(outlist) + 1)), heights = cell_dim[1] / 4)
-  openxlsx::setColWidths(wb_intensities, filelist, cols = c(seq_len(2, ncol(outlist))), widths = 20)
+  openxlsx::setColWidths(wb_intensities, sheetname, cols = 1, widths = plot_width / 20)
+  openxlsx::setRowHeights(wb_intensities, sheetname, rows = c(seq(2, nrow(outlist) + 1)), heights = 560 / 4)
+  openxlsx::setColWidths(wb_intensities, sheetname, cols = c(seq(2, ncol(outlist))), widths = 20)
 } else {
-  openxlsx::setRowHeights(wb_intensities, filelist, rows = c(seq_len(1, nrow(outlist))), heights = 18)
-  openxlsx::setColWidths(wb_intensities, filelist, cols = c(seq_len(1, ncol(outlist))), widths = 20)
+  openxlsx::setRowHeights(wb_intensities, filelist, rows = c(seq_len(nrow(outlist))), heights = 18)
+  openxlsx::setColWidths(wb_intensities, filelist, cols = c(seq_len(ncol(outlist))), widths = 20)
 }
 
 # write Excel file
