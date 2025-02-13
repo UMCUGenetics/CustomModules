@@ -16,5 +16,5 @@ outlist_tot_neg <- combine_sum_adduct_parts("negative")
 save(outlist_tot_neg, file = "AdductSums_negative.RData")
 
 # combine intensities of both scanmodi
-outlist <- combine_scanmodi_intensities(outlist_tot_pos, outlist_tot_neg)
+outlist <- combine_scanmodes_intensities(outlist_tot_pos, outlist_tot_neg)
 save(outlist, file = "AdductSums_combined.RData")

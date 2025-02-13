@@ -8,7 +8,7 @@ combine_sum_adduct_parts <- function(scanmode) {
   outlist_tot <- NULL
   for (i in 1:length(adductsum_part_files)) {
     load(adductsum_part_files[i])
-    outlist_tot <- rbind(outlist.tot, adductsum)
+    outlist_tot <- rbind(outlist_tot, adductsum)
   }
 
   return(outlist_tot)
