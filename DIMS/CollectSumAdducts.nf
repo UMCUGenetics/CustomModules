@@ -8,7 +8,8 @@ process CollectSumAdducts {
        path(collect_files)
 
     output:
-       path('AdductSums_*.RData')
+       path('AdductSums_combined.RData'), emit: adductsums_combined
+       path('AdductSums_{positive, negative}.RData'), emit: adductsums_scanmodes
 
     script:
         """

@@ -5,20 +5,18 @@ process GenerateExcel {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(collect_files)
-       path(identified_files)
-       path(init_file) 
+       path(adductsums_combined)
        val(analysis_id) 
        path(relevance_file)
 
     output:
-       path('*.RData')
-       path('*.txt')
-       path('*.xlsx'), emit: excel_files 
-       path('plots/*.png'), emit: plot_files 
+       path('outlist.RData'), emit: outlist_zscores
+       path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.RData'), optional: true
+       path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.txt'), optional: true
+       path('${analysis_id}.xlsx'), emit: project_excel
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $init_file $analysis_id $params.matrix $relevance_file $params.zscore $params.sst_components_file
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $analysis_id $relevance_file $params.zscore $params.export_scripts_dir
         """
 }
