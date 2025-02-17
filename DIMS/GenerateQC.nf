@@ -6,6 +6,7 @@ process GenerateQC {
 
     input:
        path(outlist_zscores)
+       path(adductsums_scanmodes)
        path(identified_files)
        path(init_file) 
        val(analysis_id)
@@ -18,6 +19,6 @@ process GenerateQC {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateQC.R $init_file $analysis_id $params.matrix $params.sst_components_file $params.export_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateQC.R $init_file $analysis_id $params.matrix $params.zscore $params.sst_components_file $params.export_scripts_dir
         """
 }

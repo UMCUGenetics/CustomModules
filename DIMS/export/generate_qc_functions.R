@@ -15,9 +15,10 @@ get_internal_standards <- function(internal_stand_list, scanmode, is_subset_filt
   } else {
     internal_stand <- as.data.frame(subset(is_subset_filter, rownames(is_subset_filter) %in% rownames(internal_stand_list)))
     internal_stand$HMDB_name <- internal_stand_list[match(row.names(internal_stand), internal_stand_list$HMDB_code, nomatch = NA), "name"]
-    internal_stand$HMDB.code <- row.names(internal_stand)
+    internal_stand$HMDB_code <- row.names(internal_stand)
+    internal_stand <- internal_stand %>% select(-c(HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
-  internal_stand <- reshape2::melt(internal_stand, id.vars = c("HMDB_code", "HMDB.name"))
+  internal_stand <- reshape2::melt(internal_stand, id.vars = c("HMDB_code", "HMDB_name"))
   colnames(internal_stand) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
   internal_stand$Matrix <- dims_matrix
   internal_stand$Rundate <- rundate
@@ -38,8 +39,8 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
   #' @param plot_height: height of the plot (int)
   #' @param hline_data: values for the minimal intensity line (dataframe) 
   #' 
-    if (plot_type == "barplot") {
-    if (grep("select", file_name)) {
+  if (plot_type == "barplot") {
+    if (grepl("select", file_name)) {
       num_cols <- 2
     } else {
       num_cols <- NULL
@@ -142,7 +143,7 @@ get_is_intensities <- function(is_data, int_cols = NULL, is_codes = NULL) {
     is_intensities <- is_data[, int_cols]
   } else {
     is_data <- as.data.frame(subset(is_data, rownames(is_data) %in% is_codes))
-    is_intensities <- is_data[, -which(colnames(is_data) == "HMDB_name")]
+    is_intensities <- is_data %>% select(-c(HMDB_name, HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
   is_intensities <- calculate_coefficient_of_variation(is_intensities)
   is_intensities <- cbind(IS_name = is_data$HMDB_name, is_intensities)
@@ -167,4 +168,22 @@ calculate_coefficient_of_variation <- function(intensity_list) {
                                   sd = sd_allsamples,
                                   intensity_list)
   return(intensity_list_with_cv)
+}
+
+check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
+  # retrieve all unique m/z values in whole numbers and check if all are available
+  mzmed_pgrp_ident <- unique(round(mzmed_pgrp_ident, digits = 0))
+  # m/z range for a standard run = 70-600
+  mz_range <- seq(70, 599, by = 1)
+  # 
+  mz_missing <- setdiff(mz_range, mzmed_pgrp_ident)
+  # check if m/z are missing and make an .txt file with information
+  mz_missing_group <- cumsum(c(1, diff(mz_missing) != 1))
+  if (length(mz_missing_group) > 1) {
+    results_mz_missing <- c(paste0("Missing m/z values ", scanmode, " mode"))
+    results_mz_missing <- c(results_mz_missing, by(mz_missing, mz_missing_group, identity))
+  } else {
+    results_mz_missing <- paste0(scanmode, " mode did not have missing mz values")
+  }
+  return(results_mz_missing)
 }

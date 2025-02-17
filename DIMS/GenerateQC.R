@@ -1,5 +1,6 @@
 library("ggplot2")
 library("reshape2")
+library("openxlsx")
 suppressMessages(library("dplyr"))
 
 # set the number of digits for floats
@@ -11,8 +12,11 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 init_file <- cmd_args[1]
 project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
-sst_components_file <- cmd_args[6]
-export_scripts_dir <- cmd_args[7]
+z_score <- cmd_args[4]
+sst_components_file <- cmd_args[5]
+export_scripts_dir <- cmd_args[6]
+
+outdir <- "./"
 
 # load in function scripts
 source(paste0(export_scripts_dir, "generate_qc_functions.R"))
@@ -21,9 +25,19 @@ source(paste0(export_scripts_dir, "generate_qc_functions.R"))
 load(init_file)
 # load outlist from GenerateExcel
 load("outlist.RData")
+# load combined adducts for each scanmodus
+load("AdductSums_positive.RData")
+load("AdductSums_negative.RData")
 
 # get current date
 rundate <- Sys.Date()
+
+# create a directory for plots in project directory
+dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
+plot_dir <- paste0(outdir, "/plots/adducts")
+dir.create(plot_dir, showWarnings = FALSE)
+
+control_label <- "C"
 
 #### INTERNAL STANDARDS ####
 internal_stand_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
@@ -40,12 +54,17 @@ if (!is.null(sample_names_nodata)) {
   }
 }
 
+# Only continue with patients (columns) that are in both pos and neg, so patients that are in both
+samples_both_modes <- intersect(colnames(outlist_tot_neg), colnames(outlist_tot_pos))
+outlist_tot_neg <- outlist_tot_neg[, samples_both_modes]
+outlist_tot_pos <- outlist_tot_pos[, samples_both_modes]
+
 # Retrieve IS summed adducts
 internal_stand_summed <- get_internal_standards(internal_stand_list, "summed", repl_pattern, dims_matrix, rundate, project)
 # Retrieve IS positive mode
-internal_stand_pos <- get_internal_standards(internal_stand_list, "pos", outlist_pos_adducts_hmdb, dims_matrix, rundate, project)
+internal_stand_pos <- get_internal_standards(internal_stand_list, "pos", outlist_tot_pos, dims_matrix, rundate, project)
 # Retrieve IS negative mode
-internal_stand_neg <- get_internal_standards(internal_stand_list, "neg", outlist_neg_adducts_hmdb, dims_matrix, rundate, project)
+internal_stand_neg <- get_internal_standards(internal_stand_list, "neg", outlist_tot_neg, dims_matrix, rundate, project)
 
 # Save results
 save(internal_stand_pos, internal_stand_neg, internal_stand_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
@@ -190,7 +209,7 @@ if (z_score == 1) {
 
     pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
     pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
-    pa_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
+    lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
 
     positive_control <- rbind(pa_data, pku_data, lpi_data)
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
@@ -221,8 +240,8 @@ if ("plots" %in% colnames(internal_stand_list)) {
 }
 
 internal_stand_list_intensities <- get_is_intensities(internal_stand_list, int_cols = intensity_col_ids)
-internal_stand_neg_intensities <- get_is_intensities(outlist_neg_adducts_hmdb, is_codes = internal_stand_codes)
-internal_stand_pos_intensities <- get_is_intensities(outlist_pos_adducts_hmdb, is_codes = internal_stand_codes)
+internal_stand_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = internal_stand_codes)
+internal_stand_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = internal_stand_codes)
 
 # SST components.
 sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
@@ -231,6 +250,7 @@ sst_colnrs <- grep("P1001", colnames(sst_list))
 
 if (length(sst_colnrs) > 0) {
   sst_list_intensities <- sst_list[, sst_colnrs]
+  control_col_ids <- grep(control_label, colnames(sst_list), fixed = TRUE)
   control_list_intensities <- sst_list[, control_col_ids]
   control_list_cv <- calculate_coefficient_of_variation(control_list_intensities)
   sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[, "CV_perc"])
@@ -267,40 +287,17 @@ rm(wb)
 
 
 ### MISSING M/Z CHECK
-# check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail
+# check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file
 # Load the outlist_identified files + remove the loaded files
 load(paste0(outdir, "/outlist_identified_negative.RData"))
-outlist_ident_neg <- outlist_ident
+mzmed_pgrp_ident_neg <- outlist_ident$mzmed.pgrp
 load(paste0(outdir, "/outlist_identified_positive.RData"))
-outlist_ident_pos <- outlist_ident
+mzmed_pgrp_ident_pos <- outlist_ident$mzmed.pgrp
 rm(outlist_ident)
-# check for missing m/z in negative and positive mode
-scanmode <- c("Negative", "Positive")
-index <- 1
-results_ident <- c() 
-outlist_ident_list <- list(outlist_ident_neg, outlist_ident_pos)
-for (outlist_ident in outlist_ident_list) {
-  current_mode <- scanmode[index]
-  # retrieve all unique m/z values in whole numbers and check if all are available
-  mz_values <- as.numeric(unique(format(outlist_ident$mzmed.pgrp, digits = 0)))
-  # m/z range for a standard run = 70-600
-  mz_range <- seq(70, 599, by = 1)
-  mz_missing <- c()
-  for (mz in mz_range) {
-    if (!mz %in% mz_values) {
-      mz_missing <- c(mz_missing, mz)
-    }
-  }
-  y <- mz_missing
-  # check if m/z are missing and make an .txt file with information
-  group_ident <- cumsum(c(1, abs(y[-length(y)] - y[-1]) > 1))
-  if (length(group_ident) > 1) {
-    results_ident <- c(results_ident, paste0("Missing m/z values ", current_mode, " mode"))
-    results_ident <- c(results_ident, by(y, group_ident, identity))
-  } else {
-    results_ident <- c(results_ident, paste0(current_mode, " mode did not have missing mz values"))
-  }
-  # change to other scanmode
-  index <- index + 1
-}
-lapply(results_ident, write, file = paste0(outdir, "/missing_mz_warning.txt"), append = TRUE, ncolumns = 1000)
+
+# Check for missing mz values, if present returned with vector of missing mz values
+mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative")
+mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive")
+
+# Write both scanmodes to missing_mz_warning file
+lapply(c(mz_missing_neg, mz_missing_pos), write, file = paste0(outdir, "/missing_mz_warning.txt"), append = TRUE, ncolumns = 1000)
