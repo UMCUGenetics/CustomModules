@@ -219,7 +219,14 @@ for (sim_window in unique_windows_pos) {
   bin_counts <- rep(0, length(breaks.fwhm) - 1)
   for (i in seq_along(group$seqNum)) {
     scan_number <- group$seqNum[i]
+    if (scan_number > length(pks) || is.null(pks[[scan_number]])) {
+      next  # Skip if out of range or NULL
+    }
     peaks_data <- pks[[scan_number]]
+    if (!is.matrix(peaks_data) || ncol(peaks_data) < 2) {
+      next  # Skip if not a valid matrix
+    }
+    colnames(peaks_data) <- c("mz", "intensity")  # Ensure column names
     bin_ids <- cut(peaks_data[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
     spectrum_bins <- tapply(peaks_data[, "intensity"], bin_ids, function(x) {
       if (sum(x > dimsThresh, na.rm = TRUE) >= 1) mean(x, na.rm = TRUE) else 0
@@ -242,7 +249,14 @@ for (sim_window in unique_windows_neg) {
   bin_counts <- rep(0, length(breaks.fwhm) - 1)
   for (i in seq_along(group$seqNum)) {
     scan_number <- group$seqNum[i]
+    if (scan_number > length(pks) || is.null(pks[[scan_number]])) {
+      next  # Skip if out of range or NULL
+    }
     peaks_data <- pks[[scan_number]]
+    if (!is.matrix(peaks_data) || ncol(peaks_data) < 2) {
+      next  # Skip if not a valid matrix
+    }
+    colnames(peaks_data) <- c("mz", "intensity")  # Ensure column names
     bin_ids <- cut(peaks_data[, "mz"], breaks.fwhm, include.lowest = TRUE, right = TRUE, labels = FALSE)
     spectrum_bins <- tapply(peaks_data[, "intensity"], bin_ids, function(x) {
       if (sum(x > dimsThresh, na.rm = TRUE) >= 1) mean(x, na.rm = TRUE) else 0
