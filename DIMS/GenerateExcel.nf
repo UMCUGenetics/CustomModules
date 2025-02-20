@@ -13,7 +13,7 @@ process GenerateExcel {
        path('outlist.RData'), emit: outlist_zscores
        path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.RData'), optional: true
        path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.txt'), optional: true
-       path('${analysis_id}.xlsx'), emit: project_excel
+       path('*.xlsx'), emit: project_excel
 
     script:
         """

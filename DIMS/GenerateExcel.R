@@ -126,23 +126,27 @@ if (z_score == 1) {
       mutate(group_size = n()) %>% 
       ungroup()
 
+    # set plot width to 40 times the number of samples
+    plot_width <- length(unique(intensities$Samples)) * 40
+    
+    tmp_png <- "plot.png"
+    png(filename = tmp_png, width = plot_width, height = 280)
+    
+    plot.new()
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    metab_plot <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
+    ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       theme_bw() +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 5, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("green", "#930000")) +
       theme(legend.position = "none", axis.text.x = element_text(angle = 90), axis.title = element_blank(), 
             plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
       ggtitle(hmdb_name)
-
-    # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities$Samples)) * 40
-    
-    # print plot so it can be inserted in the Excel file
-    print(metab_plot)
+    dev.off
+   
     # place the plot in the Excel file
-    openxlsx::insertPlot(wb_intensities,
-                          filelist,
+    openxlsx::insertImage(wb_intensities,
+                          sheetname,
+                          tmp_png,
                           startRow = p + 1,
                           startCol = 1,
                           height = 560,
