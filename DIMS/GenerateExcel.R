@@ -141,7 +141,7 @@ if (z_score == 1) {
       theme(legend.position = "none", axis.text.x = element_text(angle = 90), axis.title = element_blank(), 
             plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
       ggtitle(hmdb_name)
-    dev.off
+    dev.off()
    
     # place the plot in the Excel file
     openxlsx::insertImage(wb_intensities,
