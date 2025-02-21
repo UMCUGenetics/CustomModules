@@ -34,8 +34,6 @@ rundate <- Sys.Date()
 
 # create a directory for plots in project directory
 dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
-plot_dir <- paste0(outdir, "/plots/adducts")
-dir.create(plot_dir, showWarnings = FALSE)
 
 control_label <- "C"
 
