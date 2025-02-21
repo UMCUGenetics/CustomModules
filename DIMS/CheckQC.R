@@ -19,7 +19,7 @@ export_scripts_dir <- cmd_args[6]
 outdir <- "./"
 
 # load in function scripts
-source(paste0(export_scripts_dir, "generate_qc_functions.R"))
+source(paste0(export_scripts_dir, "check_qc_functions.R"))
 
 # load init files
 load(init_file)
