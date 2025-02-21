@@ -11,7 +11,7 @@ get_internal_standards <- function(internal_stand_list, scanmode, is_subset_filt
   #' @returns
   if (scanmode == "summed") {
     internal_stand <- internal_stand_list[c(names(is_subset_filter), "HMDB_code")]
-    internal_stand$HMDB.name <- internal_stand_list$name
+    internal_stand$HMDB_name <- internal_stand_list$name
   } else {
     internal_stand <- as.data.frame(subset(is_subset_filter, rownames(is_subset_filter) %in% rownames(internal_stand_list)))
     internal_stand$HMDB_name <- internal_stand_list[match(row.names(internal_stand), internal_stand_list$HMDB_code, nomatch = NA), "name"]
