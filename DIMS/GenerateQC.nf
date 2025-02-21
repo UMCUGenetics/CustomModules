@@ -12,9 +12,9 @@ process GenerateQC {
        val(analysis_id)
 
     output:
-       path('{*_IS_results, *_positive_controls}.RData')
-       path('{positive_controls_warning, missing_mz_warning}.txt')
-       path('{*_positive_control, *_IS_SST}.xlsx')
+       path('{*_IS_results, *_positive_controls}.RData'), optional: true
+       path('{positive_controls_warning, missing_mz_warning}.txt'), optional: true
+       path('{*_IS_SST, *_positive_control}.xlsx'), optional: true
        path('plots/IS_*.png'), emit: plot_files
 
     script:
