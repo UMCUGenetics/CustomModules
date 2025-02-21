@@ -11,8 +11,8 @@ process GenerateExcel {
 
     output:
        path('outlist.RData'), emit: outlist_zscores
-       path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.RData'), optional: true
-       path('{AdductSums_filtered_Zscores, AdductSums_filtered_robustZ, AdductSums_filtered_outliersremovedZ}.txt'), optional: true
+       tuple path('AdductSums_filtered_Zscores.RData'), path('AdductSums_filtered_robustZ.RData'), path('AdductSums_filtered_outliersremovedZ.RData'), optional: true
+       tuple path('AdductSums_filtered_Zscores.txt'), path('AdductSums_filtered_robustZ.txt'), path('AdductSums_filtered_outliersremovedZ.txt'), optional: true
        path('*.xlsx'), emit: project_excel
 
     script:
