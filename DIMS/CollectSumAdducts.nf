@@ -9,7 +9,7 @@ process CollectSumAdducts {
 
     output:
        path('AdductSums_combined.RData'), emit: adductsums_combined
-       path('AdductSums_{positive, negative}.RData'), emit: adductsums_scanmodes
+       tuple path('AdductSums_positive.RData'), path('AdductSums_negative.RData'), emit: adductsums_scanmodes
 
     script:
         """
