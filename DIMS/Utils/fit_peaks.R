@@ -15,7 +15,7 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
   #' @param use_bounds: Boolean to indicate whether boundaries are to be used
   #'
   #' @return roi_value_list: list of fit values for region of interest (list)
-
+  
   if (length(int_vector) < 3) {
     message("Range too small, no fit possible!")
   } else {
@@ -43,13 +43,13 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
       sigma <- get_stdev(mass_vector[range1], int_vector[range1])
       fitted_peak <- fit_1gaussian(mass_vector, int_vector, sigma, mu, scale, use_bounds)
     }
-
+    
     p1 <- fitted_peak$par
-
+    
     # get new value for fit quality and scale
     fq_new <- get_fit_quality(mass_vector, int_vector, p1[1], p1[1], resol, p1[2], sigma)$fq_new
     scale_new <- 1.2 * scale
-
+    
     # bad fit
     if (fq_new > fit_quality) {
       # optimize scaling factor
@@ -86,7 +86,7 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
       }
     }
   }
-
+  
   roi_value_list <- list("mean" = p1[1], "scale" = p1[2], "sigma" = sigma, "qual" = fq_new)
   return(roi_value_list)
 }
@@ -107,12 +107,12 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   #' @param int_factor: Value used to calculate area under Gaussian curve (integer)
   #'
   #' @return roi_value_list: list of fit values for region of interest (list)
-
+  
   peak_mean <- NULL
   peak_area <- NULL
   peak_scale <- NULL
   peak_sigma <- NULL
-
+  
   # set range vectors for 2 peaks
   range1 <- c(max_index[1] - 2, max_index[1] - 1, max_index[1], max_index[1] + 1, max_index[1] + 2)
   if (range1[1] == 0) range1 <- range1[-1]
@@ -128,7 +128,7 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   # remove NA
   if (length(which(is.na(int_vector[range1]))) != 0) range1 <- range1[-which(is.na(int_vector[range1]))]
   if (length(which(is.na(int_vector[range2]))) != 0) range2 <- range2[-which(is.na(int_vector[range2]))]
-
+  
   # fit 2 peaks, first separately, then together
   mu1 <- weighted.mean(mass_vector[range1], int_vector[range1])
   sigma1 <- get_stdev(mass_vector[range1], int_vector[range1])
@@ -142,14 +142,14 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   # combined
   fitted_2peaks <- fit_2gaussians(mass_vector, int_vector, sigma1, sigma2, p1[1], p1[2], p2[1], p2[2], use_bounds)
   pc <- fitted_2peaks$par
-
+  
   # get fit quality
   if (is.null(sigma2)) sigma2 <- sigma1
   sum_fit <- (pc[2] * dnorm(mass_vector, pc[1], sigma1)) +
-             (pc[4] * dnorm(mass_vector, pc[3], sigma2))
+    (pc[4] * dnorm(mass_vector, pc[3], sigma2))
   fq <- get_fit_quality(mass_vector, int_vector, sort(c(pc[1], pc[3]))[1], sort(c(pc[1], pc[3]))[2],
                         resol, sum_fit = sum_fit)$fq_new
-
+  
   # get parameter values
   area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
   area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
@@ -161,7 +161,7 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   peak_scale <- c(peak_scale, pc[4])
   peak_sigma <- c(peak_sigma, sigma1)
   peak_sigma <- c(peak_sigma, sigma2)
-
+  
   roi_value_list <- list("mean" = peak_mean, "scale" = peak_scale, "sigma" = peak_sigma, "area" = peak_area, "qual" = fq)
   return(roi_value_list)
 }
@@ -182,12 +182,12 @@ fit_3peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   #' @param int_factor: Value used to calculate area under Gaussian curve (integer)
   #'
   #' @return roi_value_list: list of fit values for region of interest (list)
-
+  
   peak_mean <- NULL
   peak_area <- NULL
   peak_scale <- NULL
   peak_sigma <- NULL
-
+  
   # set range vectors for 3 peaks
   range1 <- c(max_index[1] - 2, max_index[1] - 1, max_index[1], max_index[1] + 1, max_index[1] + 2)
   range2 <- c(max_index[2] - 2, max_index[2] - 1, max_index[2], max_index[2] + 1, max_index[2] + 2)
@@ -216,7 +216,7 @@ fit_3peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   if (length(which(is.na(int_vector[range1]))) != 0) range1 <- range1[-which(is.na(int_vector[range1]))]
   if (length(which(is.na(int_vector[range2]))) != 0) range2 <- range2[-which(is.na(int_vector[range2]))]
   if (length(which(is.na(int_vector[range3]))) != 0) range3 <- range3[-which(is.na(int_vector[range3]))]
-
+  
   # fit 3 peaks, first separately, then together
   mu1 <- weighted.mean(mass_vector[range1], int_vector[range1])
   sigma1 <- get_stdev(mass_vector[range1], int_vector[range1])
@@ -236,14 +236,18 @@ fit_3peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   fitted_3peaks <- fit_3gaussians(mass_vector, int_vector, sigma1, sigma2, sigma3,
                                   p1[1], p1[2], p2[1], p2[2], p3[1], p3[2], use_bounds)
   pc <- fitted_3peaks$par
-
+  print(pc)
+  if (is.null(pc)) {
+    roi_value_list <- list("mean" = 0, "scale" = 0, "sigma" = 0, "area" = 0, "qual" = 0)
+    return(roi_value_list)
+  }
   # get fit quality
   sum_fit = (pc[2] * dnorm(mass_vector, pc[1], sigma1)) +
-            (pc[4] * dnorm(mass_vector, pc[3], sigma2)) +
-            (pc[6] * dnorm(mass_vector, pc[5], sigma3))
+    (pc[4] * dnorm(mass_vector, pc[3], sigma2)) +
+    (pc[6] * dnorm(mass_vector, pc[5], sigma3))
   fq <- get_fit_quality(mass_vector, int_vector, sort(c(pc[1], pc[3], pc[5]))[1], sort(c(pc[1], pc[3], pc[5]))[3],
                         resol, sum_fit = sum_fit)$fq_new
-
+  
   # get parameter values
   area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
   area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
@@ -260,7 +264,7 @@ fit_3peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   peak_sigma <- c(peak_sigma, sigma1)
   peak_sigma <- c(peak_sigma, sigma2)
   peak_sigma <- c(peak_sigma, sigma3)
-
+  
   roi_value_list <- list("mean" = peak_mean, "scale" = peak_scale, "sigma" = peak_sigma, "area" = peak_area, "qual" = fq)
   return(roi_value_list)
 }
@@ -281,12 +285,12 @@ fit_4peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   #' @param int_factor: Value used to calculate area under Gaussian curve (integer)
   #'
   #' @return roi_value_list: list of fit values for region of interest (list)
-
+  
   peak_mean <- NULL
   peak_area <- NULL
   peak_scale <- NULL
   peak_sigma <- NULL
-
+  
   # set range vectors for 4 peaks
   range1 <- c(max_index[1] - 2, max_index[1] - 1, max_index[1], max_index[1] + 1, max_index[1] + 2)
   range2 <- c(max_index[2] - 2, max_index[2] - 1, max_index[2], max_index[2] + 1, max_index[2] + 2)
@@ -318,7 +322,7 @@ fit_4peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   if (length(which(is.na(int_vector[range2]))) != 0) range2 <- range2[-which(is.na(int_vector[range2]))]
   if (length(which(is.na(int_vector[range3]))) != 0) range3 <- range3[-which(is.na(int_vector[range3]))]
   if (length(which(is.na(int_vector[range4]))) != 0) range4 <- range4[-which(is.na(int_vector[range4]))]
-
+  
   # fit 4 peaks, first separately, then together
   mu1 <- weighted.mean(mass_vector[range1], int_vector[range1])
   sigma1 <- get_stdev(mass_vector[range1], int_vector[range1])
@@ -343,16 +347,21 @@ fit_4peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   fitted_4peaks <- fit_4gaussians(mass_vector, int_vector, sigma1, sigma2, sigma3, sigma3, 
                                   p1[1], p1[2], p2[1], p2[2], p3[1], p3[2],  p4[1], p4[2], use_bounds)
   pc <- fitted_4peaks$par
-
+  print(pc)
+  if (is.null(pc)) {
+    roi_value_list <- list("mean" = 0, "scale" = 0, "sigma" = 0, "area" = 0, "qual" = 0)
+    return(roi_value_list)
+  }
+  
   # get fit quality
   sum_fit <-  (pc[2] * dnorm(mass_vector, pc[1], sigma1)) + 
-              (pc[4] * dnorm(mass_vector, pc[3], sigma2)) + 
-              (pc[6] * dnorm(mass_vector, pc[5], sigma3)) + 
-              (pc[8] * dnorm(mass_vector, pc[7], sigma3))
+    (pc[4] * dnorm(mass_vector, pc[3], sigma2)) + 
+    (pc[6] * dnorm(mass_vector, pc[5], sigma3)) + 
+    (pc[8] * dnorm(mass_vector, pc[7], sigma3))
   fq <- get_fit_quality(mass_vector, int_vector, 
                         sort(c(pc[1], pc[3], pc[5], pc[7]))[1], sort(c(pc[1], pc[3], pc[5], pc[7]))[4], 
                         resol, sum_fit = sum_fit)$fq_new
-
+  
   # get parameter values
   area1 <- estimate_area(pc[1], resol, pc[2], sigma1, int_factor)
   area2 <- estimate_area(pc[3], resol, pc[4], sigma2, int_factor)
@@ -374,7 +383,7 @@ fit_4peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   peak_sigma <- c(peak_sigma, sigma2)
   peak_sigma <- c(peak_sigma, sigma3)
   peak_sigma <- c(peak_sigma, sigma4)
-
+  
   roi_value_list <- list("mean" = peak_mean, "scale" = peak_scale, "sigma" = peak_sigma, "area" = peak_area, "qual" = fq)
   return(roi_value_list)
 }
