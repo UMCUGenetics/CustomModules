@@ -10,7 +10,7 @@ process SumAdducts {
        path(HMDBpart_main_file)
 
     output:
-       path('*_SummedAdducts.RData')
+       path('*_SummedAdducts.RData', optional: true)
 
     script:
         """

@@ -34,6 +34,10 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
         range1 <- c(max_index[1] - 2, max_index[1] - 1, max_index[1], max_index[1] + 1, max_index[1] + 2)
       }
       if (range1[1] == 0) range1 <- range1[-1]
+      #### bug fix ####
+      sigma <- get_stdev(mass_vector, int_vector)
+      if (sum(int_vector[range1]) == 0) return(list("mean" = mean(mass_vector), "scale" = 1, "sigma" = sigma, "qual" = 0))
+ 
       # remove NA
       if (length(which(is.na(int_vector[range1]))) != 0) {
         range1 <- range1[-which(is.na(int_vector[range1]))]
@@ -45,7 +49,12 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
     }
     
     p1 <- fitted_peak$par
-    
+    print(paste0("mass_vector:", mass_vector, "int_vector:", int_vector, "sigma:", sigma, "p1[1]:", p1[1], "p1[2]:", p1[2]))
+    if (is.null(p1)) {
+     roi_value_list <- list("mean" = 0, "scale" = 0, "sigma" = 0, "area" = 0, "qual" = 0)
+     return(roi_value_list)
+    }
+  
     # get new value for fit quality and scale
     fq_new <- get_fit_quality(mass_vector, int_vector, p1[1], p1[1], resol, p1[2], sigma)$fq_new
     scale_new <- 1.2 * scale
@@ -86,9 +95,9 @@ fit_1peak <- function(mass_vector2, mass_vector, int_vector, max_index, scale, r
       }
     }
   }
-  
+ 
   roi_value_list <- list("mean" = p1[1], "scale" = p1[2], "sigma" = sigma, "qual" = fq_new)
-  return(roi_value_list)
+  return(roi_value_list)	
 }
 
 fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, resol, use_bounds = FALSE,
@@ -142,7 +151,10 @@ fit_2peaks <- function(mass_vector2, mass_vector, int_vector, max_index, scale, 
   # combined
   fitted_2peaks <- fit_2gaussians(mass_vector, int_vector, sigma1, sigma2, p1[1], p1[2], p2[1], p2[2], use_bounds)
   pc <- fitted_2peaks$par
-  
+  if (is.null(pc)) {
+    roi_value_list <- list("mean" = 0, "scale" = 0, "sigma" = 0, "area" = 0, "qual" = 0)
+    return(roi_value_list)
+  }
   # get fit quality
   if (is.null(sigma2)) sigma2 <- sigma1
   sum_fit <- (pc[2] * dnorm(mass_vector, pc[1], sigma1)) +

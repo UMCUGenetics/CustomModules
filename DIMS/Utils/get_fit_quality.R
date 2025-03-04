@@ -15,6 +15,10 @@ get_fit_quality <- function(mass_vector, int_vector, mu_first, mu_last, resol, s
     mass_vector_int <- mass_vector
     int_vector_int <- int_vector
     # get new fit quality
+    #### bug fix ####
+    if (is.null(mu_first)) {
+      mu_first <- mass_vector_int[which(int_vector == max(int_vector))]
+    }
     fq_new <- mean(abs((scale * dnorm(mass_vector_int, mu_first, sigma)) - int_vector_int) / 
                rep((max(scale * dnorm(mass_vector_int, mu_first, sigma)) / 2), length(mass_vector_int)))
   } else {

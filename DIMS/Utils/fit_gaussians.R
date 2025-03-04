@@ -22,12 +22,16 @@ fit_1gaussian <- function(mass_vector, int_vector, sigma, query_mass, scale, use
     lower <- c(mass_vector[1], 0, mass_vector[1], 0)
     upper <- c(mass_vector[length(mass_vector)], Inf, mass_vector[length(mass_vector)], Inf)
     # get optimal value for fitted Gaussian curve
-    opt_fit <- optim(c(as.numeric(query_mass), as.numeric(scale)),
+    opt_fit <- tryCatch(optim(c(as.numeric(query_mass), as.numeric(scale)),
                      opt_f, control = list(maxit = 10000), method = "L-BFGS-B",
-                     lower = lower, upper = upper)
+                     lower = lower, upper = upper), warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   } else {
-    opt_fit <- optim(c(as.numeric(query_mass), as.numeric(scale)),
-                     opt_f, control = list(maxit = 10000))
+    opt_fit <- tryCatch(optim(c(as.numeric(query_mass), as.numeric(scale)),
+                        opt_f, control = list(maxit = 10000)),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   }
   return(opt_fit)
 }
@@ -64,26 +68,34 @@ fit_2gaussians <- function(mass_vector, int_vector, sigma1, sigma2,
     # get optimal value for 2 fitted Gaussian curves
     if (is.null(query_mass2) && is.null(scale2) && is.null(sigma2)) {
       sigma2 <- sigma1
-      opt_fit <- optim(c(as.numeric(query_mass1), as.numeric(scale1),
+      opt_fit <- tryCatch(optim(c(as.numeric(query_mass1), as.numeric(scale1),
                                 as.numeric(query_mass1), as.numeric(scale1)),
                                 opt_f, control = list(maxit = 10000),
-                                method = "L-BFGS-B", lower = lower, upper = upper)
+                                method = "L-BFGS-B", lower = lower, upper = upper),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
     } else {
-      opt_fit <- optim(c(as.numeric(query_mass1), as.numeric(scale1),
+      opt_fit <- tryCatch(optim(c(as.numeric(query_mass1), as.numeric(scale1),
                                 as.numeric(query_mass2), as.numeric(scale2)),
                                 opt_f, control = list(maxit = 10000),
-                                method = "L-BFGS-B", lower = lower, upper = upper)
+                                method = "L-BFGS-B", lower = lower, upper = upper),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
     }
   } else {
     if (is.null(query_mass2) && is.null(scale2) && is.null(sigma2)) {
       sigma2 <- sigma1
-      opt_fit <- optim(c(as.numeric(query_mass1), as.numeric(scale1),
+      opt_fit <- tryCatch(optim(c(as.numeric(query_mass1), as.numeric(scale1),
                          as.numeric(query_mass1), as.numeric(scale1)),
-                       opt_f, control = list(maxit = 10000))
+                       opt_f, control = list(maxit = 10000)),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
     } else {
-      opt_fit <- optim(c(as.numeric(query_mass1), as.numeric(scale1),
+      opt_fit <- tryCatch(optim(c(as.numeric(query_mass1), as.numeric(scale1),
                          as.numeric(query_mass2), as.numeric(scale2)),
-                       opt_f, control = list(maxit = 10000))
+                       opt_f, control = list(maxit = 10000)),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
     }
   }
   return(opt_fit)
@@ -125,16 +137,20 @@ fit_3gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3,
     upper <- c(mass_vector[length(mass_vector)], Inf, mass_vector[length(mass_vector)], Inf,
                mass_vector[length(mass_vector)], Inf)
     # get optimal value for 3 fitted Gaussian curves
-    opt_fit <- optim(c(query_mass1, scale1,
+    opt_fit <- tryCatch(optim(c(query_mass1, scale1,
                        query_mass2, scale2,
                        query_mass3, scale3),
                      opt_f, control = list(maxit = 10000),
-                     method = "L-BFGS-B", lower = lower, upper = upper)
+                     method = "L-BFGS-B", lower = lower, upper = upper),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   } else {
-    opt_fit <- optim(c(query_mass1, scale1,
+    opt_fit <- tryCatch(optim(c(query_mass1, scale1,
                        query_mass2, scale2,
                        query_mass3, scale3),
-                     opt_f, control = list(maxit = 10000))
+                     opt_f, control = list(maxit = 10000)),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   }
   return(opt_fit)
 }
@@ -179,18 +195,22 @@ fit_4gaussians <- function(mass_vector, int_vector, sigma1, sigma2, sigma3, sigm
     upper <- c(mass_vector[length(mass_vector)], Inf, mass_vector[length(mass_vector)], Inf,
                mass_vector[length(mass_vector)], Inf, mass_vector[length(mass_vector)], Inf)
     # get optimal value for 3 fitted Gaussian curves
-    opt_fit <- optim(c(query_mass1, scale1,
+    opt_fit <- tryCatch(optim(c(query_mass1, scale1,
                        query_mass2, scale2,
                        query_mass3, scale3,
                        query_mass4, scale4),
                      opt_f, control = list(maxit = 10000),
-                     method = "L-BFGS-B", lower = lower, upper = upper)
+                     method = "L-BFGS-B", lower = lower, upper = upper),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   } else {
-    opt_fit <- optim(c(query_mass1, scale1,
+    opt_fit <- tryCatch(optim(c(query_mass1, scale1,
                        query_mass2, scale2,
                        query_mass3, scale3,
                        query_mass4, scale4),
-                     opt_f, control = list(maxit = 10000))
+                     opt_f, control = list(maxit = 10000)),  warning = function(w){},
+                        error=function(e){},
+                        finally = {})
   }
   return(opt_fit)
 }
