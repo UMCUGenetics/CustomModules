@@ -182,34 +182,41 @@ positive_control_list <- column_list[positive_controls_index]
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  if (any(grep("^(P1002\\.)[[:digit:]]+_", positive_control_list)) &&
-        any(grep("^(P1003\\.)[[:digit:]]+_", positive_control_list)) &&
-        any(grep("^(P1005\\.)[[:digit:]]+_", positive_control_list))) {
+  if (all(sapply(c("^P1002", "^P1003", "^P1005"), 
+                 function(x) any(grepl(x, positive_control_list))))) {
     cat("All three positive controls are present")
   } else {
-    pos_contr_warning <- paste0(c("positive controls list is not complete. Only ",
-                                  positive_control_list, " is/are present"), collapse = " ")
+    pos_contr_warning <- paste("positive controls list is not complete. Only",
+                                paste(positive_control_list, collapse = ", "), "is/are present")
   }
   # you need all positive control samples, thus starting the script only if all are available
-  if (length(pos_contr_warning) == 0) {
+  if (length(positive_control_list) > 0) {
     # make positive control excel with specific HMDB_codes in combination with specific control samples
-    pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
-    pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
-    lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
-
-    pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
-    pku_codes <- c("HMDB0000159")
-    lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
-
-    pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
-    pku_names <- c("L-Phenylalanine")
-    lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
-
-    pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
-    pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
-    lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
-
-    positive_control <- rbind(pa_data, pku_data, lpi_data)
+    positive_control <- NULL
+    for (pos_ctrl in positive_control_list) {
+      if (any(grepl("^P1002", pos_ctrl))) {
+        pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
+        pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
+        pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
+        pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
+        positive_control <- rbind(positive_control, pa_data)
+      }
+      if (any(grepl("^P1003", pos_ctrl))) {
+        pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
+        pku_codes <- c("HMDB0000159")
+        pku_names <- c("L-Phenylalanine")
+        pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
+        positive_control <- rbind(positive_control, pku_data)
+      }
+      if (any(grepl("^P1005", pos_ctrl))) {
+        lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
+        lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+        lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
+        lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
+        positive_control <- rbind(positive_control, lpi_data)
+      }
+    } 
+    
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
     # extra information added to excel for future reference. made in beginning of this script
     positive_control$Matrix <- dims_matrix
@@ -222,7 +229,8 @@ if (z_score == 1) {
     positive_control$Zscore <- round_df(positive_control$Zscore, 2)
     write.xlsx(positive_control, file = paste0(outdir, "/", project, "_positive_control.xlsx"),
                sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE)
-  } else {
+  } 
+  if (length(pos_contr_warning) != 0) {
     write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
                 row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
