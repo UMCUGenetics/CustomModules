@@ -170,12 +170,11 @@ calculate_coefficient_of_variation <- function(intensity_list) {
   return(intensity_list_with_cv)
 }
 
-check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
+check_missing_mz <- function(mzmed_pgrp_ident, scanmode, highest_mz) {
   # retrieve all unique m/z values in whole numbers and check if all are available
   mzmed_pgrp_ident <- unique(round(mzmed_pgrp_ident, digits = 0))
   # m/z range for a standard run = 70-600
-  mz_range <- seq(70, 599, by = 1)
-  # 
+  mz_range <- seq(70, highest_mz, by = 1)
   mz_missing <- setdiff(mz_range, mzmed_pgrp_ident)
   # check if m/z are missing and make an .txt file with information
   mz_missing_group <- cumsum(c(1, diff(mz_missing) != 1))

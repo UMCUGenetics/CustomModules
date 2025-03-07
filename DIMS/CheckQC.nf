@@ -10,6 +10,7 @@ process CheckQC {
        path(identified_files)
        path(init_file) 
        val(analysis_id)
+       path(highest_mz_file)
 
     output:
        tuple path('*_IS_results.RData'), path('*_positive_control.RData'), optional: true
@@ -19,6 +20,12 @@ process CheckQC {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CheckQC.R $init_file $analysis_id $params.matrix $params.zscore $params.sst_components_file $params.export_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/CheckQC.R $init_file \
+                                                        $analysis_id \
+                                                        $params.matrix \
+                                                        $params.zscore \
+                                                        $params.sst_components_file \
+                                                        $highest_mz_file \
+                                                        $params.export_scripts_dir
         """
 }
