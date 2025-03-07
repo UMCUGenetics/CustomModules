@@ -1,17 +1,17 @@
 # Functions for GenerateExcel
 get_intensities_cols <- function(outlist, label) {
-  #' Get the indices of the control columns and a dataframe of the controls
+  #' Get the indices of the control columns and a dataframe of intensities of the controls
   #'
   #' @param outlist: dataframe with intensities for all samples
   #' @param label: string used by grep to get the correct columns
   #'
   #' @returns: list with 2 items: 
-  #'                  col_ids: vector with indices of the control columns
-  #'                  columns: dataframe with the intensities of the controls
-  col_ids <- grep(label, colnames(outlist), fixed = TRUE)
-  columns <- as.data.frame(outlist[, col_ids])
-  colnames(columns) <- colnames(outlist)[col_ids]
-  return(list(col_ids = col_ids, columns = columns))
+  #'                  col_idx: vector with indices of the control columns
+  #'                  df_intensities: dataframe with the intensities of the controls
+  col_idx <- grep(label, colnames(outlist), fixed = TRUE)
+  df_intensities <- as.data.frame(outlist[, col_idx])
+  colnames(df_intensities) <- colnames(outlist)[col_idx]
+  return(list(col_idx = col_idx, df_intensities = df_intensities))
 }
 
 calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, intensity_col_ids, startcol) {
@@ -115,4 +115,16 @@ save_to_rdata_and_txt <- function(df, file_name) {
   #' @param file_name: string with the file name
   save(df, file = paste0(file_name, ".RData"))
   write.table(df, file = paste0(file_name, ".txt"), sep = "\t", row.names = FALSE)
+}
+
+set_row_height_col_width_wb <- function(wb, sheetname, metabs_int_zscore_df, plot_width, plots_present) {
+  if (plots_present) {
+    openxlsx::setColWidths(wb, sheetname, cols = 1, widths = plot_width / 20)
+    openxlsx::setRowHeights(wb, sheetname, rows = c(seq(2, nrow(metabs_int_zscore_df) + 1)), heights = 560 / 4)
+    openxlsx::setColWidths(wb, sheetname, cols = c(seq(2, ncol(metabs_int_zscore_df))), widths = 20)
+  } else {
+    openxlsx::setRowHeights(wb, sheetname, rows = c(seq_len(nrow(metabs_int_zscore_df))), heights = 18)
+    openxlsx::setColWidths(wb, sheetname, cols = c(seq_len(ncol(metabs_int_zscore_df))), widths = 20)
+  }
+  return(wb)
 }
