@@ -1,6 +1,3 @@
-## adapted from getArea.R
-# variables with fixed values will be removed from function parameters
-# int_factor
 estimate_area <- function(mass_max, resol, scale, sigma, int_factor) {
   #' Estimate area of Gaussian curve
   #'
@@ -12,15 +9,12 @@ estimate_area <- function(mass_max, resol, scale, sigma, int_factor) {
   #'
   #' @return area_curve: Value for area under the Gaussian curve (float)
 
-  # avoid vectors that are too big (cannot allocate vector of size ...)
-  if (mass_max > 1200) return(0)
-
   # generate a mass_vector with equally spaced m/z values
   fwhm <- get_fwhm(mass_max, resol)
   mz_min <- mass_max - 2 * fwhm
   mz_max <- mass_max + 2 * fwhm
   mz_range <- mz_max - mz_min 
-  mass_vector2 <- seq(mz_min, mz_max, length = mz_range * int_factor)
+  mass_vector2 <- seq(mz_min, mz_max, length = 1000)
 
   # estimate area under the curve
   area_curve <- sum(scale * dnorm(mass_vector2, mass_max, sigma)) / 100
