@@ -203,7 +203,7 @@ if (z_score == 1) {
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
   # reorder outlist for Excel file
-  outlist_test <- outlist %>% 
+  outlist <- outlist %>% 
     relocate(c(HMDB_code, HMDB_name, avg.ctrls, sd.ctrls), .after = plots) %>%
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>% 
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
