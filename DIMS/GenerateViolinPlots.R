@@ -74,10 +74,13 @@ if (z_score == 1){
   # in: run_name, path_dims_file, header_row ||| out: output_dir, DIMS
 
   # path to DIMS excel file
-  path_dims_file <- paste0(run_name, ".xlsx")
+  # path_dims_file <- paste0(run_name, ".xlsx")
+  load("outlist.RData")
 
   # Load the excel file.
-  dims_xls <- readWorkbook(xlsxFile = path_dims_file, sheet = 1, startRow = header_row)
+  # dims_xls <- readWorkbook(xlsxFile = path_dims_file, sheet = 1, startRow = header_row)
+  dims_xls <- outlist
+  rm(outlist)
   if (exists("dims_xls")) {
     cat(paste0("\nThe excel file is succesfully loaded:\n -> ", path_dims_file))
   } else {
