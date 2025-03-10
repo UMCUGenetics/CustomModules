@@ -178,7 +178,6 @@ if (z_score == 1) {
             plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
       ggtitle(hmdb_name)
 
-    # boxplot(Intensities ~ Samples, data = intensities, main = hmdb_name)
     print(p)
     dev.off()
 
