@@ -65,11 +65,12 @@ sheetname <- "AllPeakGroups"
 wb_intensities <- openxlsx::createWorkbook("SinglePatient")
 openxlsx::addWorksheet(wb_intensities, sheetname)
 
-wb_helix_intensities <- openxlsx::createWorkbook("SinglePatient")
-openxlsx::addWorksheet(wb_helix_intensities, sheetname)
-
 # Add Z-scores and create plots
 if (z_score == 1) {
+  dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
+  wb_helix_intensities <- openxlsx::createWorkbook("SinglePatient")
+  openxlsx::addWorksheet(wb_helix_intensities, sheetname)
+  row_helix <- 2 # start on row 2 because of header
   # add a column for plots
   outlist <- cbind(plots = NA, outlist)
   # two columns will be added for mean and stdev of controls; Z-scores start at ncol + 3
@@ -105,6 +106,9 @@ if (z_score == 1) {
   save_to_rdata_and_txt(outlist_robustZ, "AdductSums_filtered_robustZ")
   # output filtered metabolites after removal of outliers
   save_to_rdata_and_txt(outlist_nooutliers, "AdductSums_filtered_outliersremovedZ")
+
+  # save outlist for GenerateQC step
+  save(outlist, file = "outlist.RData")
 
   # get the IDs of the patients and sort
   patient_ids <- unique(gsub("\\.[0-9]*", "", patient_columns))
@@ -160,19 +164,22 @@ if (z_score == 1) {
 
     # set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities$Samples)) * 40
-
-    tmp_png <- "plot.png"
+    
+    plot.new()
+    tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
     png(filename = tmp_png, width = plot_width, height = 280)
 
-    plot.new()
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
+    p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       theme_bw() +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 5, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("green", "#930000")) +
       theme(legend.position = "none", axis.text.x = element_text(angle = 90), axis.title = element_blank(),
             plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
       ggtitle(hmdb_name)
+
+    # boxplot(Intensities ~ Samples, data = intensities, main = hmdb_name)
+    print(p)
     dev.off()
 
     # place the plot in the Excel file
@@ -184,16 +191,18 @@ if (z_score == 1) {
                           height = 560,
                           width = plot_width,
                           units = "px")
-
+    
     if (hmdb_name %in% metab_list_helix) {
+      print(row_helix)
       openxlsx::insertImage(wb_helix_intensities,
                             sheetname,
                             tmp_png,
-                            startRow = row_index + 1,
+                            startRow = row_helix,
                             startCol = 1,
                             height = 560,
                             width = plot_width,
                             units = "px")
+      row_helix <- row_helix + 1
     }
   }
   wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, plot_width, plots_present = TRUE)
@@ -216,5 +225,4 @@ openxlsx::writeData(wb_intensities, sheet = 1, outlist, startCol = 1)
 openxlsx::saveWorkbook(wb_intensities, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities)
 
-# save outlist for GenerateQC step
-save(outlist, file = "outlist.RData")
+unlink("plots", recursive = TRUE)
