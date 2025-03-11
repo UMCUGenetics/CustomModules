@@ -45,7 +45,7 @@ sum_adducts <- function(peaklist, theor_mz, grpnames_long, adducts, batch_number
       } else {
         ints <- peaklist[metab, c(3:(length(grpnames_long) + 2))]
       }
-      total <- apply(ints, 2, sum)
+      total <- apply(ints, 2, sum, na.rm = TRUE)  # BUG FIX
 
       if (sum(total) != 0) {
         names <- c(names, compound)
