@@ -223,7 +223,9 @@ if (z_score == 1){
     zscore_controls <- dims_xls_ratios[, c(1, 2, zscore_cols[grep("C", colnames(dims_xls_ratios)[zscore_cols])])]
 
   }
-
+  ### BUG FIX NINA (REMOVE ROWS WITH NA VALUES)###
+  zscore_patients <- zscore_patients[complete.cases(zscore_patients), ]
+  zscore_controls <- zscore_controls[complete.cases(zscore_controls), ]
   #### STEP 4: Run the IEM algorithm #########
   # in: algorithm, file_expected_biomarkers_iem, zscore_patients ||| out: prob_score (+file)
   # algorithm taken from DOI: 10.3390/ijms21030979
@@ -243,7 +245,7 @@ if (z_score == 1){
       # number of positive zscores in patient
       pos <- sum(zscore_patients[, patient_index] > 0)
       # sort the column on zscore; NB: this sorts the entire object, not just one column
-      rank_patients <- rank_patients[order(-rank_patients[patient_index]), ]
+      rank_patients <- rank_patients[order(-rank_patients[[patient_index]]), ]
       # Rank all positive zscores highest to lowest
       rank_patients[1:pos, patient_index] <- as.numeric(ordered(-rank_patients[1:pos, patient_index]))
       # Rank all negative zscores lowest to highest
