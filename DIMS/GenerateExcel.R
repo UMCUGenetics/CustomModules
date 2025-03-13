@@ -16,6 +16,7 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
+outlier_threshold <- 2
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -43,6 +44,26 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
 							    (length(sorted_control_intensities) - nr_to_remove)]
   return(trimmed_control_intensities)
 }
+
+remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
+  #' Remove outliers per metabolite according to Grubb's test
+  #'
+  #' @param control_intensities: Vector with intensities for control samples
+  #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
+  #'
+  #' @return trimmed_control_intensities: Intensities trimmed for outliers
+  mean_permetabolite <- mean(as.numeric(control_intensities))
+  stdev_permetabolite <- sd(as.numeric(control_intensities))
+  zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
+  # remove intensities with a zscore_permetabolite greater than outlier_threshold
+  if (sum(zscores_permetabolite > outlier_threshold) > 0) {
+    trimmed_control_intensities <- control_intensities[-which(zscores_permetabolite > outlier_threshold)]
+  } else {
+    trimmed_control_intensities <- control_intensities
+  }
+  return(trimmed_control_intensities)
+}
+
 
 # Initialise
 plot <- TRUE
@@ -141,8 +162,9 @@ if (z_score == 1) {
   # if there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
-  # save outlist as it is and use it to calculate robust scaler
-  outlist_noZ <- outlist
+  # leave outlist as it is and use it to calculate robust scaler
+  outlist_robustZ    <- outlist
+  outlist_nooutliers <- outlist
 
   # calculate mean and sd for Control group
   outlist$avg.ctrls <- apply(control_columns, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
@@ -159,15 +181,15 @@ if (z_score == 1) {
   colnames(outlist)[startcol:ncol(outlist)] <- colnames_z
 
   # calculate robust scaler (Zscores minus outliers in Controls)
-  outlist_noZ$avg.ctrls <- 0
-  outlist_noZ$sd.ctrls  <- 0
+  outlist_robustZ$avg.ctrls <- 0
+  outlist_robustZ$sd.ctrls  <- 0
 
   # only calculate robust Z-scores if there are enough Controls
   if (length(control_col_ids) > 10) {
     for (metabolite_index in 1:nrow(outlist)) {
-      outlist_noZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
-      outlist_noZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_noZ[metabolite_index, control_col_ids],
+      outlist_robustZ$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist_robustZ[metabolite_index, control_col_ids],
                                                                     control_col_ids, perc))
     }
   }
@@ -175,21 +197,46 @@ if (z_score == 1) {
   # Make and add columns with robust zscores
   cnames_robust <- gsub("_Zscore", "_RobustZscore", colnames_z)
   for (i in intensity_col_ids) {
-    zscores_1col <- (as.numeric(as.vector(unlist(outlist_noZ[, i]))) - outlist_noZ$avg.ctrls) / outlist_noZ$sd.ctrls
-    outlist_noZ <- cbind(outlist_noZ, zscores_1col)
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_robustZ[, i]))) - outlist_robustZ$avg.ctrls) / outlist_robustZ$sd.ctrls
+    outlist_robustZ <- cbind(outlist_robustZ, zscores_1col)
   }
-  colnames(outlist_noZ)[startcol:ncol(outlist_noZ)] <- cnames_robust
+  colnames(outlist_robustZ)[startcol:ncol(outlist_robustZ)] <- cnames_robust
+
+  # calculate Z-scores after removal of outliers in Control samples
+  if (length(control_col_ids) > 10) {
+    for (metabolite_index in 1:nrow(outlist_nooutliers)) {
+      intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
+      outlist_nooutliers$avg.ctrls[metabolite_index] <-   mean(intensities_without_outliers)
+      outlist_nooutliers$sd.ctrls[metabolite_index]  <-     sd(intensities_without_outliers)
+      outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
+    }
+  }
+ 
+  cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
+  for (i in intensity_col_ids) {
+    zscores_1col <- (as.numeric(as.vector(unlist(outlist_nooutliers[, i]))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+    outlist_nooutliers <- cbind(outlist_nooutliers, zscores_1col)
+  }
+  # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
+  colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
+
 
   # output metabolites filtered on relevance
   save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
   write.table(outlist, file = paste0("AdductSums_filtered_Zscores.txt"), sep = "\t", row.names = FALSE)
   # output filtered metabolites with robust scaled Zscores
-  save(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.RData"))
-  write.table(outlist_noZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  save(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.RData"))
+  write.table(outlist_robustZ, file = paste0("AdductSums_filtered_robustZ.txt"), sep = "\t", row.names = FALSE)
+  # output filtered metabolites after removal of outliers
+  save(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.RData"))
+  write.table(outlist_nooutliers, file = paste0("AdductSums_filtered_outliersremovedZ.txt"), sep = "\t", row.names = FALSE)
 
   # get the IDs of the patients and sort
   patient_ids <- unique(as.vector(unlist(lapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), function(x) x[1]))))
   patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
+
+  # use outlier-removed outlist for generating Excel file
+  outlist <- outlist_nooutliers
 
   # for every row, make boxplot, insert into excel, and calculate Zscore for every patient
   temp_png <- NULL
