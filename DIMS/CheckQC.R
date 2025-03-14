@@ -14,8 +14,7 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 z_score <- cmd_args[4]
 sst_components_file <- cmd_args[5]
-highest_mz <- cmd_args[6]
-export_scripts_dir <- cmd_args[7]
+export_scripts_dir <- cmd_args[6]
 
 outdir <- "./"
 
@@ -301,11 +300,10 @@ mzmed_pgrp_ident_neg <- outlist_ident$mzmed.pgrp
 load(paste0(outdir, "/outlist_identified_positive.RData"))
 mzmed_pgrp_ident_pos <- outlist_ident$mzmed.pgrp
 rm(outlist_ident)
-highest_mz <- get(load(highest_mz_file))
 
 # Check for missing mz values, if present returned with vector of missing mz values
-mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative", highest_mz)
-mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive", highest_mz)
+mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative")
+mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive")
 
 # Write both scanmodes to missing_mz_warning file
 lapply(c(mz_missing_neg, mz_missing_pos), write, file = paste0(outdir, "/missing_mz_warning.txt"), append = TRUE, ncolumns = 1000)
