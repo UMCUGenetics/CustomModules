@@ -19,11 +19,12 @@ get_internal_standards <- function(internal_stand_list, scanmode, is_subset_filt
     internal_stand <- internal_stand %>% select(-c(HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
   internal_stand <- reshape2::melt(internal_stand, id.vars = c("HMDB_code", "HMDB_name"))
-  colnames(internal_stand) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+  colnames(internal_stand) <- c("HMDB_code", "HMDB_name", "Sample", "Intensity")
   internal_stand$Matrix <- dims_matrix
   internal_stand$Rundate <- rundate
   internal_stand$Project <- project
   internal_stand$Intensity <- as.numeric(as.character(internal_stand$Intensity))
+
   return(internal_stand)
 }
 
@@ -37,8 +38,14 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
   #' @param file_name: name of the file (string)
   #' @param plot_width: width of the plot (int)
   #' @param plot_height: height of the plot (int)
-  #' @param hline_data: values for the minimal intensity line (dataframe) 
-  #' 
+  #' @param hline_data: values for the minimal intensity line (dataframe)
+  #'
+
+  # Check if plot_data contains data
+  if (nrow(plot_data) == 0) {
+    return()
+  }
+
   if (plot_type == "barplot") {
     if (grepl("select", file_name)) {
       num_cols <- 2
@@ -47,19 +54,19 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
     }
     plot <- ggplot(plot_data, aes(Sample_level, Intensity)) +
       ggtitle(plot_title) +
-      geom_bar(aes(fill = HMDB.name), stat = "identity") +
+      geom_bar(aes(fill = HMDB_name), stat = "identity") +
       labs(x = "", y = "Intensity") +
-      facet_wrap(~HMDB.name, scales = "free_y", ncol = num_cols) +
+      facet_wrap(~HMDB_name, scales = "free_y", ncol = num_cols) +
       if (!is.null(hline_data)) {
-        geom_hline(aes(yintercept = z), subset(hline_data, HMDB.name %in% plot_data$HMDB.name))
+        geom_hline(aes(yintercept = int_line), subset(hline_data, HMDB_name %in% plot_data$HMDB_name))
       }
 
     plot <- theme_internal_stand_bar(plot)
   } else if (plot_type == "lineplot") {
     plot <- ggplot(plot_data, aes(Sample_level, Intensity)) +
       ggtitle(plot_title) +
-      geom_point(aes(col = HMDB.name)) +
-      geom_line(aes(col = HMDB.name, group = HMDB.name)) +
+      geom_point(aes(col = HMDB_name)) +
+      geom_line(aes(col = HMDB_name, group = HMDB_name)) +
       labs(x = "", y = "Intensity")
 
     plot <- theme_internal_stand_line(plot)
@@ -111,10 +118,10 @@ get_pos_ctrl_data <- function(outlist, sample_name, hmdb_codes, hmdb_names) {
   #' @returns: pos_ctrl_data: dataframe with intensities and Z-scores of the positive control metabolites 
   pos_ctrl_data <- outlist[hmdb_codes, c("HMDB_code", "name", sample_name)]
   pos_ctrl_data <- reshape2::melt(pos_ctrl_data, id.vars = c("HMDB_code", "name"))
-  colnames(pos_ctrl_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
-  pos_ctrl_data$HMDB.name <- hmdb_names
+  colnames(pos_ctrl_data) <- c("HMDB_code", "HMDB_name", "Sample", "Zscore")
+  pos_ctrl_data$HMDB_name <- hmdb_names
   if ("Propionylglycine" %in% hmdb_names) {
-    pos_ctrl_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
+    pos_ctrl_data$HMDB_code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
   }
   return(pos_ctrl_data)
 }
