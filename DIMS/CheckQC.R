@@ -86,9 +86,6 @@ save_internal_standard_plot(internal_stand_pos, "barplot", "Interne Standaard (P
 save_internal_standard_plot(internal_stand_summed, "barplot", "Interne Standaard (Summed)", outdir, "IS_bar_all_sum", plot_width, plot_height)
 
 ## Line plots with all IS
-# function for ggplot theme
-# add smaller legend in the "all IS line plots", otherwise out-of-range when more than 13 IS lines
-
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
@@ -109,35 +106,35 @@ if (dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      z = c(15000, 200000, 130000, 18000, 50000),
-      HMDB.name = internal_stand_neg_selection
+      int_line = c(15000, 200000, 130000, 18000, 50000),
+      HMDB_name = internal_stand_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      z = c(150000, 3300000, 1750000, 150000, 270000),
-      HMDB.name = internal_stand_pos_selection
+      int_line = c(150000, 3300000, 1750000, 150000, 270000),
+      HMDB_name = internal_stand_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      z = c(1300000, 2500000, 500000, 1800000, 1400000),
-      HMDB.name = internal_stand_sum_selection
+      int_line = c(1300000, 2500000, 500000, 1800000, 1400000),
+      HMDB_name = internal_stand_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      z = c(6500, 100000, 75000, 7500, 25000),
-      HMDB.name = internal_stand_neg_selection
+      int_line = c(6500, 100000, 75000, 7500, 25000),
+      HMDB_name = internal_stand_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      z = c(85000, 1000000, 425000, 70000, 180000),
-      HMDB.name = internal_stand_pos_selection
+      int_line = c(85000, 1000000, 425000, 70000, 180000),
+      HMDB_name = internal_stand_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      z = c(700000, 1250000, 150000, 425000, 300000),
-      HMDB.name = internal_stand_sum_selection
+      int_line = c(700000, 1250000, 150000, 425000, 300000),
+      HMDB_name = internal_stand_sum_selection
     )
 } else {
   add_min_intens_lines <- FALSE
@@ -147,9 +144,9 @@ if (dims_matrix == "DBS") {
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
-is_neg_selection <- subset(internal_stand_neg, HMDB.name %in% internal_stand_neg_selection)
-is_pos_selection <- subset(internal_stand_pos, HMDB.name %in% internal_stand_pos_selection)
-is_sum_selection <- subset(internal_stand_summed, HMDB.name %in% internal_stand_sum_selection)
+is_neg_selection <- subset(internal_stand_neg, HMDB_name %in% internal_stand_neg_selection)
+is_pos_selection <- subset(internal_stand_pos, HMDB_name %in% internal_stand_pos_selection)
+is_sum_selection <- subset(internal_stand_summed, HMDB_name %in% internal_stand_sum_selection)
 
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
@@ -215,8 +212,8 @@ if (z_score == 1) {
         lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
         positive_control <- rbind(positive_control, lpi_data)
       }
-    } 
-    
+    }
+
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
     # extra information added to excel for future reference. made in beginning of this script
     positive_control$Matrix <- dims_matrix
@@ -229,7 +226,7 @@ if (z_score == 1) {
     positive_control$Zscore <- round_df(positive_control$Zscore, 2)
     write.xlsx(positive_control, file = paste0(outdir, "/", project, "_positive_control.xlsx"),
                sheetName = "Sheet1", colNames = TRUE, rowNames = TRUE, append = FALSE)
-  } 
+  }
   if (length(pos_contr_warning) != 0) {
     write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
                 rowNames = FALSE, colNames = FALSE, quote = FALSE)
