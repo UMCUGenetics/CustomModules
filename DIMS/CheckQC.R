@@ -46,7 +46,7 @@ internal_stand_codes <- rownames(internal_stand_list)
 sample_names_nodata <- setdiff(names(repl_pattern), names(internal_stand_list))
 if (!is.null(sample_names_nodata)) {
   write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
-              rowNames = FALSE, colNames = FALSE, quote = FALSE)
+              row.names = FALSE, col.names = FALSE, quote = FALSE)
   for (sample_name in sample_names_nodata) {
     repl_pattern[[sample_name]] <- NULL
   }
@@ -225,11 +225,11 @@ if (z_score == 1) {
     # round the Z-scores to 2 digits
     positive_control$Zscore <- round_df(positive_control$Zscore, 2)
     write.xlsx(positive_control, file = paste0(outdir, "/", project, "_positive_control.xlsx"),
-               sheetName = "Sheet1", colNames = TRUE, rowNames = TRUE, append = FALSE)
+               sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE)
   }
   if (length(pos_contr_warning) != 0) {
     write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
-                rowNames = FALSE, colNames = FALSE, quote = FALSE)
+                row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
 }
 
