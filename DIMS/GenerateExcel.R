@@ -163,19 +163,20 @@ if (z_score == 1) {
 
     # set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities$Samples)) * 30
+    col_width <- plot_width * 2
 
     plot.new()
     tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
-    png(filename = tmp_png, width = plot_width, height = 480)
+    png(filename = tmp_png, width = plot_width, height = 280)
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
     p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
-      theme_bw() +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) + 
       scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
       theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
-            plot.title = element_text(hjust = 0.5, size = 15, face = "bold"), axis.text = element_text(size = 10, face = "bold")) +
+            plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
+            panel.background = element_rect(fill = "white", colour = "black")) +
       ggtitle(hmdb_name)
 
     print(p)
@@ -187,8 +188,8 @@ if (z_score == 1) {
                           tmp_png,
                           startRow = row_index + 1,
                           startCol = 1,
-                          height = 460,
-                          width = plot_width,
+                          height = 560,
+                          width = col_width,
                           units = "px")
 
     if (hmdb_name %in% metab_list_helix) {
@@ -199,17 +200,18 @@ if (z_score == 1) {
                             startRow = row_helix,
                             startCol = 1,
                             height = 560,
-                            width = plot_width,
+                            width = col_width,
                             units = "px")
       row_helix <- row_helix + 1
     }
   }
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, plot_width, plots_present = TRUE)
+  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, col_width, plots_present = TRUE)
 
-  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, outlist_helix, plot_width, plots_present = TRUE)
+  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, outlist_helix, col_width, plots_present = TRUE)
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
+  
   # reorder outlist for Excel file
   outlist <- outlist %>% 
     relocate(c(HMDB_code, HMDB_name, avg.ctrls, sd.ctrls), .after = plots) %>%
