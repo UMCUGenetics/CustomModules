@@ -28,7 +28,6 @@ plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
-imagesize_multiplier <- 2
 
 # setting outdir to export files to the working directory
 outdir <- "./"
@@ -163,19 +162,20 @@ if (z_score == 1) {
       ungroup()
 
     # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities$Samples)) * 40
+    plot_width <- length(unique(intensities$Samples)) * 30
 
     plot.new()
     tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
-    png(filename = tmp_png, width = plot_width, height = 280)
+    png(filename = tmp_png, width = plot_width, height = 480)
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
     p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       theme_bw() +
-      geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 5, aes(colour = type, fill = type)) +
-      scale_fill_manual(values = c("green", "#930000")) +
-      theme(legend.position = "none", axis.text.x = element_text(angle = 90), axis.title = element_blank(),
-            plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 7)) +
+      geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
+      scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) + 
+      scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
+      theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 15, face = "bold"), axis.text = element_text(size = 10, face = "bold")) +
       ggtitle(hmdb_name)
 
     print(p)
@@ -187,7 +187,7 @@ if (z_score == 1) {
                           tmp_png,
                           startRow = row_index + 1,
                           startCol = 1,
-                          height = 560,
+                          height = 460,
                           width = plot_width,
                           units = "px")
 
