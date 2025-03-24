@@ -164,7 +164,7 @@ if (z_score == 1) {
 
     # set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities$Samples)) * 40
-    
+
     plot.new()
     tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
     png(filename = tmp_png, width = plot_width, height = 280)
@@ -190,7 +190,7 @@ if (z_score == 1) {
                           height = 560,
                           width = plot_width,
                           units = "px")
-    
+
     if (hmdb_name %in% metab_list_helix) {
       print(row_helix)
       openxlsx::insertImage(wb_helix_intensities,
@@ -217,6 +217,8 @@ if (z_score == 1) {
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
   wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, plot_width = NULL, plots_present = FALSE)
+  outlist <- outlist %>%
+    relocate(c(HMDB_code, HMDB_name))
 }
 
 # write Excel file
