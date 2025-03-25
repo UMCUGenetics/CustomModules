@@ -16,7 +16,7 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
-outlier_threshold <- 2
+sst_components_file <- cmd_args[6]
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -64,7 +64,6 @@ remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
   return(trimmed_control_intensities)
 }
 
-
 # Initialise
 plot <- TRUE
 export <- TRUE
@@ -75,6 +74,9 @@ imagesize_multiplier <- 2
 outdir <- "./"
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
+# threshold for Grubb's outlier removal function. 
+outlier_threshold <- 2
+
 
 # load information on samples
 load(init_file)
@@ -109,26 +111,31 @@ index_neg <- which(rownames(outlist_neg_adducts_hmdb) %in% rownames(outlist_pos_
 index_pos <- which(rownames(outlist_pos_adducts_hmdb) %in% rownames(outlist_neg_adducts_hmdb))
 
 # Only continue with HMDB codes (rows) that were found in both positive mode and remove last column (hmdb_name)
-tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_pos_adducts_hmdb)[2] - 1)]
-tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
+tmp_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
+tmp_pos_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>% select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID)
+# tmp_hmdb_name_pos <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], dim(outlist_pos_adducts_hmdb)[2]]
 tmp_pos_left <- outlist_pos_adducts_hmdb[-index_pos, ]
 # same for negative mode
-tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], 1:(dim(outlist_neg_adducts_hmdb)[2] - 1)]
+tmp_neg <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
 tmp_neg_left <- outlist_neg_adducts_hmdb[-index_neg, ]
 
 # Combine positive and negative numbers and paste back HMDB column
-tmp <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
-rownames(tmp) <- rownames(tmp_pos)
-tmp <- cbind(tmp, "HMDB_name" = tmp_hmdb_name_pos)
-outlist <- rbind(tmp, tmp_pos_left, tmp_neg_left)
+combi_pos_neg <- apply(tmp_pos, 2, as.numeric) + apply(tmp_neg, 2, as.numeric)
+rownames(combi_pos_neg) <- rownames(tmp_pos)
+combi_pos_neg <- cbind(combi_pos_neg, tmp_pos_info)
+outlist <- rbind(combi_pos_neg, tmp_pos_left, tmp_neg_left)
+outlist <- outlist %>% arrange(rownames(outlist))
 
 # Filter for biological relevance
-peaks_in_list <- which(rownames(outlist) %in% rownames(rlvnc))
-outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc[rownames(outlist)[peaks_in_list], ]))
+peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
+rlvnc_in_list <- rlvnc %>% filter(HMDB_key %in% rownames(outlist)[peaks_in_list])
+rlvnc_in_list <- rlvnc_in_list %>% rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID)
+outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
+
 # filter out all irrelevant HMDBs
 outlist <- outlist %>%
   tibble::rownames_to_column("rowname") %>%
-  filter(!grepl("Exogenous|Drug|exogenous", relevance)) %>%
+  filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
   tibble::column_to_rownames("rowname")
 
 # Add HMDB_code column with all the HMDB ID and sort on it
@@ -162,8 +169,8 @@ if (z_score == 1) {
   # if there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
-  # leave outlist as it is and use it to calculate robust scaler
-  outlist_robustZ    <- outlist
+  # save outlist as it is and use it to calculate robust scaler and outlier removal
+  outlist_robustZ <- outlist
   outlist_nooutliers <- outlist
 
   # calculate mean and sd for Control group
@@ -183,6 +190,9 @@ if (z_score == 1) {
   # calculate robust scaler (Zscores minus outliers in Controls)
   outlist_robustZ$avg.ctrls <- 0
   outlist_robustZ$sd.ctrls  <- 0
+  outlist_nooutliers$avg.ctrls <- 0
+  outlist_nooutliers$sd.ctrls <- 0
+  outlist_nooutliers$nr.ctrls <- 0
 
   # only calculate robust Z-scores if there are enough Controls
   if (length(control_col_ids) > 10) {
@@ -217,9 +227,20 @@ if (z_score == 1) {
     zscores_1col <- (as.numeric(as.vector(unlist(outlist_nooutliers[, i]))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
     outlist_nooutliers <- cbind(outlist_nooutliers, zscores_1col)
   }
+      outlist_nooutliers$avg.ctrls[metabolite_index] <- mean(intensities_without_outliers)
+      outlist_nooutliers$sd.ctrls[metabolite_index]  <- sd(intensities_without_outliers)
+      outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
+    }
+  }
+
+  cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
+  outlist_nooutliers_zscores <- apply(outlist_nooutliers[, intensity_col_ids, drop = FALSE], 2, function(col) {
+    (as.numeric(col) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
+  }) 
+  outlist_nooutliers <- cbind(outlist_nooutliers, outlist_nooutliers_zscores)
+
   # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
   colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
-
 
   # output metabolites filtered on relevance
   save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
@@ -255,7 +276,7 @@ if (z_score == 1) {
         patient_int <- as.numeric(as.vector(unlist(outlist[p, names(patient_columns[1, ])
   						 [startsWith(names(patient_columns[1, ]), paste0(id, "."))]])))
       } else {
-	patient_int <- as.numeric(unlist(as.vector(patient_columns)))
+	      patient_int <- as.numeric(unlist(as.vector(patient_columns)))
       }
       intensities[[i + 1]] <- patient_int
     }
@@ -314,14 +335,14 @@ openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
 #### INTERNAL STANDARDS ####
-is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
-is_codes <- rownames(is_list)
+internal_stand_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
+internal_stand_codes <- rownames(internal_stand_list)
 
 # if all data from one samplename (for example P195.1) is filtered out in 3-averageTechReplicates 
 # because of too little data (threshold parameter)i, the init.RData (repl_pattern) will contain more sample_names 
 # than the peak data (IS), so this data needs to be removed first, before the retrieval of the summed adducts. 
 # Write sample_names to a log file, to let user know that this sample_name contained no data.
-sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
+sample_names_nodata <- setdiff(names(repl_pattern), names(internal_stand_list))
 if (!is.null(sample_names_nodata)) {
   write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"), 
 	      row.names = FALSE, col.names = FALSE, quote = FALSE)
@@ -332,53 +353,53 @@ if (!is.null(sample_names_nodata)) {
 }
 
 # Retrieve IS summed adducts
-is_summed <- is_list[c(names(repl_pattern), "HMDB_code")]
-is_summed$HMDB.name <- is_list$name
-is_summed <- reshape2::melt(is_summed, id.vars = c("HMDB_code", "HMDB.name"))
-colnames(is_summed) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-is_summed$Matrix <- dims_matrix
-is_summed$Rundate <- rundate
-is_summed$Project <- project
-is_summed$Intensity <- as.numeric(as.character(is_summed$Intensity))
+internal_stand_summed <- internal_stand_list[c(names(repl_pattern), "HMDB_code")]
+internal_stand_summed$HMDB.name <- internal_stand_list$name
+internal_stand_summed <- reshape2::melt(internal_stand_summed, id.vars = c("HMDB_code", "HMDB.name"))
+colnames(internal_stand_summed) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+internal_stand_summed$Matrix <- dims_matrix
+internal_stand_summed$Rundate <- rundate
+internal_stand_summed$Project <- project
+internal_stand_summed$Intensity <- as.numeric(as.character(internal_stand_summed$Intensity))
 
 # Retrieve IS positive mode
-is_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% is_codes))
-is_pos$HMDB_name <- is_list[match(row.names(is_pos), is_list$HMDB_code, nomatch = NA), "name"]
-is_pos$HMDB.code <- row.names(is_pos)
-is_pos <- reshape2::melt(is_pos, id.vars = c("HMDB.code", "HMDB_name"))
-colnames(is_pos) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-is_pos$Matrix <- dims_matrix
-is_pos$Rundate <- rundate
-is_pos$Project <- project
-is_pos$Intensity <- as.numeric(as.character(is_pos$Intensity))
+internal_stand_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% internal_stand_codes))
+internal_stand_pos$HMDB_name <- internal_stand_list[match(row.names(internal_stand_pos), internal_stand_list$HMDB_code, nomatch = NA), "name"]
+internal_stand_pos$HMDB.code <- row.names(internal_stand_pos)
+internal_stand_pos <- reshape2::melt(internal_stand_pos, id.vars = c("HMDB.code", "HMDB_name"))
+colnames(internal_stand_pos) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+internal_stand_pos$Matrix <- dims_matrix
+internal_stand_pos$Rundate <- rundate
+internal_stand_pos$Project <- project
+internal_stand_pos$Intensity <- as.numeric(as.character(internal_stand_pos$Intensity))
 
 # Retrieve IS negative mode
-is_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% is_codes))
-is_neg$HMDB_name <- is_list[match(row.names(is_neg), is_list$HMDB_code, nomatch = NA), "name"]
-is_neg$HMDB.code <- row.names(is_neg)
-is_neg <- reshape2::melt(is_neg, id.vars = c("HMDB.code", "HMDB_name"))
-colnames(is_neg) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
-is_neg$Matrix <- dims_matrix
-is_neg$Rundate <- rundate
-is_neg$Project <- project
-is_neg$Intensity <- as.numeric(as.character(is_neg$Intensity))
+internal_stand_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% internal_stand_codes))
+internal_stand_neg$HMDB_name <- internal_stand_list[match(row.names(internal_stand_neg), internal_stand_list$HMDB_code, nomatch = NA), "name"]
+internal_stand_neg$HMDB.code <- row.names(internal_stand_neg)
+internal_stand_neg <- reshape2::melt(internal_stand_neg, id.vars = c("HMDB.code", "HMDB_name"))
+colnames(internal_stand_neg) <- c("HMDB.code", "HMDB.name", "Sample", "Intensity")
+internal_stand_neg$Matrix <- dims_matrix
+internal_stand_neg$Rundate <- rundate
+internal_stand_neg$Project <- project
+internal_stand_neg$Intensity <- as.numeric(as.character(internal_stand_neg$Intensity))
 
 # Save results
-save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
+save(internal_stand_pos, internal_stand_neg, internal_stand_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
 
 # number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
 
 # change the order of the x-axis summed plots to a natural sorted one
-sample_naturalorder <- unique(as.character(is_summed$Sample))
+sample_naturalorder <- unique(as.character(internal_stand_summed$Sample))
 sample_naturalorder <- stringr::str_sort(sample_naturalorder, numeric = TRUE)
-is_summed$Sample_level <- factor(is_summed$Sample, levels = c(sample_naturalorder))
-is_pos$Sample_level <- factor(is_pos$Sample, levels = c(sample_naturalorder))
-is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
+internal_stand_summed$Sample_level <- factor(internal_stand_summed$Sample, levels = c(sample_naturalorder))
+internal_stand_pos$Sample_level <- factor(internal_stand_pos$Sample, levels = c(sample_naturalorder))
+internal_stand_neg$Sample_level <- factor(internal_stand_neg$Sample, levels = c(sample_naturalorder))
 
 ## bar plots with all IS
 # theme for all IS bar plots
-theme_is_bar <- function(my_plot) {
+theme_internal_stand_bar <- function(my_plot) {
   my_plot +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
     ggplot2::theme(legend.position = "none", 
@@ -388,42 +409,42 @@ theme_is_bar <- function(my_plot) {
 }
 
 # ggplot functions
-is_neg_bar_plot <- ggplot(is_neg, aes(Sample_level, Intensity)) +
+internal_stand_neg_bar_plot <- ggplot(internal_stand_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
-is_pos_bar_plot <- ggplot(is_pos, aes(Sample_level, Intensity)) +
+internal_stand_pos_bar_plot <- ggplot(internal_stand_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
-is_sum_bar_plot <- ggplot(is_summed, aes(Sample_level, Intensity)) +
+internal_stand_sum_bar_plot <- ggplot(internal_stand_summed, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Summed)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free_y")
 
 # add theme to ggplot functions
-is_neg_bar_plot <- theme_is_bar(is_neg_bar_plot)
-is_pos_bar_plot <- theme_is_bar(is_pos_bar_plot)
-is_sum_bar_plot <- theme_is_bar(is_sum_bar_plot)
+internal_stand_neg_bar_plot <- theme_internal_stand_bar(internal_stand_neg_bar_plot)
+internal_stand_pos_bar_plot <- theme_internal_stand_bar(internal_stand_pos_bar_plot)
+internal_stand_sum_bar_plot <- theme_internal_stand_bar(internal_stand_sum_bar_plot)
 
 # save plots to disk
 plot_width <- 9 + 0.35 * sample_count
 ggsave(paste0(outdir, "/plots/IS_bar_all_neg.png"), 
-       plot = is_neg_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_neg_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_bar_all_pos.png"), 
-       plot = is_pos_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_pos_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_bar_all_sum.png"), 
-       plot = is_sum_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_sum_bar_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 ## Line plots with all IS
 # function for ggplot theme
 # add smaller legend in the "all IS line plots", otherwise out-of-range when more than 13 IS lines
-theme_is_line <- function(my_plot) {
+theme_internal_stand_line <- function(my_plot) {
   my_plot +
     guides(shape = guide_legend(override.aes = list(size = 0.5)), 
 	   color = guide_legend(override.aes = list(size = 0.5))
@@ -436,44 +457,44 @@ theme_is_line <- function(my_plot) {
 }
 
 # ggplot functions
-is_neg_line_plot <- ggplot(is_neg, aes(Sample_level, Intensity)) +
+internal_stand_neg_line_plot <- ggplot(internal_stand_neg, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-is_pos_line_plot <- ggplot(is_pos, aes(Sample_level, Intensity)) +
+internal_stand_pos_line_plot <- ggplot(internal_stand_pos, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-is_sum_line_plot <- ggplot(is_summed, aes(Sample_level, Intensity)) +
+internal_stand_sum_line_plot <- ggplot(internal_stand_summed, aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
 # add theme to ggplot functions
-is_sum_line_plot <- theme_is_line(is_sum_line_plot)
-is_neg_line_plot <- theme_is_line(is_neg_line_plot)
-is_pos_line_plot <- theme_is_line(is_pos_line_plot)
+internal_stand_sum_line_plot <- theme_internal_stand_line(internal_stand_sum_line_plot)
+internal_stand_neg_line_plot <- theme_internal_stand_line(internal_stand_neg_line_plot)
+internal_stand_pos_line_plot <- theme_internal_stand_line(internal_stand_pos_line_plot)
 
 # save plots to disk
 plot_width <- 8 + 0.2 * sample_count
 ggsave(paste0(outdir, "/plots/IS_line_all_neg.png"), 
-       plot = is_neg_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_neg_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_line_all_pos.png"), 
-       plot = is_pos_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_pos_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_line_all_sum.png"), 
-       plot = is_sum_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_sum_line_plot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 ## bar plots with a selection of IS
-is_neg_selection <- c("2H2-Ornithine (IS)", "2H3-Glutamate (IS)", "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)", 
+internal_stand_neg_selection <- c("2H2-Ornithine (IS)", "2H3-Glutamate (IS)", "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)", 
 		      "13C6-Tyrosine (IS)")
-is_pos_selection <- c("2H4-Alanine (IS)", "13C6-Phenylalanine (IS)", "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)", 
+internal_stand_pos_selection <- c("2H4-Alanine (IS)", "13C6-Phenylalanine (IS)", "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)", 
 		      "2H9-Isovalerylcarnitine (IS)")
-is_sum_selection <- c("2H8-Valine (IS)", "2H3-Leucine (IS)", "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)", 
+internal_stand_sum_selection <- c("2H8-Valine (IS)", "2H3-Leucine (IS)", "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)", 
 		      "13C6-Tyrosine (IS)")
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
@@ -481,111 +502,111 @@ if (dims_matrix == "DBS") {
   hline_data_neg <-
     data.frame(
       z = c(15000, 200000, 130000, 18000, 50000),
-      HMDB.name = is_neg_selection
+      HMDB.name = internal_stand_neg_selection
     )
   hline_data_pos <-
     data.frame(
       z = c(150000, 3300000, 1750000, 150000, 270000),
-      HMDB.name = is_pos_selection
+      HMDB.name = internal_stand_pos_selection
     )
   hline_data_sum <-
     data.frame(
       z = c(1300000, 2500000, 500000, 1800000, 1400000),
-      HMDB.name = is_sum_selection
+      HMDB.name = internal_stand_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
   hline_data_neg <-
     data.frame(
       z = c(6500, 100000, 75000, 7500, 25000),
-      HMDB.name = is_neg_selection
+      HMDB.name = internal_stand_neg_selection
     )
   hline_data_pos <-
     data.frame(
       z = c(85000, 1000000, 425000, 70000, 180000),
-      HMDB.name = is_pos_selection
+      HMDB.name = internal_stand_pos_selection
     )
   hline_data_sum <-
     data.frame(
       z = c(700000, 1250000, 150000, 425000, 300000),
-      HMDB.name = is_sum_selection
+      HMDB.name = internal_stand_sum_selection
     )
 }
 
 # ggplot functions
-is_neg_selection_barplot <- ggplot(subset(is_neg, HMDB.name %in% is_neg_selection), aes(Sample_level, Intensity)) +
+internal_stand_neg_selection_barplot <- ggplot(subset(internal_stand_neg, HMDB.name %in% internal_stand_neg_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
   if (exists("hline_data_neg")) {
-    geom_hline(aes(yintercept = z), subset(hline_data_neg, HMDB.name %in% is_neg$HMDB.name))
+    geom_hline(aes(yintercept = z), subset(hline_data_neg, HMDB.name %in% internal_stand_neg$HMDB.name))
   }
 
-is_pos_selection_barplot <- ggplot(subset(is_pos, HMDB.name %in% is_pos_selection), aes(Sample_level, Intensity)) +
+internal_stand_pos_selection_barplot <- ggplot(subset(internal_stand_pos, HMDB.name %in% internal_stand_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
   if (exists("hline_data_pos")) {
-    geom_hline(aes(yintercept = z), subset(hline_data_pos, HMDB.name %in% is_pos$HMDB.name))
+    geom_hline(aes(yintercept = z), subset(hline_data_pos, HMDB.name %in% internal_stand_pos$HMDB.name))
   }
 
-is_sum_selection_barplot <- ggplot(subset(is_summed, HMDB.name %in% is_sum_selection), aes(Sample_level, Intensity)) +
+internal_stand_sum_selection_barplot <- ggplot(subset(internal_stand_summed, HMDB.name %in% internal_stand_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_bar(aes(fill = HMDB.name), stat = "identity") +
   labs(x = "", y = "Intensity") +
   facet_wrap(~HMDB.name, scales = "free", ncol = 2) +
   if (exists("hline_data_sum")) {
-    geom_hline(aes(yintercept = z), subset(hline_data_sum, HMDB.name %in% is_summed$HMDB.name))
+    geom_hline(aes(yintercept = z), subset(hline_data_sum, HMDB.name %in% internal_stand_summed$HMDB.name))
   }
 
 # add theme to ggplot functions
-is_neg_selection_barplot <- theme_is_bar(is_neg_selection_barplot)
-is_pos_selection_barplot <- theme_is_bar(is_pos_selection_barplot)
-is_sum_selection_barplot <- theme_is_bar(is_sum_selection_barplot)
+internal_stand_neg_selection_barplot <- theme_internal_stand_bar(internal_stand_neg_selection_barplot)
+internal_stand_pos_selection_barplot <- theme_internal_stand_bar(internal_stand_pos_selection_barplot)
+internal_stand_sum_selection_barplot <- theme_internal_stand_bar(internal_stand_sum_selection_barplot)
 
 # save plots to disk
 plot_width <- 9 + 0.35 * sample_count
 ggsave(paste0(outdir, "/plots/IS_bar_select_neg.png"), 
-       plot = is_neg_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+       plot = internal_stand_neg_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_bar_select_pos.png"), 
-       plot = is_pos_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+       plot = internal_stand_pos_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_bar_select_sum.png"), 
-       plot = is_sum_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
+       plot = internal_stand_sum_selection_barplot, height = plot_width / 2.0, width = plot_width, units = "in")
 
 ## line plots with a selection of IS
 # ggplot functions
-is_neg_selection_lineplot <- ggplot(subset(is_neg, HMDB.name %in% is_neg_selection), aes(Sample_level, Intensity)) +
+internal_stand_neg_selection_lineplot <- ggplot(subset(internal_stand_neg, HMDB.name %in% internal_stand_neg_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Neg)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-is_pos_selection_lineplot <- ggplot(subset(is_pos, HMDB.name %in% is_pos_selection), aes(Sample_level, Intensity)) +
+internal_stand_pos_selection_lineplot <- ggplot(subset(internal_stand_pos, HMDB.name %in% internal_stand_pos_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Pos)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
-is_sum_selection_lineplot <- ggplot(subset(is_summed, HMDB.name %in% is_sum_selection), aes(Sample_level, Intensity)) +
+internal_stand_sum_selection_lineplot <- ggplot(subset(internal_stand_summed, HMDB.name %in% internal_stand_sum_selection), aes(Sample_level, Intensity)) +
   ggtitle("Interne Standaard (Sum)") +
   geom_point(aes(col = HMDB.name)) +
   geom_line(aes(col = HMDB.name, group = HMDB.name)) +
   labs(x = "", y = "Intensity")
 
 # add theme to ggplot functions
-is_neg_selection_lineplot <- theme_is_line(is_neg_selection_lineplot)
-is_pos_selection_lineplot <- theme_is_line(is_pos_selection_lineplot)
-is_sum_selection_lineplot <- theme_is_line(is_sum_selection_lineplot)
+internal_stand_neg_selection_lineplot <- theme_internal_stand_line(internal_stand_neg_selection_lineplot)
+internal_stand_pos_selection_lineplot <- theme_internal_stand_line(internal_stand_pos_selection_lineplot)
+internal_stand_sum_selection_lineplot <- theme_internal_stand_line(internal_stand_sum_selection_lineplot)
 
 # save plots to disk
 plot_width <- 8 + 0.2 * sample_count
 ggsave(paste0(outdir, "/plots/IS_line_select_neg.png"), 
-       plot = is_neg_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_neg_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_line_select_pos.png"), 
-       plot = is_pos_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_pos_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
 ggsave(paste0(outdir, "/plots/IS_line_select_sum.png"), 
-       plot = is_sum_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
+       plot = internal_stand_sum_selection_lineplot, height = plot_width / 2.5, width = plot_width, units = "in")
 
 
 ### POSITIVE CONTROLS CHECK
@@ -615,21 +636,35 @@ if (z_score == 1) {
     pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
     lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
 
-    pa_codes <- c("HMDB00824", "HMDB00783", "HMDB00123")
-    pku_codes <- c("HMDB00159")
-    lpi_codes <- c("HMDB00904", "HMDB00641", "HMDB00182")
+    # pa_codes <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
+    # pku_codes <- c("HMDB0000159")
+    # lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
+    pku_codes <- c("HMDB0000159")
+    lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+
+    pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
+    pku_names <- c("L-Phenylalanine")
+    lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
 
     pa_data <- outlist[pa_codes, c("HMDB_code", "name", pa_sample_name)]
     pa_data <- reshape2::melt(pa_data, id.vars = c("HMDB_code", "name"))
     colnames(pa_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    # change HMDB names because propionylglycine doesn't have its own line, rowname is HMDB0000725 (4-hydroxyproline)
+    pa_data$HMDB.name <- pa_names
+    # change HMDB codes so the propionylglycine is the correct HMDB ID
+    pa_data$HMDB.code <- c("HMDB0000824", "HMDB0000783", "HMDB0000123")
 
     pku_data <- outlist[pku_codes, c("HMDB_code", "name", pku_sample_name)]
     pku_data <- reshape2::melt(pku_data, id.vars = c("HMDB_code", "name"))
     colnames(pku_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    pku_data$HMDB.name <- pku_names
 
     lpi_data <- outlist[lpi_codes, c("HMDB_code", "name", lpi_sample_name)]
     lpi_data <- reshape2::melt(lpi_data, id.vars = c("HMDB_code", "name"))
     colnames(lpi_data) <- c("HMDB.code", "HMDB.name", "Sample", "Zscore")
+    lpi_data$HMDB.name <- lpi_names
 
     positive_control <- rbind(pa_data, pku_data, lpi_data)
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
@@ -649,6 +684,90 @@ if (z_score == 1) {
 		row.names = FALSE, col.names = FALSE, quote = FALSE)
   }
 }
+
+### SST components output ####
+calculate_coefficient_of_variation <- function(intensity_list) {
+  #' Calculate coefficent of variation (cv) based on standard deviation (sd) and mean
+  #'
+  #' @param intensity_list: Matrix with intensities
+  #'
+  #' @return intensity_list_with_cv: Matrix with intensities and cv, mean, sd
+  for (col_nr in 1:ncol(intensity_list)) {
+    intensity_list[, col_nr] <- as.numeric(intensity_list[, col_nr])
+    intensity_list[, col_nr] <- round(intensity_list[, col_nr], 0)
+  }
+  sd_allsamples <- round(apply(intensity_list, 1, sd), 0)
+  mean_allsamples <- round(apply(intensity_list, 1, mean), 0)
+  cv_allsamples <- round(100 * sd_allsamples / mean_allsamples, 1)
+  intensity_list_with_cv <- cbind(CV_perc = cv_allsamples,
+                                  mean = mean_allsamples,
+                                  sd = sd_allsamples,
+                                  intensity_list)
+  return(intensity_list_with_cv)
+}
+
+# Internal standards lists, calculate coefficients of variation
+if ("plots" %in% colnames(internal_stand_list)) {
+  intensity_col_ids <- 2:(which(colnames(internal_stand_list) == "HMDB_name") - 1)
+} else {
+  intensity_col_ids <- 1:(which(colnames(internal_stand_list) == "HMDB_name") - 1)
+}
+# previous intensity_col_ids is based on the assumption that there are Controls and Patients
+internal_stand_list_intensities <- internal_stand_list[ , intensity_col_ids]
+internal_stand_list_intensities <- calculate_coefficient_of_variation(internal_stand_list_intensities)
+internal_stand_list_intensities <- cbind(IS_name = internal_stand_list$HMDB_name, internal_stand_list_intensities)
+
+# separate adducts of IS
+internal_stand_pos <- as.data.frame(subset(outlist_pos_adducts_hmdb, rownames(outlist_pos_adducts_hmdb) %in% internal_stand_codes))
+internal_stand_neg <- as.data.frame(subset(outlist_neg_adducts_hmdb, rownames(outlist_neg_adducts_hmdb) %in% internal_stand_codes))
+internal_stand_pos_intensities <- internal_stand_pos[ , -which(colnames(internal_stand_pos) == "HMDB_name")]
+internal_stand_neg_intensities <- internal_stand_neg[ , -which(colnames(internal_stand_neg) == "HMDB_name")]
+internal_stand_pos_intensities <- calculate_coefficient_of_variation(internal_stand_pos_intensities)
+internal_stand_neg_intensities <- calculate_coefficient_of_variation(internal_stand_neg_intensities)
+internal_stand_pos_intensities <- cbind(IS_name = internal_stand_pos$HMDB_name, internal_stand_pos_intensities)
+internal_stand_neg_intensities <- cbind(IS_name = internal_stand_neg$HMDB_name, internal_stand_neg_intensities)
+
+# SST components. 
+sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_rows <- which(outlist$HMDB_code %in% sst_comp$HMDB_ID)
+sst_list <- outlist[sst_rows, ]
+sst_colnrs <- grep("P1001", colnames(sst_list))
+if (length(sst_colnrs) > 0) {
+  sst_list_intensities <- sst_list[, sst_colnrs]
+  control_list_intensities <- sst_list[, control_col_ids]
+  control_list_cv <- calculate_coefficient_of_variation(control_list_intensities)
+  sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[ , "CV_perc"])
+} else {
+  sst_list_intensities <- sst_list[ , intensity_col_ids]
+}
+for (col_nr in 1:ncol(sst_list_intensities)) {
+  sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
+  if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
+  } else {
+    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr])
+  }
+}
+sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_intensities)
+
+# Create Excel file
+wb <- createWorkbook("IS_SST")
+addWorksheet(wb, "Internal Standards")
+openxlsx::writeData(wb, sheet = 1, internal_stand_list_intensities)
+setColWidths(wb, 1, cols = 1, widths = 24)
+addWorksheet(wb, "IS pos")
+openxlsx::writeData(wb, sheet = 2, internal_stand_pos_intensities)
+setColWidths(wb, 2, cols = 1, widths = 24)
+addWorksheet(wb, "IS neg")
+openxlsx::writeData(wb, sheet = 3, internal_stand_neg_intensities)
+setColWidths(wb, 3, cols = 1, widths = 24)
+addWorksheet(wb, "SST components")
+openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
+setColWidths(wb, 4, cols = 1:3, widths = 24)
+xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
+openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
+rm(wb)
+
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and mention in the results mail

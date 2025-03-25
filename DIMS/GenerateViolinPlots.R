@@ -344,8 +344,8 @@ if (z_score == 1){
 
     # from table expected_biomarkers, choose selected columns
     select_columns <- c("Disease", "HMDB_code", "HMDB_name")
-    select_col_nrs <- which(colnames(expected_biomarkers) %in% select_columns)
-    expected_biomarkers_select <- expected_biomarkers[, select_col_nrs]
+    #select_col_nrs <- which(colnames(expected_biomarkers) %in% select_columns)
+    expected_biomarkers_select <- expected_biomarkers %>% select(all_of(select_columns))    
     # remove duplicates
     expected_biomarkers_select <- expected_biomarkers_select[!duplicated(expected_biomarkers_select[, c(1, 2)]), ]
 
