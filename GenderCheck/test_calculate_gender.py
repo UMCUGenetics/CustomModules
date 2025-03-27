@@ -56,7 +56,8 @@ class TestValidateGender():
             calculate_gender.validate_gender(input_gender)
         assert (
             f"Provided gender {input_gender} is not allowed. "
-            f"Should be one of ['male', 'female', 'unknown', 'gender_data_not_found', 'sample_not_found', 'multiple_values_for_udf']."
+            "Should be one of ['male', 'female', 'unknown', 'gender_data_not_found', 'sample_not_found', "
+            "'multiple_values_for_udf']."
         ) == str(value_error.value)
 
 
