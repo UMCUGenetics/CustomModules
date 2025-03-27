@@ -162,12 +162,12 @@ if (z_score == 1) {
       ungroup()
 
     # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities$Samples)) * 30
+    plot_width <- length(unique(intensities$Samples)) * 40
     col_width <- plot_width * 2
 
     plot.new()
     tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
-    png(filename = tmp_png, width = plot_width, height = 280)
+    png(filename = tmp_png, width = plot_width, height = 300)
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
     p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
@@ -211,16 +211,16 @@ if (z_score == 1) {
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
-  
+
   # reorder outlist for Excel file
-  outlist <- outlist %>% 
-    relocate(c(HMDB_code, HMDB_name, avg.ctrls, sd.ctrls), .after = plots) %>%
-    relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>% 
+  outlist <- outlist %>%
+    relocate(c(HMDB_code, HMDB_name_all, descr, avg.ctrls, sd.ctrls), .after = plots) %>%
+    relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
   wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, plot_width = NULL, plots_present = FALSE)
   outlist <- outlist %>%
-    relocate(c(HMDB_code, HMDB_name))
+    relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
 }
 
 # write Excel file
