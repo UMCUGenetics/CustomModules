@@ -36,6 +36,7 @@ def translate_gender(gender):
         "Onbekend": "unknown",
         "unknown": "gender_data_not_found",
         "no_sample_found": "sample_not_found",
+        "multiple_values_for_udf": "multiple_values_for_udf",
     }
     if gender in translation:
         return translation[gender]
@@ -53,7 +54,7 @@ def validate_gender(gender):
         ValueError: If input gender is not allowed, a value error is raised. Its message includes the allowed options.
     """
     allowed_gender_options = ["male", "female"]
-    allowed_unknown_options = ["unknown", "gender_data_not_found", "sample_not_found"]
+    allowed_unknown_options = ["unknown", "gender_data_not_found", "sample_not_found", "multiple_values_for_udf"]
     if gender not in allowed_gender_options and gender not in allowed_unknown_options:
         raise ValueError(
             f"Provided gender {gender} is not allowed. Should be one of {allowed_gender_options + allowed_unknown_options}."
@@ -100,7 +101,7 @@ def compare_and_evaluate_gender(measured_gender, stated_gender):
     if measured_gender == stated_gender or stated_gender == "unknown":
         return "PASS", ""
     # gender / sample not found in database, fail
-    elif stated_gender == "gender_data_not_found" or stated_gender == "sample_not_found":
+    elif stated_gender in ["gender_data_not_found", "sample_not_found", "multiple_values_for_udf"]:
         return (
             "FAIL",
             f"Gender has value '{stated_gender}' in LIMS. Observed gender '{measured_gender}' could not be verified.",
