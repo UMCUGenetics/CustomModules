@@ -29,6 +29,7 @@ class TestIsValidRead():
     ("Onbekend", "unknown"),
     ("unknown", "gender_data_not_found"),
     ("no_sample_found", "sample_not_found"),
+    ("multiple_values_for_udf", "multiple_values_for_udf"),
     # Given gender should be returned
     ("MAN", "MAN")
 ])
@@ -38,7 +39,10 @@ def test_translate_gender(input_gender, exp_output):
 
 
 class TestValidateGender():
-    @pytest.mark.parametrize("input_gender", [("male"), ("female"), ("unknown"), ("gender_data_not_found"), ("sample_not_found")])
+    @pytest.mark.parametrize(
+        "input_gender",
+        [("male"), ("female"), ("unknown"), ("gender_data_not_found"), ("sample_not_found"), ("multiple_values_for_udf")]
+    )
     def test_allowed_genders(self, input_gender):
         try:
             calculate_gender.validate_gender(input_gender)
@@ -50,7 +54,11 @@ class TestValidateGender():
     def test_not_allowed_genders(self, input_gender):
         with pytest.raises(ValueError) as value_error:
             calculate_gender.validate_gender(input_gender)
-        assert f"Provided gender {input_gender} is not allowed. Should be one of ['male', 'female', 'unknown', 'gender_data_not_found', 'sample_not_found']." == str(value_error.value)
+        assert (
+            f"Provided gender {input_gender} is not allowed. "
+            "Should be one of ['male', 'female', 'unknown', 'gender_data_not_found', 'sample_not_found', "
+            "'multiple_values_for_udf']."
+        ) == str(value_error.value)
 
 
 class TestGetGenderFromBam():
@@ -86,6 +94,11 @@ class TestCompareGender():
             "male", "sample_not_found", "FAIL",
             "Gender has value 'sample_not_found' in LIMS. Observed gender 'male' could not be verified."
         ),
+        # stated_gender multiple_values_for_udf, should be FAIL
+        (
+            "male", "multiple_values_for_udf", "FAIL",
+            "Gender has value 'multiple_values_for_udf' in LIMS. Observed gender 'male' could not be verified."
+        )
     ])
     def test_compare_and_evaluate_gender(self, measured_gender, stated_gender, expected_qc, expected_msg):
         status, message = calculate_gender.compare_and_evaluate_gender(measured_gender, stated_gender)
