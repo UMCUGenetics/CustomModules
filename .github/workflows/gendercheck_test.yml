@@ -1,17 +1,18 @@
 # Source: https://github.com/marketplace/actions/install-poetry-action
-name: Utils Test
+name: GenderCheck Test
 on:
   pull_request:
-    paths: [Utils/**]
+    paths: [GenderCheck/**]
   push:
     branches: [master, develop]
-    paths: [Utils/**]
+    paths: [GenderCheck/**]
+
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
-      env:
-        working-directory: Utils/
+    env:
+        working-directory: GenderCheck/
     defaults:
       run:
         working-directory: ${{ env.working-directory }}
@@ -44,7 +45,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.working-directory }}/.venv
-          key: venv_utils-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv_gendercheck-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
       #----------------------------------------------
