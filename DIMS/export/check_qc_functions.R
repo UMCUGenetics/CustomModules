@@ -52,59 +52,42 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
     } else {
       num_cols <- NULL
     }
-    plot <- ggplot(plot_data, aes(Sample_level, Intensity)) +
-      ggtitle(plot_title) +
-      geom_bar(aes(fill = HMDB_name), stat = "identity") +
-      labs(x = "", y = "Intensity") +
-      facet_wrap(~HMDB_name, scales = "free_y", ncol = num_cols) +
-      if (!is.null(hline_data)) {
-        geom_hline(aes(yintercept = int_line), subset(hline_data, HMDB_name %in% plot_data$HMDB_name))
-      }
 
-    plot <- theme_internal_stand_bar(plot)
+    plot <- ggplot2::ggplot(plot_data, aes(Sample_level, Intensity)) +
+      ggplot2::geom_bar(aes(fill = HMDB_name), stat = "identity") +
+      ggplot2::facet_wrap(~HMDB_name, scales = "free_y", ncol = num_cols) +
+      ggplot2::ggtitle(plot_title) +
+      ggplot2::labs(x = "", y = "Intensity") +
+      ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+      ggplot2::theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
+        axis.text.y = element_text(size = 6)
+      )
+
+    # Add a horizontal line if there is a minimum intensity given
+    if (!is.null(hline_data)) {
+      plot <- plot + ggplot2::geom_hline(aes(yintercept = int_line), subset(hline_data, HMDB_name %in% plot_data$HMDB_name))
+    }
+
+
   } else if (plot_type == "lineplot") {
-    plot <- ggplot(plot_data, aes(Sample_level, Intensity)) +
-      ggtitle(plot_title) +
-      geom_point(aes(col = HMDB_name)) +
-      geom_line(aes(col = HMDB_name, group = HMDB_name)) +
-      labs(x = "", y = "Intensity")
-
-    plot <- theme_internal_stand_line(plot)
+    plot <- ggplot2::ggplot(plot_data, aes(Sample_level, Intensity)) +
+      ggplot2::geom_point(aes(col = HMDB_name)) +
+      ggplot2::geom_line(aes(col = HMDB_name, group = HMDB_name)) +
+      ggplot2::ggtitle(plot_title) +
+      ggplot2::labs(x = "", y = "Intensity") +
+      ggplot2::guides(shape = guide_legend(override.aes = list(size = 0.5)),
+        color = guide_legend(override.aes = list(size = 0.5))
+      ) +
+      ggplot2::theme(legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.7, "line"),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)
+      )
   }
 
-  ggsave(paste0(outdir, "/plots/", file_name, ".png"),
-         plot = plot, height = plot_height, width = plot_width, units = "in")
-}
-
-theme_internal_stand_bar <- function(my_plot) {
-  #' Theme for the internal standard bar plots
-  #'
-  #' @param my_plot: internal standard plot (ggplot2 object)
-  #'
-  #' @returns: plot with added theme (ggplot2 object)
-  my_plot +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-    ggplot2::theme(legend.position = "none",
-      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
-      axis.text.y = element_text(size = 6)
-    )
-}
-
-theme_internal_stand_line <- function(my_plot) {
-  #' Theme for the internal standard line plots
-  #'
-  #' @param my_plot: internal standard plot (ggplot2 object)
-  #'
-  #' @returns: plot with added theme (ggplot2 object)
-  my_plot +
-    guides(shape = guide_legend(override.aes = list(size = 0.5)),
-      color = guide_legend(override.aes = list(size = 0.5))
-    ) +
-    theme(legend.title = element_text(size = 8),
-      legend.text = element_text(size = 6),
-      legend.key.size = unit(0.7, "line"),
-      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)
-    )
+  ggplot2::ggsave(paste0(outdir, "/plots/", file_name, ".png"),
+                  plot = plot, height = plot_height, width = plot_width, units = "in")
 }
 
 get_pos_ctrl_data <- function(outlist, sample_name, hmdb_codes, hmdb_names) {
