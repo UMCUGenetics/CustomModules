@@ -333,9 +333,6 @@ if (z_score == 1){
 
     # preparation
     zscore_patients_copy <- zscore_patients
-    # for robust scaler, rename Z-score columns
-    colnames(zscore_patients) <- gsub("_RobustZscore", "_Zscore", colnames(zscore_patients))
-    colnames(zscore_controls) <- gsub("_RobustZscore", "_Zscore", colnames(zscore_controls))
     colnames(zscore_patients) <- gsub("_Zscore", "", colnames(zscore_patients))
     colnames(zscore_controls) <- gsub("_Zscore", "", colnames(zscore_controls))
 

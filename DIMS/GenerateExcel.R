@@ -223,17 +223,6 @@ if (z_score == 1) {
   }
  
   cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
-  for (i in intensity_col_ids) {
-    zscores_1col <- (as.numeric(as.vector(unlist(outlist_nooutliers[, i]))) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
-    outlist_nooutliers <- cbind(outlist_nooutliers, zscores_1col)
-  }
-      outlist_nooutliers$avg.ctrls[metabolite_index] <- mean(intensities_without_outliers)
-      outlist_nooutliers$sd.ctrls[metabolite_index]  <- sd(intensities_without_outliers)
-      outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
-    }
-  }
-
-  cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
   outlist_nooutliers_zscores <- apply(outlist_nooutliers[, intensity_col_ids, drop = FALSE], 2, function(col) {
     (as.numeric(col) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
   }) 
@@ -258,6 +247,7 @@ if (z_score == 1) {
 
   # use outlier-removed outlist for generating Excel file
   outlist <- outlist_nooutliers
+  colnames(outlist) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist))
 
   # for every row, make boxplot, insert into excel, and calculate Zscore for every patient
   temp_png <- NULL
@@ -276,7 +266,7 @@ if (z_score == 1) {
         patient_int <- as.numeric(as.vector(unlist(outlist[p, names(patient_columns[1, ])
   						 [startsWith(names(patient_columns[1, ]), paste0(id, "."))]])))
       } else {
-	      patient_int <- as.numeric(unlist(as.vector(patient_columns)))
+	patient_int <- as.numeric(unlist(as.vector(patient_columns)))
       }
       intensities[[i + 1]] <- patient_int
     }
