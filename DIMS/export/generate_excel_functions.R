@@ -117,14 +117,24 @@ save_to_rdata_and_txt <- function(df, file_name) {
   write.table(df, file = paste0(file_name, ".txt"), sep = "\t", row.names = FALSE)
 }
 
-set_row_height_col_width_wb <- function(wb, sheetname, metabs_int_zscore_df, plot_width, plots_present) {
+set_row_height_col_width_wb <- function(wb, sheetname, num_rows_df, num_cols_df, plot_width, plots_present) {
+  #' Change the row height and column width of the Excel
+  #'
+  #' @param wb: an openxlsx workbook (S4 object)
+  #' @param sheetname: name of the workbook sheet (string)
+  #' @param num_rows_df: number of rows in dataframe (int)
+  #' @param num_col_df: number of columns in dataframe (int)
+  #' @param plot_width: width of the plots to be added (int)
+  #' @param plots_present: boolean if plots are added to the workbook (boolean)
+  #'
+  #' @returns wb: a workbook object with changed row heights and column widths
   if (plots_present) {
     openxlsx::setColWidths(wb, sheetname, cols = 1, widths = plot_width / 20)
-    openxlsx::setRowHeights(wb, sheetname, rows = c(seq(2, nrow(metabs_int_zscore_df) + 1)), heights = 560 / 4)
-    openxlsx::setColWidths(wb, sheetname, cols = c(seq(2, ncol(metabs_int_zscore_df))), widths = 20)
+    openxlsx::setRowHeights(wb, sheetname, rows = c(seq(2, num_rows_df + 1)), heights = 560 / 4)
+    openxlsx::setColWidths(wb, sheetname, cols = c(seq(2, num_cols_df)), widths = 20)
   } else {
-    openxlsx::setRowHeights(wb, sheetname, rows = c(seq_len(nrow(metabs_int_zscore_df))), heights = 18)
-    openxlsx::setColWidths(wb, sheetname, cols = c(seq_len(ncol(metabs_int_zscore_df))), widths = 20)
+    openxlsx::setRowHeights(wb, sheetname, rows = c(seq_len(num_rows_df)), heights = 18)
+    openxlsx::setColWidths(wb, sheetname, cols = c(seq_len(num_cols_df)), widths = 20)
   }
   return(wb)
 }

@@ -97,7 +97,8 @@ if (z_score == 1) {
   outlist_robustZ <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
 
   # calculate Z-scores after removal of outliers in Control samples with grubbs test
-  outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol)
+  outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, 
+                                          intensity_col_ids, startcol)
 
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
@@ -205,9 +206,11 @@ if (z_score == 1) {
       row_helix <- row_helix + 1
     }
   }
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, col_width, plots_present = TRUE)
+  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), 
+                                                col_width, plots_present = TRUE)
 
-  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, outlist_helix, col_width, plots_present = TRUE)
+  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, nrow(outlist_helix), 
+                                                      ncol(outlist_helix), col_width, plots_present = TRUE)
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
@@ -218,7 +221,8 @@ if (z_score == 1) {
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, outlist, plot_width = NULL, plots_present = FALSE)
+  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), plot_width = NULL, 
+                                                plots_present = FALSE)
   outlist <- outlist %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
 }
