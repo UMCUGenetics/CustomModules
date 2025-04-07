@@ -17,7 +17,6 @@ dims_matrix <- cmd_args[3]
 hmdb_file <- cmd_args[4]
 z_score <- as.numeric(cmd_args[5])
 sst_components_file <- cmd_args[6]
-outlier_threshold <- 2
 
 round_df <- function(df, digits) {
   #' Round numbers to a set number of digits for numeric values
@@ -75,6 +74,9 @@ imagesize_multiplier <- 2
 outdir <- "./"
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
+# threshold for Grubb's outlier removal function. 
+outlier_threshold <- 2
+
 
 # load information on samples
 load(init_file)
@@ -167,7 +169,7 @@ if (z_score == 1) {
   # if there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
-  # save outlist as it is and use it to calculate robust scaler
+  # save outlist as it is and use it to calculate robust scaler and outlier removal
   outlist_robustZ <- outlist
   outlist_nooutliers <- outlist
 
@@ -214,12 +216,12 @@ if (z_score == 1) {
   if (length(control_col_ids) > 10) {
     for (metabolite_index in 1:nrow(outlist_nooutliers)) {
       intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist_nooutliers[metabolite_index, control_col_ids]), outlier_threshold)
-      outlist_nooutliers$avg.ctrls[metabolite_index] <- mean(intensities_without_outliers)
-      outlist_nooutliers$sd.ctrls[metabolite_index]  <- sd(intensities_without_outliers)
+      outlist_nooutliers$avg.ctrls[metabolite_index] <-   mean(intensities_without_outliers)
+      outlist_nooutliers$sd.ctrls[metabolite_index]  <-     sd(intensities_without_outliers)
       outlist_nooutliers$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
     }
   }
-
+ 
   cnames_nooutliers <- gsub("_Zscore", "_OutlierRemovedZscore", colnames_z)
   outlist_nooutliers_zscores <- apply(outlist_nooutliers[, intensity_col_ids, drop = FALSE], 2, function(col) {
     (as.numeric(col) - outlist_nooutliers$avg.ctrls) / outlist_nooutliers$sd.ctrls
@@ -228,7 +230,6 @@ if (z_score == 1) {
 
   # add column names for Z-scores without outliers. NB: 1 extra column so shift to +1
   colnames(outlist_nooutliers)[(startcol + 1):ncol(outlist_nooutliers)] <- cnames_nooutliers
-
 
   # output metabolites filtered on relevance
   save(outlist, file = paste0("AdductSums_filtered_Zscores.RData"))
@@ -243,6 +244,10 @@ if (z_score == 1) {
   # get the IDs of the patients and sort
   patient_ids <- unique(as.vector(unlist(lapply(strsplit(colnames(patient_columns), ".", fixed = TRUE), function(x) x[1]))))
   patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
+
+  # use outlier-removed outlist for generating Excel file
+  outlist <- outlist_nooutliers
+  colnames(outlist) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist))
 
   # for every row, make boxplot, insert into excel, and calculate Zscore for every patient
   temp_png <- NULL
