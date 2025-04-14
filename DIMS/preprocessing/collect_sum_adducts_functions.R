@@ -6,7 +6,7 @@ combine_sum_adduct_parts <- function(scanmode) {
   #' @returns: outlist_tot: dataframe with all adducts for one scanmodus
   adductsum_part_files <- list.files("./", pattern = scanmode)
   outlist_tot <- NULL
-  for (i in 1:length(adductsum_part_files)) {
+  for (i in seq_along(adductsum_part_files)) {
     load(adductsum_part_files[i])
     outlist_tot <- rbind(outlist_tot, adductsum)
   }

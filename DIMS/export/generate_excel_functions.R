@@ -5,7 +5,7 @@ get_intensities_cols <- function(outlist, label) {
   #' @param outlist: dataframe with intensities for all samples
   #' @param label: string used by grep to get the correct columns
   #'
-  #' @returns: list with 2 items: 
+  #' @returns: list with 2 items:
   #'                  col_idx: vector with indices of the control columns
   #'                  df_intensities: dataframe with the intensities of the controls
   col_idx <- grep(label, colnames(outlist), fixed = TRUE)
@@ -25,7 +25,7 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
   #' @param startcol: integer of the column from where to add the Z-score columns
   #'
   #' @returns: outlist: same dataframe as the input with added Z-score columns
-  
+
   # Calculate mean and sd
   if (zscore_type == "_Zscore") {
     # Calculate mean and sd with all controls

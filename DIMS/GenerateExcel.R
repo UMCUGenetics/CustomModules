@@ -97,7 +97,7 @@ if (z_score == 1) {
   outlist_robustZ <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
 
   # calculate Z-scores after removal of outliers in Control samples with grubbs test
-  outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, 
+  outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
                                           intensity_col_ids, startcol)
 
   # output metabolites filtered on relevance
@@ -173,7 +173,7 @@ if (z_score == 1) {
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
     p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
-      scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) + 
+      scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
       scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
       theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
             plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
@@ -206,10 +206,10 @@ if (z_score == 1) {
       row_helix <- row_helix + 1
     }
   }
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), 
+  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist),
                                                 col_width, plots_present = TRUE)
 
-  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, nrow(outlist_helix), 
+  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, nrow(outlist_helix),
                                                       ncol(outlist_helix), col_width, plots_present = TRUE)
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
@@ -221,7 +221,7 @@ if (z_score == 1) {
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), plot_width = NULL, 
+  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), plot_width = NULL,
                                                 plots_present = FALSE)
   outlist <- outlist %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))

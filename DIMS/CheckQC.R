@@ -179,12 +179,12 @@ positive_control_list <- column_list[positive_controls_index]
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  if (all(sapply(c("^P1002", "^P1003", "^P1005"), 
+  if (all(sapply(c("^P1002", "^P1003", "^P1005"),
                  function(x) any(grepl(x, positive_control_list))))) {
     cat("All three positive controls are present")
   } else {
     pos_contr_warning <- paste("positive controls list is not complete. Only",
-                                paste(positive_control_list, collapse = ", "), "is/are present")
+                               paste(positive_control_list, collapse = ", "), "is/are present")
   }
   # you need all positive control samples, thus starting the script only if all are available
   if (length(positive_control_list) > 0) {

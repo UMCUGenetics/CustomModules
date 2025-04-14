@@ -1,20 +1,20 @@
-get_internal_standards <- function(internal_stand_list, scanmode, is_subset_filter, dims_matrix, rundate, project) {
+get_internal_standards <- function(internal_stand_df, scanmode, is_subset_filter, dims_matrix, rundate, project) {
   #' Get the internal standards data
   #'
-  #' @param internal_stand_list: vector of HMDB IDs for the internal standards
-  #' @param scanmode: either positive or negative (string)
+  #' @param internal_stand_df: dataframe with all data for all the internal standards
+  #' @param scanmode: positive, negative or summed (string)
   #' @param is_subset_filter: filter/threshold for outlier control removal (float)
   #' @param dims_matrix: matrix used, e.g. Plasma, Research, etc. (string)
   #' @param rundate: date of pipeline run (Date object)
   #' @param project: project name (string)
   #'
-  #' @returns
+  #' @returns internal_stand: dataframe with the intensity of the internal standards for all samples
   if (scanmode == "summed") {
-    internal_stand <- internal_stand_list[c(names(is_subset_filter), "HMDB_code")]
-    internal_stand$HMDB_name <- internal_stand_list$name
+    internal_stand <- internal_stand_df[c(names(is_subset_filter), "HMDB_code")]
+    internal_stand$HMDB_name <- internal_stand_df$name
   } else {
-    internal_stand <- as.data.frame(subset(is_subset_filter, rownames(is_subset_filter) %in% rownames(internal_stand_list)))
-    internal_stand$HMDB_name <- internal_stand_list[match(row.names(internal_stand), internal_stand_list$HMDB_code, nomatch = NA), "name"]
+    internal_stand <- as.data.frame(subset(is_subset_filter, rownames(is_subset_filter) %in% rownames(internal_stand_df)))
+    internal_stand$HMDB_name <- internal_stand_df[match(row.names(internal_stand), internal_stand_df$HMDB_code, nomatch = NA), "name"]
     internal_stand$HMDB_code <- row.names(internal_stand)
     internal_stand <- internal_stand %>% select(-c(HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
@@ -98,7 +98,7 @@ get_pos_ctrl_data <- function(outlist, sample_name, hmdb_codes, hmdb_names) {
   #' @param hmdb_codes: HMDB codes of the positive control metabolites (vector)
   #' @param hmdb_names: HMDB names of the positive control metabolites (vector)
   #'
-  #' @returns: pos_ctrl_data: dataframe with intensities and Z-scores of the positive control metabolites 
+  #' @returns: pos_ctrl_data: dataframe with intensities and Z-scores of the positive control metabolites
   pos_ctrl_data <- outlist[hmdb_codes, c("HMDB_code", "name", sample_name)]
   pos_ctrl_data <- reshape2::melt(pos_ctrl_data, id.vars = c("HMDB_code", "name"))
   colnames(pos_ctrl_data) <- c("HMDB_code", "HMDB_name", "Sample", "Zscore")
@@ -146,10 +146,10 @@ calculate_coefficient_of_variation <- function(intensity_list) {
   #' @param intensity_list: Matrix with intensities
   #'
   #' @return intensity_list_with_cv: Matrix with intensities and cv, mean, sd
-  for (col_nr in seq_len(ncol(intensity_list))) {
-    intensity_list[, col_nr] <- as.numeric(intensity_list[, col_nr])
-    intensity_list[, col_nr] <- round(intensity_list[, col_nr], 0)
-  }
+  intensity_list <- as.data.frame(
+    apply(intensity_list, 2, function(x) round(as.numeric(x), 0)),
+    row.names = rownames(intensity_list)
+  )
   sd_allsamples <- round(apply(intensity_list, 1, sd), 0)
   mean_allsamples <- round(apply(intensity_list, 1, mean), 0)
   cv_allsamples <- round(100 * sd_allsamples / mean_allsamples, 1)
