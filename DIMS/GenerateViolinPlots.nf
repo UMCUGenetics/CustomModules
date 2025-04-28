@@ -5,7 +5,7 @@ process GenerateViolinPlots {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(excel_file)
+       path(outlist_zscores)
        val(analysis_id)
 
     output:
