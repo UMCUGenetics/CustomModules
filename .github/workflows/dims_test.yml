@@ -25,4 +25,4 @@ jobs:
         run: Rscript -e "install.packages('testthat')"
 
       - name: Run tests
-        run: Rscript -e "source('DIMS/tests/testthat.R')"
+        run: Rscript -e "source('tests/testthat.R')"
