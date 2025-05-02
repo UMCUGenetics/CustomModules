@@ -59,16 +59,17 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   nr_nonzero <- apply(ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)], 1, function(x) sum(x > 0))
   # add nrsamples column before intensity columns
   ints_sorted <- cbind(ints_sorted_bymz[, 1:3], nrsamples = nr_nonzero, ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)])
-  
+ 
   return(ints_sorted)
 }
 
-annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label) {
+annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tolerance) {
   #' annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
   #'
   #' @param ints_sorted: matrix of peak groups
   #' @param hmdb_add_iso: subset of HMDB (matrix)
   #' @param column_label: column name with appropriate m/z values for scan mode (string)
+  #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
   #'
   #' @return peakgrouplist_identified: matrix of peak groups with annotation
 
@@ -94,20 +95,28 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label) {
     # take reference mass
     reference_mass <- ints_sorted[row_number, "mzmed.pgrp"]
     # select indices for all HMDB entries with mass between +/- ppm tolerance
-    select_from_hmdb <- which(hmdb_add_iso[ , column_label] > (reference_mass - mz_tolerance) & 
-                                hmdb_add_iso[ , column_label] < (reference_mass + mz_tolerance))
+    select_from_hmdb <- which(hmdb_add_iso[, column_label] > (reference_mass - mz_tolerance) & 
+                              hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
     if (length(select_from_hmdb) > 0) {
       # get dataframe of all entries which are selected
       select_hmdb_df <- hmdb_add_iso[select_from_hmdb, ]
-      # separate into metabolites, metabolites with adducts and isotopes
-      grep_noiso_noadduct <- which(!grep("_", rownames(select_hmdb_df)))
+      # separate into main metabolites, metabolites with adducts and isotopes
+      # main metabolites have no "_" in their name
+      # if there are rownames with "_", choose only those without "_"
+      if (grepl("_", rownames(select_hmdb_df))) {
+        grep_noiso_noadduct <- which(!grep("_", rownames(select_hmdb_df)))
+      } else {
+        grep_noiso_noadduct <- c(1:nrow(select_hmdb_df))
+      }
       if (length(grep_noiso_noadduct) > 0) {
         select_metabolites <- select_hmdb_df[grep_noiso_noadduct, ]
       }
+      # find isotopes
       grep_isotopes <- grep("iso", rownames(select_hmdb_df))
       if (length(grep_isotopes) > 0) {
         select_isotopes <- select_hmdb_df[grep_isotopes, ]
       }
+      # find adducts
       grep_adducts <- grep("_", rownames(select_hmdb_df[-grep_isotopes, ]))
       if (length(grep_adducts) > 0) {
         select_adducts <- select_hmdb_df[grep_adducts, ]

@@ -40,8 +40,8 @@ sample_names <- unique(outlist_df$samplenr)
 ## peak grouping
 peakgrouplist <- NULL
 # limit the peaklist to the m/z range in the HMDB part, with ppm tolerance
-minmz_hmdbpart <- min(hmdb_add_iso[ , column_label])
-maxmz_hmdbpart <- max(hmdb_add_iso[ , column_label])
+minmz_hmdbpart <- min(hmdb_add_iso[, column_label])
+maxmz_hmdbpart <- max(hmdb_add_iso[, column_label])
 mz_tolerance <- (maxmz_hmdbpart * ppm) / 10^6
 outlist_mzrange <- outlist_df[outlist_df$mzmed.pkt > (minmz_hmdbpart - mz_tolerance) &
                               outlist_df$mzmed.pkt < (maxmz_hmdbpart + mz_tolerance), ]
@@ -52,7 +52,7 @@ outlist_sorted <- outlist_mzrange %>% dplyr::arrange(desc(height.pkt))
 ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance, sample_names)
 
 # do annotation
-peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso, column_label)
+peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso, column_label, mz_tolerance)
 
 # write output to file
 save(peakgrouplist_identified, file = paste0(batch_number, "_", scanmode, "_identified.RData"))
