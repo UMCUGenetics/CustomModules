@@ -21,8 +21,11 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
+      - name: Debug test files
+        run: ls -l *; ls -l tests/*
+
       - name: Install dependencies
         run: Rscript -e "install.packages('testthat')"
 
       - name: Run tests
-        run: Rscript -e "source('tests/testthat.R')"
+        run: Rscript tests/testthat.R
