@@ -161,6 +161,14 @@ calculate_coefficient_of_variation <- function(intensity_list) {
 }
 
 check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
+  #' Check if all m/z values are present
+  #'
+  #' @param mzmed_pgrp_ident: Vector of all m/z values for a specific scanmode
+  #' @param scanmode: String with the scanmode, positive or negative
+  #'
+  #' @return results_mz_missing: String with either the missing mz values or
+  #' message that no values are missing.
+
   # retrieve all unique m/z values in whole numbers and check if all are available
   mzmed_pgrp_ident <- unique(round(mzmed_pgrp_ident, digits = 0))
   # m/z range for a standard run = 70-600

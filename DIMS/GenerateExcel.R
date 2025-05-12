@@ -72,8 +72,8 @@ if (z_score == 1) {
   row_helix <- 2 # start on row 2 because of header
   # add a column for plots
   outlist <- cbind(plots = NA, outlist)
-  # two columns will be added for mean and stdev of controls; Z-scores start at ncol + 3
-  startcol <- ncol(outlist) + 3
+  # two columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
+  startcol <- ncol(outlist) + 4
 
   # Get columns with control intensities
   control_intensity_cols <- get_intensities_cols(outlist, control_label)
@@ -90,9 +90,6 @@ if (z_score == 1) {
   # if there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
-  # calculate Z-scores
-  outlist <- calculate_zscores(outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)
-
   # calculate robust Z-scores
   outlist_robustZ <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
 
@@ -100,6 +97,9 @@ if (z_score == 1) {
   outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
                                           intensity_col_ids, startcol)
 
+  # calculate Z-scores
+  outlist <- calculate_zscores(outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)
+  
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
   # output filtered metabolites with robust scaled Zscores
@@ -221,6 +221,7 @@ if (z_score == 1) {
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
+  save(outlist, file = "outlist.RData")
   wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), plot_width = NULL,
                                                 plots_present = FALSE)
   outlist <- outlist %>%

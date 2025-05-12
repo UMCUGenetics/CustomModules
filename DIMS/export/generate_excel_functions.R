@@ -27,50 +27,41 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
   #' @returns: outlist: same dataframe as the input with added Z-score columns
 
   # Calculate mean and sd
+  outlist$avg_ctrls <- 0
+  outlist$sd_ctrls <- 0
+  outlist$nr_ctrls <- length(control_cols)
+
   if (zscore_type == "_Zscore") {
     # Calculate mean and sd with all controls
-    outlist$avg.ctrls <- apply(control_cols, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
-    outlist$sd.ctrls  <- apply(control_cols, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
-  } else if (zscore_type == "_RobustZscore") {
-    outlist$avg.ctrls <- 0
-    outlist$sd.ctrls  <- 0
-    # Calculate mean and sd, remove outlier controls by using robust scaler
-    if (length(control_cols) > 10) {
-      for (metabolite_index in seq_len(nrow(outlist))) {
-        outlist$avg.ctrls[metabolite_index] <- mean(robust_scaler(outlist[metabolite_index, control_cols],
-                                                                  control_cols, stat_filter))
-        outlist$sd.ctrls[metabolite_index]  <-   sd(robust_scaler(outlist[metabolite_index, control_cols],
-                                                                  control_cols, stat_filter))
-      }
-    }
+    outlist$avg_ctrls <- apply(control_cols, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
+    outlist$sd_ctrls  <- apply(control_cols, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
   } else {
-    outlist$avg.ctrls <- 0
-    outlist$sd.ctrls <- 0
-    outlist$nr.ctrls <- 0
-    # Calculate mean, sd and number of remaining controls, remove outlier controls by using grubbs test
-    if (length(control_cols) > 10) {
+    if (length(control_cols) > 3) {
       for (metabolite_index in seq_len(nrow(outlist))) {
-        intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist[metabolite_index, control_cols]), stat_filter)
-        outlist$avg.ctrls[metabolite_index] <- mean(intensities_without_outliers)
-        outlist$sd.ctrls[metabolite_index]  <- sd(intensities_without_outliers)
-        outlist$nr.ctrls[metabolite_index]  <- length(intensities_without_outliers)
+        if (zscore_type == "_RobustZscore") {
+          # Calculate mean and sd, remove outlier controls by using robust scaler
+          outlist$avg_ctrls[metabolite_index] <- mean(robust_scaler(outlist[metabolite_index, control_cols],
+                                                                    control_cols, stat_filter))
+          outlist$sd_ctrls[metabolite_index]  <-   sd(robust_scaler(outlist[metabolite_index, control_cols],
+                                                                    control_cols, stat_filter))
+        } else {
+          # Calculate mean, sd and number of remaining controls, remove outlier controls by using grubbs test
+          intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist[metabolite_index, control_cols]), stat_filter)
+          outlist$avg_ctrls[metabolite_index] <- mean(intensities_without_outliers)
+          outlist$sd_ctrls[metabolite_index]  <- sd(intensities_without_outliers)
+          outlist$nr_ctrls[metabolite_index]  <- length(intensities_without_outliers)
+        }
       }
     }
   }
 
   # Calculate Z-scores
   outlist_zscores <- apply(outlist[, intensity_col_ids, drop = FALSE], 2, function(col) {
-    (as.numeric(col) - outlist$avg.ctrls) / outlist$sd.ctrls
+    (as.numeric(col) - outlist$avg_ctrls) / outlist$sd_ctrls
   })
   outlist <- cbind(outlist, outlist_zscores)
-
-  # Change colnames for new Z-score columns
-  if (zscore_type == "_OutlierRemovedZscore") {
-    # index + 1 because of added nr.ctrls column
-    colnames(outlist)[(startcol + 1):ncol(outlist)] <- paste0(colnames(outlist)[intensity_col_ids], zscore_type)
-  } else {
-    colnames(outlist)[startcol:ncol(outlist)] <- paste0(colnames(outlist)[intensity_col_ids], zscore_type)
-  }
+  colnames(outlist)[startcol:ncol(outlist)] <- paste0(colnames(outlist)[intensity_col_ids], zscore_type)
+  
   return(outlist)
 }
 
