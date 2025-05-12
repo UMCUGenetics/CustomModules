@@ -1,3 +1,18 @@
+check_number_of_controls <- function(outlist, min_num_controls, file_name) {
+  #' Check te number of controls for all metabolites and report findings in a txt file
+  #'
+  #' @param outlist: Dataframe with intensities and Z-scores for all samples and controls
+  #' @param min_num_controls: Integer that is the minimum number of controls
+
+  outlist_under_ctrls <- outlist %>% filter(nr_ctrls < min_num_controls) %>% select(HMDB_name, HMDB_code)
+  if (nrow(outlist_under_ctrls) == 0) {
+    writeLines(paste0("All metabolites have", min_num_controls, "or more controls."), file = file_name)
+  } else {
+    writeLines(paste0("These metabolites have less than", min_num_controls, "controls. \n"), file_name)
+    write.table(outlist_under_ctrls, file_name, append = TRUE, row.names = FALSE, sep = "\t")
+  }
+}
+
 get_internal_standards <- function(internal_stand_df, scanmode, is_subset_filter, dims_matrix, rundate, project) {
   #' Get the internal standards data
   #'
