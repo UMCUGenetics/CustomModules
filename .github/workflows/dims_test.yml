@@ -33,4 +33,4 @@ jobs:
         run: Rscript -e "install.packages('testthat')"
 
       - name: Run tests
-        run: Rscript DIMS/tests/testthat/testthat.R
+        run: Rscript tests/testthat/testthat.R
