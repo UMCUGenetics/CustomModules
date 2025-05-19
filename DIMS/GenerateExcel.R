@@ -507,17 +507,17 @@ if (dims_matrix == "DBS") {
 } else if (dims_matrix == "Plasma") {
   hline_data_neg <-
     data.frame(
-      z = c(6500, 100000, 75000, 7500, 25000),
+      z = c(70000, 700000, 700000, 65000, 350000),
       HMDB.name = internal_stand_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      z = c(85000, 1000000, 425000, 70000, 180000),
+      z = c(1500000, 9000000, 3000000, 400000, 700000),
       HMDB.name = internal_stand_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      z = c(700000, 1250000, 150000, 425000, 300000),
+      z = c(8000000, 12500000, 2500000, 3000000, 4000000),
       HMDB.name = internal_stand_sum_selection
     )
 }
