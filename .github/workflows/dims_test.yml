@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     container:
-      image: ghcr.io/umcugenetics/dims:v1.3.0
+      image: docker://umcugenbioinf/dims:1.3
     
     defaults:
         run:
