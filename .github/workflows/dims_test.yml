@@ -26,7 +26,7 @@ jobs:
         run: pwd; ls -l *; ls -l tests/testthat/*
 
       - name: Install dependencies
-        run: Rscript -e "install.packages('testthat')"
+        run: Rscript -e "install.packages(c('testthat', 'withr'))"
 
       - name: Run tests
         run: Rscript tests/testthat.R
