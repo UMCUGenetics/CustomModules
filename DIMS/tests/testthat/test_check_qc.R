@@ -5,7 +5,7 @@
 #            check_missing_mz
 library(ggplot2)
 library(dplyr)
-source("export/check_qc_functions.R")
+source("../../export/check_qc_functions.R")
 
 testthat::test_that("Get the internal standards data", {
   test_outlist <- read.delim(test_path("fixtures", "test_internal_standards.txt"))

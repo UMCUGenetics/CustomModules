@@ -8,7 +8,7 @@ library("openxlsx")
 suppressMessages(library("tidyr"))
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
-source("export/generate_excel_functions.R")
+source("../../export/generate_excel_functions.R")
 
 testthat::test_that("Get indices of columns and dataframe of intensities of a given label", {
   test_outlist <- read.delim(test_path("fixtures", "test_outlist.txt"))
