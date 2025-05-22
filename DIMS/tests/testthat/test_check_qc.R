@@ -8,7 +8,7 @@ library(dplyr)
 source("../../export/check_qc_functions.R")
 
 testthat::test_that("Get the internal standards data", {
-  test_outlist <- read.delim(test_path("fixtures", "test_internal_standards.txt"))
+  test_internal_standards <- read.delim(test_path("fixtures", "test_internal_standards.txt"))
   test_outlist <- read.delim(test_path("fixtures", "test_outlist_IS.txt"))
 
   repl_pattern <- list(
