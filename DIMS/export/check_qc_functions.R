@@ -4,12 +4,14 @@ check_number_of_controls <- function(outlist, min_num_controls, file_name) {
   #' @param outlist: Dataframe with intensities and Z-scores for all samples and controls
   #' @param min_num_controls: Integer that is the minimum number of controls
 
-  outlist_under_ctrls <- outlist %>% filter(nr_ctrls < min_num_controls) %>% select(HMDB_name, HMDB_code)
+  outlist_under_ctrls <- outlist %>%
+    filter(nr_ctrls < min_num_controls) %>%
+    select(HMDB_name, HMDB_code)
   if (nrow(outlist_under_ctrls) == 0) {
     writeLines(paste0("All metabolites have", min_num_controls, "or more controls."), file = file_name)
   } else {
     writeLines(paste0("These metabolites have less than", min_num_controls, "controls. \n"), file_name)
-    write.table(outlist_under_ctrls, file_name, append = TRUE, row.names = FALSE, sep = "\t")
+    write.table(outlist_under_ctrls, file_name, append = TRUE, row.names = FALSE, col.names = TRUE, sep = "\t")
   }
 }
 
@@ -74,7 +76,8 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
       ggplot2::ggtitle(plot_title) +
       ggplot2::labs(x = "", y = "Intensity") +
       ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-      ggplot2::theme(legend.position = "none",
+      ggplot2::theme(
+        legend.position = "none",
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
         axis.text.y = element_text(size = 6)
       )
@@ -83,18 +86,18 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
     if (!is.null(hline_data)) {
       plot <- plot + ggplot2::geom_hline(aes(yintercept = int_line), subset(hline_data, HMDB_name %in% plot_data$HMDB_name))
     }
-
-
   } else if (plot_type == "lineplot") {
     plot <- ggplot2::ggplot(plot_data, aes(Sample_level, Intensity)) +
       ggplot2::geom_point(aes(col = HMDB_name)) +
       ggplot2::geom_line(aes(col = HMDB_name, group = HMDB_name)) +
       ggplot2::ggtitle(plot_title) +
       ggplot2::labs(x = "", y = "Intensity") +
-      ggplot2::guides(shape = guide_legend(override.aes = list(size = 0.5)),
+      ggplot2::guides(
+        shape = guide_legend(override.aes = list(size = 0.5)),
         color = guide_legend(override.aes = list(size = 0.5))
       ) +
-      ggplot2::theme(legend.title = element_text(size = 8),
+      ggplot2::theme(
+        legend.title = element_text(size = 8),
         legend.text = element_text(size = 6),
         legend.key.size = unit(0.7, "line"),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)
@@ -102,7 +105,8 @@ save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir
   }
 
   ggplot2::ggsave(paste0(outdir, "/plots/", file_name, ".png"),
-                  plot = plot, height = plot_height, width = plot_width, units = "in")
+    plot = plot, height = plot_height, width = plot_width, units = "in"
+  )
 }
 
 get_pos_ctrl_data <- function(outlist, sample_name, hmdb_codes, hmdb_names) {
@@ -168,10 +172,12 @@ calculate_coefficient_of_variation <- function(intensity_list) {
   sd_allsamples <- round(apply(intensity_list, 1, sd), 0)
   mean_allsamples <- round(apply(intensity_list, 1, mean), 0)
   cv_allsamples <- round(100 * sd_allsamples / mean_allsamples, 1)
-  intensity_list_with_cv <- cbind(CV_perc = cv_allsamples,
-                                  mean = mean_allsamples,
-                                  sd = sd_allsamples,
-                                  intensity_list)
+  intensity_list_with_cv <- cbind(
+    CV_perc = cv_allsamples,
+    mean = mean_allsamples,
+    sd = sd_allsamples,
+    intensity_list
+  )
   return(intensity_list_with_cv)
 }
 
