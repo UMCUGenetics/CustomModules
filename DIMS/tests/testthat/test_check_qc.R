@@ -5,50 +5,11 @@
 #            check_missing_mz
 library(ggplot2)
 library(dplyr)
+source("export/check_qc_functions.R")
 
 testthat::test_that("Get the internal standards data", {
-  test_internal_standards <- data.frame(
-    plots = c(NA, NA, NA, NA),
-    C101.1 = c(100, 200, 300, 400),
-    C102.1 = c(125, 225, 325, 425),
-    P2.1 = c(150, 250, 350, 450),
-    P3.1 = c(175, 275, 375, 475),
-    HMDB_name = c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)"),
-    HMDB_name_all = c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)"),
-    HMDB_ID_all = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    sec_HMDB_ID = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    HMDB_key = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    sec_HMDB_ID_rlvc = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    name = c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)"),
-    relevance = c("Internal standard", "Internal standard", "Internal standard", "Internal standard"),
-    descr = c("Internal standard", "Internal standard", "Internal standard", "Internal standard"),
-    origin = c("Internalstandard", "Internalstandard", "Internalstandard", "Internalstandard"),
-    fluids = c("Internalstandard", "Internalstandard", "Internalstandard", "Internalstandard"),
-    tissue = c("Internalstandard", "Internalstandard", "Internalstandard", "Internalstandard"),
-    disease = c("Internalstandard", "Internalstandard", "Internalstandard", "Internalstandard"),
-    pathway = c("Internalstandard", "Internalstandard", "Internalstandard", "Internalstandard"),
-    HMDB_code = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    avg.ctrls = c(137.5, 237.5, 337.5, 437.5),
-    sd.ctrls = c(32.2749, 32.2749, 32.2749, 32.2749),
-    nr.ctrls = c(2, 2, 2, 2),
-    C101.1_Zscore = c(0.25, 1.65, 2.75, -0.35),
-    C102.2_Zscore = c(1.89, -0.42, 0.22, 1.11),
-    P2.1_Zscore = c(0.59, 1.36, -0.51, -0.32),
-    P3.1_Zscore = c(1.03, 0.28, 0.78, 0.68)
-  )
-  rownames(test_internal_standards) <- c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000")
-
-  test_outlist <- data.frame(
-    C101.1 = c(100, 200, 300, 400),
-    C102.1 = c(125, 225, 325, 425),
-    P2.1 = c(150, 250, 350, 450),
-    P3.1 = c(175, 275, 375, 475),
-    HMDB_name = c("metab_1 (IS)", "metab_85", "metab_3 (IS)", "metab_245"),
-    HMDB_ID_all = c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684"),
-    sec_HMDB_ID = c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684"),
-    HMDB_name_all = c("metab_1 (IS)", "metab_85", "metab_3 (IS)", "metab_245")
-  )
-  rownames(test_outlist) <- c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684")
+  test_outlist <- read.delim(test_path("fixtures", "test_internal_standards.txt"))
+  test_outlist <- read.delim(test_path("fixtures", "test_outlist_IS.txt"))
 
   repl_pattern <- list(
     C101.1 = c("test1", "test2"),
@@ -212,24 +173,15 @@ testthat::test_that("Calculate coefficient of variation", {
 })
 
 testthat::test_that("Get internal standard intensities", {
-  test_internal_standards <- data.frame(
-    C101.1 = c(100, 200, 300, 400),
-    C102.1 = c(125, 225, 325, 425),
-    P2.1 = c(150, 250, 350, 450),
-    P3.1 = c(175, 275, 375, 475),
-    HMDB_name = c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)"),
-    HMDB_name_all = c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)"),
-    HMDB_ID_all = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000"),
-    sec_HMDB_ID = c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000")
-  )
-  rownames(test_internal_standards) <- c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000")
-
+  test_outlist_IS <- read.delim(test_path("fixtures", "test_outlist_IS.txt"))
+  test_internal_standards <- test_outlist_IS[grepl("IS", test_outlist_IS$HMDB_name), ]
+  
   int_cols <- c(1, 2, 3, 4)
 
   expect_identical(colnames(get_is_intensities(test_internal_standards, int_cols = int_cols)),
                    c("IS_name", "CV_perc", "mean", "sd", "C101.1", "C102.1", "P2.1", "P3.1"))
   expect_equal(get_is_intensities(test_internal_standards, int_cols = int_cols)$CV_perc,
-               c(23.2, 13.4, 9.5, 7.3))
+               c(23.2, 9.5))
 
   is_codes <- c("HMDB100000", "HMDB300000")
 

@@ -5,7 +5,7 @@ source("../../preprocessing/collect_sum_adducts_functions.R")
 
 testthat::test_that("Combining summed adduct parts", {
   # It's necessary to copy/symlink the files to the current location for the combine_sum_adducts_parts function
-  test_files <- list.files("test_data/", "SummedAdducts_test.RData", full.names = TRUE)
+  test_files <- list.files("fixtures/", "SummedAdducts_test.RData", full.names = TRUE)
   file.symlink(file.path(test_files), getwd())
 
   expect_equal(rownames(combine_sum_adduct_parts("positive")),
@@ -13,6 +13,8 @@ testthat::test_that("Combining summed adduct parts", {
                  "HMDB009", "HMDB010", "HMDB012", "HMDB014"))
   expect_equal(colnames(combine_sum_adduct_parts("positive")),
                c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"))
+  
+  expect_error(combine_sum_adducts_parts("negative"))
 
   # Remove copied/symlinked files
   files_remove <- list.files("./", "SummedAdducts_test.RData", full.names = TRUE)
