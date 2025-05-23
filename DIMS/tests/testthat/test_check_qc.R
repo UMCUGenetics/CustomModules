@@ -64,7 +64,7 @@ testthat::test_that("Save internal standard plots", {
     )
   )
   expect_true(file.exists(out_file_barplot))
-  expect_snapshot_file(out_file_barplot, paste0(temp_dir, "plots/test_barplot.png"))
+  expect_snapshot_file(out_file_barplot, "test_barplot.png")
 
   file_name_lineplot <- "test_lineplot"
   out_file_lineplot <- file.path(temp_dir, "plots", paste0(file_name_lineplot, ".png"))
