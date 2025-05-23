@@ -4,7 +4,7 @@
 #            get_is_intensities, calculate_coefficient_of_variation,
 #            check_missing_mz
 library(ggplot2)
-library(dplyr)
+suppressMessages(library("dplyr"))
 source("../../export/check_qc_functions.R")
 
 testthat::test_that("Get the internal standards data", {
@@ -55,7 +55,7 @@ testthat::test_that("Save internal standard plots", {
   )
 
   file_name_barplot <- "test_barplot"
-  out_file_barplot <- file.path(temp_dir, "plots", paste0(file_name_barplot, ".png"))
+  out_file_barplot <- file.path("/plots", paste0(file_name_barplot, ".png"))
 
   expect_silent(
     save_internal_standard_plot(
@@ -64,10 +64,7 @@ testthat::test_that("Save internal standard plots", {
     )
   )
   expect_true(file.exists(out_file_barplot))
-  expect_snapshot_file(save_internal_standard_plot(
-    test_plot_data, "barplot", "Test barplot", temp_dir,
-    file_name_barplot, 6, 4, test_hline_data
-  ), paste0(file_name_barplot, ".png"))
+  expect_snapshot_file(out_file_barplot, paste0(temp_dir, "plots/test_barplot.png"))
 
   file_name_lineplot <- "test_lineplot"
   out_file_lineplot <- file.path(temp_dir, "plots", paste0(file_name_lineplot, ".png"))
