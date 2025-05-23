@@ -22,9 +22,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Test location
-        run: pwd; ls -l *; ls -l tests/testthat/*
-
       - name: Install dependencies
         run: Rscript -e "install.packages(c('testthat', 'withr'))"
 
