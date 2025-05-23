@@ -55,7 +55,7 @@ testthat::test_that("Save internal standard plots", {
   )
 
   file_name_barplot <- "test_barplot"
-  out_file_barplot <- file.path("/plots", paste0(file_name_barplot, ".png"))
+  out_file_barplot <- file.path(temp_dir, "/plots", paste0(file_name_barplot, ".png"))
 
   expect_silent(
     save_internal_standard_plot(
