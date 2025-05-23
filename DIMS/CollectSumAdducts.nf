@@ -8,10 +8,11 @@ process CollectSumAdducts {
        path(collect_files)
 
     output:
-       path('AdductSums_*.RData')
+       path('AdductSums_combined.RData'), emit: adductsums_combined
+       tuple path('AdductSums_positive.RData'), path('AdductSums_negative.RData'), emit: adductsums_scanmodes
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R 
+        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R $params.preprocessing_scripts_dir
         """
 }
