@@ -11,6 +11,6 @@ local_edition(3)
 
 results_tests <- test_dir("tests/testthat", reporter = "summary")
 
-if (any(vapply(results_tests, function(x) anyx$failed > 0), logical(1))) {
+if (any(vapply(results_tests, function(x) anyx$failed > 0, logical(1)))) {
   quit(status = 1)
 }
