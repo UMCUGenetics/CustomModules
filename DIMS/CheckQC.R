@@ -247,9 +247,9 @@ if ("plots" %in% colnames(internal_stand_list)) {
   intensity_col_ids <- 1:(which(colnames(internal_stand_list) == "HMDB_name") - 1)
 }
 
-internal_stand_list_intensities <- get_is_intensities(internal_stand_list, int_cols = intensity_col_ids)
-internal_stand_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = internal_stand_codes)
-internal_stand_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = internal_stand_codes)
+internal_stand_list_ints <- get_is_intensities(internal_stand_list, int_cols = intensity_col_ids)
+internal_stand_neg_ints <- get_is_intensities(outlist_tot_neg, is_codes = internal_stand_codes)
+internal_stand_pos_ints <- get_is_intensities(outlist_tot_pos, is_codes = internal_stand_codes)
 
 # SST components.
 sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
@@ -278,13 +278,13 @@ sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_inten
 # Create Excel file
 wb <- createWorkbook("IS_SST")
 addWorksheet(wb, "Internal Standards")
-openxlsx::writeData(wb, sheet = 1, internal_stand_list_intensities)
+openxlsx::writeData(wb, sheet = 1, internal_stand_list_ints)
 setColWidths(wb, 1, cols = 1, widths = 24)
 addWorksheet(wb, "IS pos")
-openxlsx::writeData(wb, sheet = 2, internal_stand_pos_intensities)
+openxlsx::writeData(wb, sheet = 2, internal_stand_pos_ints)
 setColWidths(wb, 2, cols = 1, widths = 24)
 addWorksheet(wb, "IS neg")
-openxlsx::writeData(wb, sheet = 3, internal_stand_neg_intensities)
+openxlsx::writeData(wb, sheet = 3, internal_stand_neg_ints)
 setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
 openxlsx::writeData(wb, sheet = 4, sst_list_intensities)

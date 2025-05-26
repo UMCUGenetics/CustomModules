@@ -8,7 +8,7 @@ check_number_of_controls <- function(outlist, min_num_controls, file_name) {
     filter(nr_ctrls < min_num_controls) %>%
     select(HMDB_name, HMDB_code)
   if (nrow(outlist_under_ctrls) == 0) {
-    writeLines(paste0("All metabolites have", min_num_controls, "or more controls."), file = file_name)
+    writeLines(paste0("All metabolites have", min_num_controls, "or more controls."), file_name)
   } else {
     writeLines(paste0("These metabolites have less than", min_num_controls, "controls. \n"), file_name)
     write.table(outlist_under_ctrls, file_name, append = TRUE, row.names = FALSE, col.names = TRUE, sep = "\t")
