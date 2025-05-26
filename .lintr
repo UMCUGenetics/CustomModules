@@ -2,5 +2,5 @@ linters: linters_with_defaults(
     line_length_linter(127)
     object_usage_linter = NULL,
     return_linter = NULL
-)
+  )
 encoding: "UTF-8"
