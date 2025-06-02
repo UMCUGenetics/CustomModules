@@ -13,14 +13,13 @@ testthat::test_that("Combining summed adduct parts", {
                  "HMDB009", "HMDB010", "HMDB012", "HMDB014"))
   expect_equal(colnames(combine_sum_adduct_parts("positive")),
                c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"))
-  
+
   expect_error(combine_sum_adducts_parts("negative"))
 
   # Remove copied/symlinked files
   files_remove <- list.files("./", "SummedAdducts_test.RData", full.names = TRUE)
   file.remove(files_remove)
 })
-
 
 testthat::test_that("Combining intensities of positive and negative scanmodes", {
   test_outlist_pos <- data.frame(

@@ -1,4 +1,8 @@
+### Functions used to create mock dataframes used for unit testing ###
+
 make_test_outlist_df <- function() {
+  #' Makes a test dataframe with mock intensities and information for 12 controls and 2 patients.
+  #' This dataframe is then saved as a comma separated file.
   test_outlist <- data.frame(
     plots = c(NA, NA, NA, NA),
     C101.1 = c(1000, 1200, 1300, 1400),
@@ -32,11 +36,13 @@ make_test_outlist_df <- function() {
     HMDB_code = c("HMDB001", "HMDB002", "HMDB003", "HMDB004")
   )
   rownames(test_outlist) <- c("HMDB001", "HMDB002", "HMDB003", "HMDB004")
-  
+
   write.table(test_outlist, file = "test_outlist.txt", sep = "\t")
 }
 
 make_control_intensities_df <- function() {
+  #' Makes a test dataframe with mock intensities for 12 controls.
+  #' This dataframe is then saved as a comma separated file.
   control_intensities <- data.frame(
     C101.1 = c(1000, 1200, 1300, 1400),
     C102.1 = c(1100, 1700, 925, 1125),
@@ -52,11 +58,13 @@ make_control_intensities_df <- function() {
     C112.1 = c(1250, 975, 1450, 1950)
   )
   rownames(control_intensities) <- c("HMDB001", "HMDB002", "HMDB003", "HMDB004")
-  
+
   write.table(control_intensities, file = "tests/testthat/fixtures/test_control_intensities.txt", sep = "\t")
 }
 
 make_internal_standards_df <- function() {
+  #' Makes a test dataframe with mock intensities, information and Z-scores for internal standards (IS).
+  #' This dataframe is then saved as a comma separated file.
   test_internal_standards <- data.frame(
     plots = c(NA, NA, NA, NA),
     C101.1 = c(100, 200, 300, 400),
@@ -87,12 +95,14 @@ make_internal_standards_df <- function() {
     P3.1_Zscore = c(1.03, 0.28, 0.78, 0.68)
   )
   rownames(test_internal_standards) <- c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000")
-  
+
   write.table(test_internal_standards, file = "tests/testthat/fixtures/test_internal_standards.txt", sep = "\t")
 }
 
-make_test_outlist_IS_df <- function() {
-  test_outlist_IS <- data.frame(
+make_test_outlist_is_df <- function() {
+  #' Makes a test dataframe with mock intensities for internal standards (IS) and normal metabolites.
+  #' This dataframe is then saved as a comma separated file.
+  test_outlist_is <- data.frame(
     C101.1 = c(100, 200, 300, 400),
     C102.1 = c(125, 225, 325, 425),
     P2.1 = c(150, 250, 350, 450),
@@ -102,16 +112,7 @@ make_test_outlist_IS_df <- function() {
     sec_HMDB_ID = c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684"),
     HMDB_name_all = c("metab_1 (IS)", "metab_85", "metab_3 (IS)", "metab_245")
   )
-  rownames(test_outlist_IS) <- c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684")
-  
-  write.table(test_outlist_IS, file = "tests/testthat/fixtures/test_outlist_IS.txt", sep = "\t")
+  rownames(test_outlist_is) <- c("HMDB100000", "HMDB68425", "HMDB300000", "HMDB84684")
+
+  write.table(test_outlist_is, file = "tests/testthat/fixtures/test_outlist_IS.txt", sep = "\t")
 }
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-# unit tests for CheckQC
+# unit tests for GenerateQCOutput
 # functions: get_internal_standards, save_internal_standard_plot,
 #            get_pos_ctrl_data, round_df,
 #            get_is_intensities, calculate_coefficient_of_variation,

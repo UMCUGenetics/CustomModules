@@ -19,7 +19,7 @@ export_scripts_dir <- cmd_args[6]
 outdir <- "./"
 
 # load in function scripts
-source(paste0(export_scripts_dir, "check_qc_functions.R"))
+source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
 
 # load init files
 load(init_file)
@@ -50,8 +50,10 @@ internal_stand_codes <- rownames(internal_stand_list)
 # if not write sample name to a log file.
 sample_names_nodata <- setdiff(names(repl_pattern), names(internal_stand_list))
 if (!is.null(sample_names_nodata)) {
-  write.table(sample_names_nodata, file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
-              row.names = FALSE, col.names = FALSE, quote = FALSE)
+  write.table(sample_names_nodata,
+    file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
+    row.names = FALSE, col.names = FALSE, quote = FALSE
+  )
   for (sample_name in sample_names_nodata) {
     repl_pattern[[sample_name]] <- NULL
   }
@@ -86,25 +88,52 @@ internal_stand_neg$Sample_level <- factor(internal_stand_neg$Sample, levels = c(
 plot_width <- 9 + 0.35 * sample_count
 plot_height <- plot_width / 2.5
 
-save_internal_standard_plot(internal_stand_neg, "barplot", "Interne Standaard (Neg)", outdir, "IS_bar_all_neg", plot_width, plot_height)
-save_internal_standard_plot(internal_stand_pos, "barplot", "Interne Standaard (Pos)", outdir, "IS_bar_all_pos", plot_width, plot_height)
-save_internal_standard_plot(internal_stand_summed, "barplot", "Interne Standaard (Summed)", outdir, "IS_bar_all_sum", plot_width, plot_height)
+save_internal_standard_plot(
+  internal_stand_neg, "barplot", "Interne Standaard (Neg)", outdir,
+  "IS_bar_all_neg", plot_width, plot_height
+)
+save_internal_standard_plot(
+  internal_stand_pos, "barplot", "Interne Standaard (Pos)", outdir,
+  "IS_bar_all_pos", plot_width, plot_height
+)
+save_internal_standard_plot(
+  internal_stand_summed, "barplot", "Interne Standaard (Summed)", outdir,
+  "IS_bar_all_sum", plot_width, plot_height
+)
 
 ## Line plots with all IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
-save_internal_standard_plot(internal_stand_neg, "lineplot", "Interne Standaard (Neg)", outdir, "IS_line_all_neg", plot_width, plot_height)
-save_internal_standard_plot(internal_stand_pos, "lineplot", "Interne Standaard (Pos)", outdir, "IS_line_all_pos", plot_width, plot_height)
-save_internal_standard_plot(internal_stand_summed, "lineplot", "Interne Standaard (Sum)", outdir, "IS_line_all_sum", plot_width, plot_height)
+save_internal_standard_plot(
+  internal_stand_neg, "lineplot", "Interne Standaard (Neg)",
+  outdir, "IS_line_all_neg", plot_width, plot_height
+)
+save_internal_standard_plot(
+  internal_stand_pos, "lineplot", "Interne Standaard (Pos)",
+  outdir, "IS_line_all_pos", plot_width, plot_height
+)
+save_internal_standard_plot(
+  internal_stand_summed, "lineplot", "Interne Standaard (Sum)",
+  outdir, "IS_line_all_sum", plot_width, plot_height
+)
 
 ## bar plots with a selection of IS
-internal_stand_neg_selection <- c("2H2-Ornithine (IS)", "2H3-Glutamate (IS)", "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)",
-                                  "13C6-Tyrosine (IS)")
-internal_stand_pos_selection <- c("2H4-Alanine (IS)", "13C6-Phenylalanine (IS)", "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)",
-                                  "2H9-Isovalerylcarnitine (IS)")
-internal_stand_sum_selection <- c("2H8-Valine (IS)", "2H3-Leucine (IS)", "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)",
-                                  "13C6-Tyrosine (IS)")
+internal_stand_neg_selection <- c(
+  "2H2-Ornithine (IS)", "2H3-Glutamate (IS)",
+  "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)",
+  "13C6-Tyrosine (IS)"
+)
+internal_stand_pos_selection <- c(
+  "2H4-Alanine (IS)", "13C6-Phenylalanine (IS)",
+  "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)",
+  "2H9-Isovalerylcarnitine (IS)"
+)
+internal_stand_sum_selection <- c(
+  "2H8-Valine (IS)", "2H3-Leucine (IS)",
+  "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)",
+  "13C6-Tyrosine (IS)"
+)
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
@@ -155,22 +184,49 @@ is_sum_selection <- subset(internal_stand_summed, HMDB_name %in% internal_stand_
 
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
-  save_internal_standard_plot(is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir, "IS_bar_select_neg", plot_width, plot_height, hline_data_neg)
-  save_internal_standard_plot(is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir, "IS_bar_select_pos", plot_width, plot_height, hline_data_pos)
-  save_internal_standard_plot(is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir, "IS_bar_select_sum", plot_width, plot_height, hline_data_sum)
+  save_internal_standard_plot(
+    is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir,
+    "IS_bar_select_neg", plot_width, plot_height, hline_data_neg
+  )
+  save_internal_standard_plot(
+    is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir,
+    "IS_bar_select_pos", plot_width, plot_height, hline_data_pos
+  )
+  save_internal_standard_plot(
+    is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir,
+    "IS_bar_select_sum", plot_width, plot_height, hline_data_sum
+  )
 } else {
-  save_internal_standard_plot(is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir, "IS_bar_select_neg", plot_width, plot_height)
-  save_internal_standard_plot(is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir, "IS_bar_select_pos", plot_width, plot_height)
-  save_internal_standard_plot(is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir, "IS_bar_select_sum", plot_width, plot_height)
+  save_internal_standard_plot(
+    is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir,
+    "IS_bar_select_neg", plot_width, plot_height
+  )
+  save_internal_standard_plot(
+    is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir,
+    "IS_bar_select_pos", plot_width, plot_height
+  )
+  save_internal_standard_plot(
+    is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir,
+    "IS_bar_select_sum", plot_width, plot_height
+  )
 }
 
 ## line plots with a selection of IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.0
 
-save_internal_standard_plot(is_neg_selection, "lineplot", "Interne Standaard (Neg)", outdir, "IS_line_select_neg", plot_width, plot_height)
-save_internal_standard_plot(is_pos_selection, "lineplot", "Interne Standaard (Pos)", outdir, "IS_line_select_pos", plot_width, plot_height)
-save_internal_standard_plot(is_sum_selection, "lineplot", "Interne Standaard (Sum)", outdir, "IS_line_select_sum", plot_width, plot_height)
+save_internal_standard_plot(
+  is_neg_selection, "lineplot", "Interne Standaard (Neg)", outdir,
+  "IS_line_select_neg", plot_width, plot_height
+)
+save_internal_standard_plot(
+  is_pos_selection, "lineplot", "Interne Standaard (Pos)", outdir,
+  "IS_line_select_pos", plot_width, plot_height
+)
+save_internal_standard_plot(
+  is_sum_selection, "lineplot", "Interne Standaard (Sum)", outdir,
+  "IS_line_select_sum", plot_width, plot_height
+)
 
 ### POSITIVE CONTROLS CHECK
 # these positive controls need to be in the samplesheet, in order to make the positive_control.RData file
@@ -184,12 +240,16 @@ positive_control_list <- column_list[positive_controls_index]
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  if (all(sapply(c("^P1002", "^P1003", "^P1005"),
-                 function(x) any(grepl(x, positive_control_list))))) {
+  if (all(sapply(
+    c("^P1002", "^P1003", "^P1005"),
+    function(x) any(grepl(x, positive_control_list))
+  ))) {
     cat("All three positive controls are present")
   } else {
-    pos_contr_warning <- paste("positive controls list is not complete. Only",
-                               paste(positive_control_list, collapse = ", "), "is/are present")
+    pos_contr_warning <- paste(
+      "positive controls list is not complete. Only",
+      paste(positive_control_list, collapse = ", "), "is/are present"
+    )
   }
   # you need all positive control samples, thus starting the script only if all are available
   if (length(positive_control_list) > 0) {
@@ -229,12 +289,16 @@ if (z_score == 1) {
     save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
     # round the Z-scores to 2 digits
     positive_control$Zscore <- round_df(positive_control$Zscore, 2)
-    write.xlsx(positive_control, file = paste0(outdir, "/", project, "_positive_control.xlsx"),
-               sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE)
+    write.xlsx(positive_control,
+      file = paste0(outdir, "/", project, "_positive_control.xlsx"),
+      sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
+    )
   }
   if (length(pos_contr_warning) != 0) {
-    write.table(pos_contr_warning, file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
-                row.names = FALSE, col.names = FALSE, quote = FALSE)
+    write.table(pos_contr_warning,
+      file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
+      row.names = FALSE, col.names = FALSE, quote = FALSE
+    )
   }
 }
 
@@ -308,4 +372,7 @@ mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative")
 mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive")
 
 # Write both scanmodes to missing_mz_warning file
-lapply(c(mz_missing_neg, mz_missing_pos), write, file = paste0(outdir, "/missing_mz_warning.txt"), append = TRUE, ncolumns = 1000)
+lapply(c(mz_missing_neg, mz_missing_pos), write,
+  file = paste0(outdir, "/missing_mz_warning.txt"),
+  append = TRUE, ncolumns = 1000
+)

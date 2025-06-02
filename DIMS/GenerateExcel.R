@@ -91,19 +91,21 @@ if (z_score == 1) {
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
   # calculate robust Z-scores
-  outlist_robustZ <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
+  outlist_robust_zscore <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
 
   # calculate Z-scores after removal of outliers in Control samples with grubbs test
-  outlist_nooutliers <- calculate_zscores(outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
-                                          intensity_col_ids, startcol)
+  outlist_nooutliers <- calculate_zscores(
+    outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
+    intensity_col_ids, startcol
+  )
 
   # calculate Z-scores
   outlist <- calculate_zscores(outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)
-  
+
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
   # output filtered metabolites with robust scaled Zscores
-  save_to_rdata_and_txt(outlist_robustZ, "AdductSums_filtered_robustZ")
+  save_to_rdata_and_txt(outlist_robust_zscore, "AdductSums_filtered_robustZ")
   # output filtered metabolites after removal of outliers
   save_to_rdata_and_txt(outlist_nooutliers, "AdductSums_filtered_outliersremovedZ")
 
@@ -115,13 +117,16 @@ if (z_score == 1) {
   patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
 
   # get Helix IDs for extra Excel file
-  metabolite_files <- list.files(path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
-                                 pattern = "*.txt", full.names = FALSE, recursive = FALSE)
+  metabolite_files <- list.files(
+    path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
+    pattern = "*.txt", full.names = FALSE, recursive = FALSE
+  )
   metab_df_helix <- NULL
   for (file_index in seq_along(metabolite_files)) {
     infile <- metabolite_files[file_index]
     metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
-                             sep = "\t", header = TRUE, quote = "")
+      sep = "\t", header = TRUE, quote = ""
+    )
     metab_df_helix <- rbind(metab_df_helix, metab_list)
   }
   # get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
@@ -135,8 +140,10 @@ if (z_score == 1) {
   outlist_helix <- outlist %>%
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
-    select(-c(HMDB_key, sec_HMBD_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
-           -all_of(control_col_idx), -all_of(patient_col_idx)) %>%
+    select(
+      -c(HMDB_key, sec_HMBD_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
+      -all_of(control_col_idx), -all_of(patient_col_idx)
+    ) %>%
     relocate(c(HMDB_code, H_Name, avg.ctrls, sd.ctrls), .after = plots) %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
     rename(Name = H_Name)
@@ -154,10 +161,12 @@ if (z_score == 1) {
       as.data.frame() %>%
       pivot_longer(everything(), names_to = "Samples", values_to = "Intensities") %>%
       arrange(nchar(Samples)) %>%
-      mutate(Samples = gsub("\\..*", "", Samples),
-             Samples = gsub("(C).*", "\\1", Samples),
-             Intensities = as.numeric(Intensities),
-             type = ifelse(Samples == "C", "Control", "Patients")) %>%
+      mutate(
+        Samples = gsub("\\..*", "", Samples),
+        Samples = gsub("(C).*", "\\1", Samples),
+        Intensities = as.numeric(Intensities),
+        type = ifelse(Samples == "C", "Control", "Patients")
+      ) %>%
       group_by(Samples) %>%
       mutate(group_size = n()) %>%
       ungroup()
@@ -171,46 +180,65 @@ if (z_score == 1) {
     png(filename = tmp_png, width = plot_width, height = 300)
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    p <- ggplot(intensities, aes(Samples, Intensities)) + geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
+    p <- ggplot(intensities, aes(Samples, Intensities)) +
+      geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
       geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
       scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
-      theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
-            plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
-            panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(
+        legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
+        panel.background = element_rect(fill = "white", colour = "black")
+      ) +
       ggtitle(hmdb_name)
 
     print(p)
     dev.off()
 
     # place the plot in the Excel file
-    openxlsx::insertImage(wb_intensities,
-                          sheetname,
-                          tmp_png,
-                          startRow = row_index + 1,
-                          startCol = 1,
-                          height = 560,
-                          width = col_width,
-                          units = "px")
+    openxlsx::insertImage(
+      wb_intensities,
+      sheetname,
+      tmp_png,
+      startRow = row_index + 1,
+      startCol = 1,
+      height = 560,
+      width = col_width,
+      units = "px"
+    )
 
     if (hmdb_name %in% metab_list_helix) {
       print(row_helix)
-      openxlsx::insertImage(wb_helix_intensities,
-                            sheetname,
-                            tmp_png,
-                            startRow = row_helix,
-                            startCol = 1,
-                            height = 560,
-                            width = col_width,
-                            units = "px")
+      openxlsx::insertImage(
+        wb_helix_intensities,
+        sheetname,
+        tmp_png,
+        startRow = row_helix,
+        startCol = 1,
+        height = 560,
+        width = col_width,
+        units = "px"
+      )
       row_helix <- row_helix + 1
     }
   }
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist),
-                                                col_width, plots_present = TRUE)
+  wb_intensities <- set_row_height_col_width_wb(
+    wb_intensities,
+    sheetname,
+    nrow(outlist),
+    ncol(outlist),
+    col_width,
+    plots_present = TRUE
+  )
 
-  wb_helix_intensities <- set_row_height_col_width_wb(wb_helix_intensities, sheetname, nrow(outlist_helix),
-                                                      ncol(outlist_helix), col_width, plots_present = TRUE)
+  wb_helix_intensities <- set_row_height_col_width_wb(
+    wb_helix_intensities,
+    sheetname,
+    nrow(outlist_helix),
+    ncol(outlist_helix),
+    col_width,
+    plots_present = TRUE
+  )
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
   openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
@@ -222,8 +250,14 @@ if (z_score == 1) {
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
   save(outlist, file = "outlist.RData")
-  wb_intensities <- set_row_height_col_width_wb(wb_intensities, sheetname, nrow(outlist), ncol(outlist), plot_width = NULL,
-                                                plots_present = FALSE)
+  wb_intensities <- set_row_height_col_width_wb(
+    wb_intensities,
+    sheetname,
+    nrow(outlist),
+    ncol(outlist),
+    plot_width = NULL,
+    plots_present = FALSE
+  )
   outlist <- outlist %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
 }

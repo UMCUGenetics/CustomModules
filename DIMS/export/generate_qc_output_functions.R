@@ -31,7 +31,10 @@ get_internal_standards <- function(internal_stand_df, scanmode, is_subset_filter
     internal_stand$HMDB_name <- internal_stand_df$name
   } else {
     internal_stand <- as.data.frame(subset(is_subset_filter, rownames(is_subset_filter) %in% rownames(internal_stand_df)))
-    internal_stand$HMDB_name <- internal_stand_df[match(row.names(internal_stand), internal_stand_df$HMDB_code, nomatch = NA), "name"]
+    internal_stand$HMDB_name <- internal_stand_df[
+      match(row.names(internal_stand), internal_stand_df$HMDB_code, nomatch = NA),
+      "name"
+    ]
     internal_stand$HMDB_code <- row.names(internal_stand)
     internal_stand <- internal_stand %>% select(-c(HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
@@ -45,7 +48,15 @@ get_internal_standards <- function(internal_stand_df, scanmode, is_subset_filter
   return(internal_stand)
 }
 
-save_internal_standard_plot <- function(plot_data, plot_type, plot_title, outdir, file_name, plot_width, plot_height, hline_data = NULL) {
+save_internal_standard_plot <- function(
+    plot_data,
+    plot_type,
+    plot_title,
+    outdir,
+    file_name,
+    plot_width,
+    plot_height,
+    hline_data = NULL) {
   #' Generate and save internal standard plot
   #'
   #' @param plot_data: dataframe with the data to be plotted
