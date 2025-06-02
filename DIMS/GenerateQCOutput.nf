@@ -1,6 +1,6 @@
-process CheckQC {
-    tag "DIMS CheckQC"
-    label 'CheckQC'
+process GenerateQCOutput {
+    tag "DIMS GenerateQCOutput"
+    label 'GenerateQCOutput'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
@@ -20,11 +20,11 @@ process CheckQC {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CheckQC.R $init_file \
-                                                        $analysis_id \
-                                                        $params.matrix \
-                                                        $params.zscore \
-                                                        $params.sst_components_file \
-                                                        $params.export_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R $init_file \
+                                                                 $analysis_id \
+                                                                 $params.matrix \
+                                                                 $params.zscore \
+                                                                 $params.sst_components_file \
+                                                                 $params.export_scripts_dir
         """
 }
