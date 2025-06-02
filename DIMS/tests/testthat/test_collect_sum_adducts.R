@@ -1,5 +1,6 @@
 # unit tests for CollectSumAdducts
 # functions: combine_sum_adduct_parts, combine_scanmodes_intensities
+suppressMessages(library("dplyr"))
 source("../../preprocessing/collect_sum_adducts_functions.R")
 
 
