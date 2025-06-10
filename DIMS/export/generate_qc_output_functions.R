@@ -3,6 +3,7 @@ check_number_of_controls <- function(outlist, min_num_controls, file_name) {
   #'
   #' @param outlist: Dataframe with intensities and Z-scores for all samples and controls
   #' @param min_num_controls: Integer that is the minimum number of controls
+  #' @param file_name: String containing the file name
 
   outlist_under_ctrls <- outlist %>%
     filter(nr_ctrls < min_num_controls) %>%
@@ -165,12 +166,12 @@ get_is_intensities <- function(is_data, int_cols = NULL, is_codes = NULL) {
     is_data <- as.data.frame(subset(is_data, rownames(is_data) %in% is_codes))
     is_intensities <- is_data %>% select(-c(HMDB_name, HMDB_ID_all, sec_HMDB_ID, HMDB_name_all))
   }
-  is_intensities <- calculate_coefficient_of_variation(is_intensities)
+  is_intensities <- calc_coefficient_of_variation(is_intensities)
   is_intensities <- cbind(IS_name = is_data$HMDB_name, is_intensities)
   return(is_intensities)
 }
 
-calculate_coefficient_of_variation <- function(intensity_list) {
+calc_coefficient_of_variation <- function(intensity_list) {
   #' Calculate coefficent of variation (cv) based on standard deviation (sd) and mean
   #'
   #' @param intensity_list: Matrix with intensities

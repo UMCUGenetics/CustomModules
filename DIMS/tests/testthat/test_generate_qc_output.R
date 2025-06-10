@@ -1,7 +1,7 @@
 # unit tests for GenerateQCOutput
 # functions: get_internal_standards, save_internal_standard_plot,
 #            get_pos_ctrl_data, round_df,
-#            get_is_intensities, calculate_coefficient_of_variation,
+#            get_is_intensities, calc_coefficient_of_variation,
 #            check_missing_mz
 library(ggplot2)
 suppressMessages(library("dplyr"))
@@ -161,18 +161,18 @@ testthat::test_that("Calculate coefficient of variation", {
   )
   rownames(test_internal_standards) <- c("HMDB100000", "HMDB200000", "HMDB300000", "HMDB400000")
 
-  expect_identical(colnames(calculate_coefficient_of_variation(test_internal_standards)),
+  expect_identical(colnames(calc_coefficient_of_variation(test_internal_standards)),
                    c("CV_perc", "mean", "sd", "C101.1", "C102.1", "P2.1", "P3.1"))
-  expect_equal(calculate_coefficient_of_variation(test_internal_standards)$CV_perc,
+  expect_equal(calc_coefficient_of_variation(test_internal_standards)$CV_perc,
                c(23.2, 13.4, 9.5, 7.3))
-  expect_equal(calculate_coefficient_of_variation(test_internal_standards)$mean,
+  expect_equal(calc_coefficient_of_variation(test_internal_standards)$mean,
                c(138, 238, 338, 438))
 })
 
 testthat::test_that("Get internal standard intensities", {
-  test_outlist_IS <- read.delim(test_path("fixtures", "test_outlist_IS.txt"))
-  test_internal_standards <- test_outlist_IS[grepl("IS", test_outlist_IS$HMDB_name), ]
-  
+  test_outlist_is <- read.delim(test_path("fixtures", "test_outlist_IS.txt"))
+  test_internal_standards <- test_outlist_is[grepl("IS", test_outlist_is$HMDB_name), ]
+
   int_cols <- c(1, 2, 3, 4)
 
   expect_identical(colnames(get_is_intensities(test_internal_standards, int_cols = int_cols)),

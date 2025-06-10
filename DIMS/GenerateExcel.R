@@ -72,7 +72,7 @@ if (z_score == 1) {
   row_helix <- 2 # start on row 2 because of header
   # add a column for plots
   outlist <- cbind(plots = NA, outlist)
-  # two columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
+  # three columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
   startcol <- ncol(outlist) + 4
 
   # Get columns with control intensities

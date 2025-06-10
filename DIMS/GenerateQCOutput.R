@@ -43,12 +43,12 @@ min_num_controls <- 25
 check_number_of_controls(outlist, min_num_controls)
 
 #### INTERNAL STANDARDS ####
-internal_stand_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
-internal_stand_codes <- rownames(internal_stand_list)
+is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
+is_codes <- rownames(is_list)
 
 # check if there is data present for all the samples that the pipeline started with,
 # if not write sample name to a log file.
-sample_names_nodata <- setdiff(names(repl_pattern), names(internal_stand_list))
+sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
 if (!is.null(sample_names_nodata)) {
   write.table(sample_names_nodata,
     file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
@@ -65,39 +65,39 @@ outlist_tot_neg <- outlist_tot_neg[, samples_both_modes]
 outlist_tot_pos <- outlist_tot_pos[, samples_both_modes]
 
 # Retrieve IS summed adducts
-internal_stand_summed <- get_internal_standards(internal_stand_list, "summed", repl_pattern, dims_matrix, rundate, project)
+is_summed <- get_internal_standards(is_list, "summed", repl_pattern, dims_matrix, rundate, project)
 # Retrieve IS positive mode
-internal_stand_pos <- get_internal_standards(internal_stand_list, "pos", outlist_tot_pos, dims_matrix, rundate, project)
+is_pos <- get_internal_standards(is_list, "pos", outlist_tot_pos, dims_matrix, rundate, project)
 # Retrieve IS negative mode
-internal_stand_neg <- get_internal_standards(internal_stand_list, "neg", outlist_tot_neg, dims_matrix, rundate, project)
+is_neg <- get_internal_standards(is_list, "neg", outlist_tot_neg, dims_matrix, rundate, project)
 
 # Save results
-save(internal_stand_pos, internal_stand_neg, internal_stand_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
+save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
 
 # number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
 
 # change the order of the x-axis summed plots to a natural sorted one
-sample_naturalorder <- unique(as.character(internal_stand_summed$Sample))
+sample_naturalorder <- unique(as.character(is_summed$Sample))
 sample_naturalorder <- stringr::str_sort(sample_naturalorder, numeric = TRUE)
-internal_stand_summed$Sample_level <- factor(internal_stand_summed$Sample, levels = c(sample_naturalorder))
-internal_stand_pos$Sample_level <- factor(internal_stand_pos$Sample, levels = c(sample_naturalorder))
-internal_stand_neg$Sample_level <- factor(internal_stand_neg$Sample, levels = c(sample_naturalorder))
+is_summed$Sample_level <- factor(is_summed$Sample, levels = c(sample_naturalorder))
+is_pos$Sample_level <- factor(is_pos$Sample, levels = c(sample_naturalorder))
+is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
 
 ## bar plots with all IS
 plot_width <- 9 + 0.35 * sample_count
 plot_height <- plot_width / 2.5
 
 save_internal_standard_plot(
-  internal_stand_neg, "barplot", "Interne Standaard (Neg)", outdir,
+  is_neg, "barplot", "Interne Standaard (Neg)", outdir,
   "IS_bar_all_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  internal_stand_pos, "barplot", "Interne Standaard (Pos)", outdir,
+  is_pos, "barplot", "Interne Standaard (Pos)", outdir,
   "IS_bar_all_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  internal_stand_summed, "barplot", "Interne Standaard (Summed)", outdir,
+  is_summed, "barplot", "Interne Standaard (Summed)", outdir,
   "IS_bar_all_sum", plot_width, plot_height
 )
 
@@ -106,30 +106,30 @@ plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
 save_internal_standard_plot(
-  internal_stand_neg, "lineplot", "Interne Standaard (Neg)",
+  is_neg, "lineplot", "Interne Standaard (Neg)",
   outdir, "IS_line_all_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  internal_stand_pos, "lineplot", "Interne Standaard (Pos)",
+  is_pos, "lineplot", "Interne Standaard (Pos)",
   outdir, "IS_line_all_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  internal_stand_summed, "lineplot", "Interne Standaard (Sum)",
+  is_summed, "lineplot", "Interne Standaard (Sum)",
   outdir, "IS_line_all_sum", plot_width, plot_height
 )
 
 ## bar plots with a selection of IS
-internal_stand_neg_selection <- c(
+is_neg_selection <- c(
   "2H2-Ornithine (IS)", "2H3-Glutamate (IS)",
   "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)",
   "13C6-Tyrosine (IS)"
 )
-internal_stand_pos_selection <- c(
+is_pos_selection <- c(
   "2H4-Alanine (IS)", "13C6-Phenylalanine (IS)",
   "2H4_13C5-Arginine (IS)", "2H3-Propionylcarnitine (IS)",
   "2H9-Isovalerylcarnitine (IS)"
 )
-internal_stand_sum_selection <- c(
+is_sum_selection <- c(
   "2H8-Valine (IS)", "2H3-Leucine (IS)",
   "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)",
   "13C6-Tyrosine (IS)"
@@ -141,34 +141,34 @@ if (dims_matrix == "DBS") {
   hline_data_neg <-
     data.frame(
       int_line = c(15000, 200000, 130000, 18000, 50000),
-      HMDB_name = internal_stand_neg_selection
+      HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
       int_line = c(150000, 3300000, 1750000, 150000, 270000),
-      HMDB_name = internal_stand_pos_selection
+      HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
       int_line = c(1300000, 2500000, 500000, 1800000, 1400000),
-      HMDB_name = internal_stand_sum_selection
+      HMDB_name = is_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
       int_line = c(6500, 100000, 75000, 7500, 25000),
-      HMDB_name = internal_stand_neg_selection
+      HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
       int_line = c(85000, 1000000, 425000, 70000, 180000),
-      HMDB_name = internal_stand_pos_selection
+      HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
       int_line = c(700000, 1250000, 150000, 425000, 300000),
-      HMDB_name = internal_stand_sum_selection
+      HMDB_name = is_sum_selection
     )
 } else {
   add_min_intens_lines <- FALSE
@@ -178,9 +178,9 @@ if (dims_matrix == "DBS") {
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
-is_neg_selection <- subset(internal_stand_neg, HMDB_name %in% internal_stand_neg_selection)
-is_pos_selection <- subset(internal_stand_pos, HMDB_name %in% internal_stand_pos_selection)
-is_sum_selection <- subset(internal_stand_summed, HMDB_name %in% internal_stand_sum_selection)
+is_neg_selection <- subset(is_neg, HMDB_name %in% is_neg_selection)
+is_pos_selection <- subset(is_pos, HMDB_name %in% is_pos_selection)
+is_sum_selection <- subset(is_summed, HMDB_name %in% is_sum_selection)
 
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
@@ -240,10 +240,8 @@ positive_control_list <- column_list[positive_controls_index]
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  if (all(sapply(
-    c("^P1002", "^P1003", "^P1005"),
-    function(x) any(grepl(x, positive_control_list))
-  ))) {
+  if (all(sapply(c("^P1002", "^P1003", "^P1005"),
+                 function(x) any(grepl(x, positive_control_list))))) {
     cat("All three positive controls are present")
   } else {
     pos_contr_warning <- paste(
@@ -305,15 +303,15 @@ if (z_score == 1) {
 ### SST components output ####
 
 # Internal standards lists, calculate coefficients of variation
-if ("plots" %in% colnames(internal_stand_list)) {
-  intensity_col_ids <- 2:(which(colnames(internal_stand_list) == "HMDB_name") - 1)
+if ("plots" %in% colnames(is_list)) {
+  intensity_col_ids <- 2:(which(colnames(is_list) == "HMDB_name") - 1)
 } else {
-  intensity_col_ids <- 1:(which(colnames(internal_stand_list) == "HMDB_name") - 1)
+  intensity_col_ids <- 1:(which(colnames(is_list) == "HMDB_name") - 1)
 }
 
-internal_stand_list_ints <- get_is_intensities(internal_stand_list, int_cols = intensity_col_ids)
-internal_stand_neg_ints <- get_is_intensities(outlist_tot_neg, is_codes = internal_stand_codes)
-internal_stand_pos_ints <- get_is_intensities(outlist_tot_pos, is_codes = internal_stand_codes)
+is_list_intensities <- get_is_intensities(is_list, int_cols = intensity_col_ids)
+is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
+is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
 # SST components.
 sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
@@ -324,7 +322,7 @@ if (length(sst_colnrs) > 0) {
   sst_list_intensities <- sst_list[, sst_colnrs]
   control_col_ids <- grep(control_label, colnames(sst_list), fixed = TRUE)
   control_list_intensities <- sst_list[, control_col_ids]
-  control_list_cv <- calculate_coefficient_of_variation(control_list_intensities)
+  control_list_cv <- calc_coefficient_of_variation(control_list_intensities)
   sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[, "CV_perc"])
 } else {
   sst_list_intensities <- sst_list[, intensity_col_ids]
@@ -342,13 +340,13 @@ sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_inten
 # Create Excel file
 wb <- createWorkbook("IS_SST")
 addWorksheet(wb, "Internal Standards")
-openxlsx::writeData(wb, sheet = 1, internal_stand_list_ints)
+openxlsx::writeData(wb, sheet = 1, is_list_intensities)
 setColWidths(wb, 1, cols = 1, widths = 24)
 addWorksheet(wb, "IS pos")
-openxlsx::writeData(wb, sheet = 2, internal_stand_pos_ints)
+openxlsx::writeData(wb, sheet = 2, is_pos_intensities)
 setColWidths(wb, 2, cols = 1, widths = 24)
 addWorksheet(wb, "IS neg")
-openxlsx::writeData(wb, sheet = 3, internal_stand_neg_ints)
+openxlsx::writeData(wb, sheet = 3, is_neg_intensities)
 setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
 openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
