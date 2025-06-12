@@ -137,7 +137,6 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
         all_isotope_names <- paste0(select_isotopes[, "CompoundName"], collapse = ";")
       }
     }
-    print(all_hmdb_names)
     assigned_hmdb[row_number, "assi_HMDB"] <- strsplit(all_hmdb_names, ";")[[1]][1]
     assigned_hmdb[row_number, "all_hmdb_names"] <- all_hmdb_names
     assigned_hmdb[row_number, "iso_HMDB"] <- all_isotope_names
