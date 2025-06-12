@@ -266,5 +266,4 @@ if (z_score == 1) {
 openxlsx::writeData(wb_intensities, sheet = 1, outlist, startCol = 1)
 openxlsx::saveWorkbook(wb_intensities, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities)
-
 unlink("plots", recursive = TRUE)
