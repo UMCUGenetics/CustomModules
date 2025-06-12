@@ -6,7 +6,6 @@ process SumAdducts {
 
     input:
        each path(collect_files)
-       each path(replication_pattern)
        path(HMDBpart_main_file)
 
     output:
