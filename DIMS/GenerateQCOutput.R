@@ -38,9 +38,11 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-file_name <- "Check_number_of_controls.txt"
-min_num_controls <- 25
-check_number_of_controls(outlist, min_num_controls, file_name)
+if (z_score == 1) {
+  file_name <- "Check_number_of_controls.txt"
+  min_num_controls <- 25
+  check_number_of_controls(outlist, min_num_controls, file_name)
+}
 
 #### INTERNAL STANDARDS ####
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
@@ -249,7 +251,6 @@ if (z_score == 1) {
       paste(positive_control_list, collapse = ", "), "is/are present"
     )
   }
-  # you need all positive control samples, thus starting the script only if all are available
   if (length(positive_control_list) > 0) {
     # make positive control excel with specific HMDB_codes in combination with specific control samples
     positive_control <- NULL

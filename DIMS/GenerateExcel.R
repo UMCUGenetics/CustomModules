@@ -1,5 +1,3 @@
-## adapted from 13-excelExport.R
-
 # load required packages
 library("ggplot2")
 library("reshape2")

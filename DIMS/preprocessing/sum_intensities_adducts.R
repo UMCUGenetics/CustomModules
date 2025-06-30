@@ -22,26 +22,26 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   }
   hmdb_in_peaklist_rownr <- as.data.frame(hmdb_in_peaklist_rownr)
   # remove NA, if any
-  if (sum(is.na(hmdb_in_peaklist_rownr$hmdb_split)) > 0 ) {
+  if (sum(is.na(hmdb_in_peaklist_rownr$hmdb_split)) > 0) {
     hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr[-which(is.na(hmdb_in_peaklist_rownr$hmdb_split)), ]
   }
-  
+
   # find intensity columns in peakgroup_list
   if (z_score == 1) {
-    int_cols_C <- grep("C", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
-    int_cols_P <- grep("P", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
-    int_cols <- c(int_cols_C, int_cols_P)
+    int_cols_ctrls <- grep("C", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
+    int_cols_pats <- grep("P", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
+    int_cols <- c(int_cols_ctrls, int_cols_pats)
   } else {
     int_cols_start <- which(colnames(peakgroup_list) == "nrsamples") + 1
     int_cols_end <- which(colnames(peakgroup_list) == "assi_HMDB") - 1
     int_cols <- c(int_cols_start:int_cols_end)
   }
-  
+
   # initialize
   names <- NULL
   adductsum <- NULL
   names_long <- NULL
-  
+
   # find adducts of each metabolite and sum the intensities
   if (length(hmdb_codes) == 0) {
     return(adductsum)
@@ -54,11 +54,11 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     # find indices of rows in peakgroup_list that contain compound plus adducts
     metab_row <- which(hmdb_in_peaklist_rownr$hmdb_split %in% compound_plus)
     metab_indices <- as.numeric(hmdb_in_peaklist_rownr$row_nr[metab_row])
-      
+
     # find intensities and sum them
     ints <- peakgroup_list[metab_indices, int_cols]
     total <- apply(ints, 2, sum)
-      
+
     # add to adductsum
     if (sum(total) != 0) {
       names <- c(names, compound)
@@ -66,11 +66,15 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
       names_long <- c(names_long, hmdb_names[hmdb_index])
     }
   }
-    
+
   if (!is.null(adductsum)) {
     rownames(adductsum) <- names
     adductsum <- cbind(adductsum, "HMDB_name" = names_long)
-  } 
- 
+    # Add HMDB info
+    cols_hmdb_info <- c("HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all")
+    hmdb_info <- hmdb_part[names, cols_hmdb_info]
+    adductsum <- cbind(adductsum, hmdb_info)
+  }
+
   return(adductsum)
 }
