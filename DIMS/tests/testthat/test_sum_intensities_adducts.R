@@ -28,7 +28,9 @@ testthat::test_that("adduct sums are correctly calculated", {
   
   expect_type(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1), "character")
   expect_equal(rownames(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1))[1], "HMDB1234567", TRUE)
-  expect_equal(colnames(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)), c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name"), TRUE)
-  expect_equal(as.vector(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)[1, c(1:4)]), c("6000", "18000", "60000", "180000"), TRUE)
+  expect_equal(colnames(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)), 
+               c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"), TRUE)
+  expect_equal(as.vector(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1)[1, c(1:4)]), 
+               c("6000", "18000", "60000", "180000"), TRUE)
 })
 
