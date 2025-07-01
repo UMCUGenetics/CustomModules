@@ -72,7 +72,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     adductsum <- cbind(adductsum, "HMDB_name" = names_long)
     # Add HMDB info
     cols_hmdb_info <- c("HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all")
-    hmdb_info <- hmdb_part[names, cols_hmdb_info]
+    hmdb_info <- hmdb_part[names, cols_hmdb_info, drop = FALSE]
     adductsum <- cbind(adductsum, hmdb_info)
   }
 
