@@ -7,8 +7,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
   #'
   #' @return adductsum: peak group list with summed intensities (matrix)
-  hmdb_codes <- rownames(hmdb_part)
-  hmdb_names <- hmdb_part[, 1]
+  hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), all_HMDB_ids = hmdb_part[, "HMDB_ID_all"])
 
   # create overview of row indices for each metabolite_adduct combination in peaklist
   hmdb_in_peaklist <- peakgroup_list$HMDB_code
@@ -43,16 +42,17 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   names_long <- NULL
 
   # find adducts of each metabolite and sum the intensities
-  if (length(hmdb_codes) == 0) {
+  if (nrow(hmdb_part_info) == 0) {
     return(adductsum)
   }
 
-  for (hmdb_index in 1:length(hmdb_codes)) {
-    compound <- hmdb_codes[hmdb_index]
-    compound_plus <- c(compound, paste(compound, adducts, sep = "_"))
+  for (hmdb_index in 1:nrow(hmdb_part_info)) {
+    print(hmdb_index)
+    compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
+    compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
     # find indices of rows in peakgroup_list that contain compound plus adducts
-    metab_row <- which(hmdb_in_peaklist_rownr$hmdb_split %in% compound_plus)
+    metab_row <- which(hmdb_in_peaklist_rownr$hmdb_split %in% compound_plus_adducts)
     metab_indices <- as.numeric(hmdb_in_peaklist_rownr$row_nr[metab_row])
 
     # find intensities and sum them
@@ -63,7 +63,8 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     if (sum(total) != 0) {
       names <- c(names, compound)
       adductsum <- rbind(adductsum, total)
-      names_long <- c(names_long, hmdb_names[hmdb_index])
+      names_long <- c(names_long, hmdb_part_info[hmdb_index, "all_HMDB_ids"])
+      print(dim(adductsum))
     }
   }
 
@@ -78,3 +79,4 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
 
   return(adductsum)
 }
+
