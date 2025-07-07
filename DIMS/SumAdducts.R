@@ -1,12 +1,12 @@
+# load in function scripts
+source(paste0(scripts_dir, "sum_intensities_adducts.R"))
+
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 hmdbpart_main_file <- cmd_args[1]
 scripts_dir <- cmd_args[2]
 z_score <- as.numeric(cmd_args[3])
-
-# load in function scripts
-source(paste0(scripts_dir, "sum_intensities_adducts.R"))
 
 if (grepl("positive_hmdb", hmdbpart_main_file)) {
   scanmode <- "positive"
