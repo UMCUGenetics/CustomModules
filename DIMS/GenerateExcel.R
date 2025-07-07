@@ -142,7 +142,7 @@ if (z_score == 1) {
       -c(HMDB_key, sec_HMBD_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
       -all_of(control_col_idx), -all_of(patient_col_idx)
     ) %>%
-    relocate(c(HMDB_code, H_Name, avg.ctrls, sd.ctrls), .after = plots) %>%
+    relocate(c(HMDB_code, H_Name, avg_ctrls, sd_ctrls), .after = plots) %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
     rename(Name = H_Name)
 
@@ -243,8 +243,8 @@ if (z_score == 1) {
 
   # reorder outlist for Excel file
   outlist <- outlist %>%
-    relocate(c(HMDB_code, HMDB_name_all, descr, avg.ctrls, sd.ctrls), .after = plots) %>%
-    relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd.ctrls) %>%
+    relocate(c(HMDB_code, HMDB_name_all, descr, avg_ctrls, sd_ctrls), .after = plots) %>%
+    relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd_ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
   save(outlist, file = "outlist.RData")
