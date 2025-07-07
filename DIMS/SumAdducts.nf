@@ -6,13 +6,13 @@ process SumAdducts {
 
     input:
        each path(collect_files)
-       path(HMDBpart_main_file)
+       path(hmdbpart_main_file)
 
     output:
        path('*_SummedAdducts.RData')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/SumAdducts.R $HMDBpart_main_file $params.scripts_dir $params.zscore
+        Rscript ${baseDir}/CustomModules/DIMS/SumAdducts.R $hmdbpart_main_file $params.preprocessing_scripts_dir $params.zscore
         """
 }
