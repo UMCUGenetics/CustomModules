@@ -2,19 +2,22 @@
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 replicate_rdatafile <- cmd_args[1]
-breaks_file <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
-preprocessing_scripts_dir <- cmd_args[4]
-peak_thresh <- 2000
+resol <- as.numeric(cmd_args[2])
+preprocessing_scripts_dir <- cmd_args[3]
+# use fixed theshold between noise and signal for peak
+peak_thresh <- 2000 
 
-# load in function scripts
+# source functions script
 source(paste0(preprocessing_scripts_dir, "peak_finding_functions.R"))
 
-load(breaks_file)
+library(dplyr)
 
-# Load output of AssignToBins for a sample
-sample_techrepl <- get(load(replicate_rdatafile))
+# Load output of AssignToBins (peak_list) for a technical replicate
+load(replicate_rdatafile)
 techrepl_name <- colnames(peak_list$pos)[1]
+
+# load list of technical replicates per sample that passed threshold filter
+techreps_passed <- read.table("replicates_per_sample.txt", sep=",")
 
 # Initialize
 options(digits = 16)
@@ -22,37 +25,34 @@ options(digits = 16)
 # run the findPeaks function
 scanmodes <- c("positive", "negative")
 for (scanmode in scanmodes) {
-  # turn dataframe with intensities into a named list
+  # get intensities for scan mode
   if (scanmode == "positive") {
     ints_perscanmode <- peak_list$pos
   } else if (scanmode == "negative") {
     ints_perscanmode <- peak_list$neg
   }
-  
-  ints_fullrange <- as.vector(ints_perscanmode)
-  names(ints_fullrange) <- rownames(ints_perscanmode)
-  
+ 
+  # check whether technical replicate has passed threshold filter for this scanmode
+  techreps_scanmode <- techreps_passed[grep(scanmode, techreps_passed[, 3]), ]
+  # if techrep is ok, it will be found. If not, skip this techrep.
+  if (length(grep(techrepl_name, techreps_scanmode)) == 0) {
+    break
+  }
+
+  # put mz and intensities into dataframe
+  ints_fullrange <- as.data.frame(cbind(mz = as.numeric(rownames(ints_perscanmode)), 
+                                        int = as.numeric(ints_perscanmode)))
+
   # look for m/z range for all peaks
-  allpeaks_values <- search_mzrange(ints_fullrange, resol, techrepl_name, peak_thresh)
-  
-  # turn the list into a dataframe
-  outlist_techrep <- NULL
-  outlist_techrep <- cbind("samplenr" = allpeaks_values$nr,
-                             "mzmed.pkt" = allpeaks_values$mean,
-                             "fq" = allpeaks_values$qual,
-                             "mzmin.pkt" = allpeaks_values$min,
-                             "mzmax.pkt" = allpeaks_values$max,
-                             "height.pkt" = allpeaks_values$area)
-  
-  # remove peaks with height = 0
-  outlist_techrep <- outlist_techrep[outlist_techrep[, "height.pkt"] != 0, ]
-  
+  regions_of_interest <- search_regions_of_interest(ints_fullrange)
+ 
+  # fit Gaussian curve and calculate integrated area under curve
+  integrated_peak_df <- integrate_peaks(ints_fullrange, regions_of_interest, resol, peak_thresh)
+ 
+  # add sample name to dataframe
+  integrated_peak_df <- as.data.frame(cbind(samplenr = techrepl_name, integrated_peak_df))
+ 
   # save output to file
-  save(outlist_techrep, file = paste0(techrepl_name, "_", scanmode, ".RData"))
-  
-  # generate text output to log file on number of spikes for this sample
-  # spikes are peaks that are too narrow, e.g. 1 data point
-  cat(paste("There were", allpeaks_values$spikes, "spikes"))
-  
+  save(integrated_peak_df, file = paste0(techrepl_name, "_", scanmode, ".RData"))
 }
 
