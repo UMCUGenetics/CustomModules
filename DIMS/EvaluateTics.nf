@@ -15,7 +15,8 @@ process EvaluateTics {
        path(trim_params_file)
 
     output:
-       path('*_repl_pattern.RData'), emit: pattern_files
+       path('*_repl_pattern.RData'),      emit: pattern_files
+       path('replicates_per_sample.txt'), emit: sample_techreps
        path('miss_infusions_negative.txt')
        path('miss_infusions_positive.txt')
        path('*_TICplots.pdf')

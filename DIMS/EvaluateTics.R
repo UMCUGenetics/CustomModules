@@ -13,7 +13,6 @@ highest_mz_file <- cmd_args[5]
 highest_mz <- get(load(highest_mz_file))
 trim_params_filepath <- cmd_args[6]
 thresh2remove <- 1000000000
-dims_thresh <- 100
 
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   # collect list of samples to remove from replication pattern
@@ -76,31 +75,62 @@ for (sample_nr in 1:length(repl_pattern)) {
     if (sum(peak_list$neg[, 1]) < thresh2remove) {
       cat(" ... Removed")
       remove_neg <- c(remove_neg, tech_reps[file_nr])
-    } 
+    }
     tech_reps_array_neg <- cbind(tech_reps_array_neg, peak_list$neg)
   }
 }
 
+# negative scan mode
+print("neg")
 pattern_list <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 repl_pattern_filtered <- pattern_list$pattern
+print(repl_pattern_filtered)
+print(length(repl_pattern_filtered))
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
-write.table(
-  remove_neg, 
-  file = "miss_infusions_negative.txt", 
-  row.names = FALSE, 
-  col.names = FALSE, 
-  sep = "\t"
+# save replication pattern in txt file for use in Nextflow
+allsamples_techreps_neg <- matrix("", ncol = 3, nrow = length(repl_pattern_filtered))
+for (sample_nr in 1:length(repl_pattern_filtered)) {
+  allsamples_techreps_neg[sample_nr, 1] <- names(repl_pattern_filtered)[sample_nr]
+  allsamples_techreps_neg[sample_nr, 2] <- paste0(repl_pattern_filtered[[sample_nr]], collapse = ";")
+}
+allsamples_techreps_neg[, 3] <- "negative"
+
+# write information on miss_infusions
+write.table(remove_neg,
+	    file = "miss_infusions_negative.txt",
+	    row.names = FALSE,
+	    col.names = FALSE,
+	    sep = "\t"
 )
 
+# positive scan mode
 pattern_list <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
+print(pattern_list)
 repl_pattern_filtered <- pattern_list$pattern
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
-write.table(
-  remove_pos, 
-  file = "miss_infusions_positive.txt", 
-  row.names = FALSE, 
-  col.names = FALSE, 
-  sep = "\t"
+# save replication pattern in txt file for use in Nextflow
+allsamples_techreps_pos <- matrix("", ncol = 3, nrow = length(repl_pattern_filtered))
+for (sample_nr in 1:length(repl_pattern_filtered)) {
+  allsamples_techreps_pos[sample_nr, 1] <- names(repl_pattern_filtered)[sample_nr]
+  allsamples_techreps_pos[sample_nr, 2] <- paste0(repl_pattern_filtered[[sample_nr]], collapse = ";")
+}
+allsamples_techreps_pos[, 3] <- "positive"
+
+# combine information on samples and technical replicates for pos and neg
+allsamples_techreps <- rbind(allsamples_techreps_pos, allsamples_techreps_neg)
+write.table(allsamples_techreps,
+	    file = paste0("replicates_per_sample.txt"),
+            col.names = FALSE,
+	    row.names = FALSE,
+	    sep = ","
+)
+
+# write information on miss_infusions
+write.table(remove_pos,
+	    file = "miss_infusions_positive.txt",
+	    row.names = FALSE,
+	    col.names = FALSE,
+	    sep = "\t"
 )
 
 ## generate TIC plots
@@ -127,8 +157,11 @@ for (sample_nr in c(1:length(repl_pattern))) {
   sample_name <- names(repl_pattern)[sample_nr]
   for (file_nr in 1:length(tech_reps)) {
     plot_nr <- plot_nr + 1
-    # repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
     repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
+    # get threshold values per technical replicate
+    dims_thresh_pos <- repl1_nr[1, "threshold"]
+    dims_thresh_neg <- repl1_nr[nrow(repl1_nr), "threshold"]
+    # for replicates with bad TIC, determine what color the border of the plot should be
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg
     if (bad_color_neg & bad_color_pos) {
@@ -147,6 +180,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
       geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
+      geom_hline(yintercept = dims_thresh_pos, col = "green", linetype = 2, linewidth = 0.3) +
+      geom_hline(yintercept = dims_thresh_neg, col = "blue", linetype = 2, linewidth = 0.3) +
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
