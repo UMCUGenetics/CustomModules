@@ -6,7 +6,7 @@ process PeakGrouping {
 
     input:
        path(hmdbpart_file)
-       each path(spectrumpeak_file)
+       path(averagedpeaks_file)
        each path(pattern_file)
 
     output:
