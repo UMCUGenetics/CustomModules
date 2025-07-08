@@ -1,5 +1,3 @@
-## adapted from 1-generateBreaksFwhm.HPC.R ##
-
 # load required package
 suppressPackageStartupMessages(library("xcms"))
 
