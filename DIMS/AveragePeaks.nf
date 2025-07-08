@@ -6,13 +6,13 @@ process AveragePeaks {
 
     input:
        path(rdata_files)
-       path(replication_pattern)
+       tuple val(sample_id), val(tech_reps), val(scanmode)
 
     output:
        path 'AvgPeaks_*.RData'
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AveragePeaks.R 
+        Rscript ${baseDir}/CustomModules/DIMS/AveragePeaks.R $sample_id $tech_reps $scanmode
         """
 }
