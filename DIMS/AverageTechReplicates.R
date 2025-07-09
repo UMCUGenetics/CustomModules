@@ -15,7 +15,6 @@ highest_mz_file <- cmd_args[5]
 highest_mz <- get(load(highest_mz_file))
 breaks_filepath <- cmd_args[6]
 thresh2remove <- 1000000000
-dims_thresh <- 100
 
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   # collect list of samples to remove from replication pattern
@@ -152,8 +151,12 @@ for (sample_nr in c(1:length(repl_pattern))) {
   sample_name <- names(repl_pattern)[sample_nr]
   for (file_nr in 1:length(tech_reps)) {
     plot_nr <- plot_nr + 1
-    # repl1_nr <- read.table(paste(paste(outdir, "2-pklist/", sep = "/"), tech_reps[file_nr], "_TIC.txt", sep = ""))
+    # read file with retention time, intensity and dims_threshold values
     repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
+    # get threshold values per technical replicate
+    dims_thresh_pos <- repl1_nr[1, "threshold"]
+    dims_thresh_neg <- repl1_nr[nrow(repl1_nr), "threshold"]
+    # for replicates with bad TIC, determine what color the border of the plot should be
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg
     if (bad_color_neg & bad_color_pos) {
@@ -172,6 +175,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
       geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
+      geom_segment(aes(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos), colour = "green", lty = 2) + 
+      geom_segment(aes(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg), colour = "blue", lty = 2) + 
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
