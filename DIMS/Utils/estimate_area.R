@@ -19,6 +19,5 @@ estimate_area <- function(mass_max, resol, scale, sigma, int_factor) {
   # estimate area under the curve
   area_curve <- sum(scale * dnorm(mass_vector2, mass_max, sigma)) / 100
 
-  return(area_curve)  
+  return(area_curve)
 }
-
