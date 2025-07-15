@@ -1,6 +1,6 @@
 # unit tests for PeakFinding functions:
 
-source("../preprocessing/peak_finding_functions.R")
+source("../../preprocessing/peak_finding_functions.R")
 
 # test search_regions_of_interest function:
 test_that("regions of interest are correctly found for a single peak", {
