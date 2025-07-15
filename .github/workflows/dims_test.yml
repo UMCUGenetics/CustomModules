@@ -1,0 +1,29 @@
+name: DIMS Test
+
+on:
+  pull_request:
+    paths: [DIMS/**]
+  push:
+    branches: [main, develop]
+    paths: [DIMS/**]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    
+    container:
+      image: docker://umcugenbioinf/dims:1.3
+    
+    defaults:
+        run:
+          working-directory: DIMS/
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: Rscript -e "install.packages(c('testthat', 'withr'))"
+
+      - name: Run tests
+        run: Rscript tests/testthat.R

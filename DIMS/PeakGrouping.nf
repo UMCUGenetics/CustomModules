@@ -10,11 +10,10 @@ process PeakGrouping {
        each path(pattern_file)
 
     output:
-       path '*_peaks_used.RData', emit: peaks_used
        path '*_identified.RData', emit: grouped_identified
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakGrouping.R $hmdbpart_file $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/PeakGrouping.R $hmdbpart_file $params.preprocessing_scripts_dir $params.ppm
         """
 }
