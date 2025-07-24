@@ -63,7 +63,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     if (sum(total) != 0) {
       names <- c(names, compound)
       adductsum <- rbind(adductsum, total)
-      names_long <- c(names_long, hmdb_part_info[hmdb_index, "all_HMDB_ids"])
+      names_long <- c(names_long, hmdb_part_info[hmdb_index, "CompoundName"])
       print(dim(adductsum))
     }
   }
