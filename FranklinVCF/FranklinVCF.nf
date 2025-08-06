@@ -14,6 +14,6 @@ process FranklinVCF {
 
     script:
         """
-        uv run franklinvcf.py $input_vcf ${input_vcf.baseName}.franklin.vcf
+        uv run franklin_vcf.py $input_vcf ${input_vcf.baseName}.franklin.vcf
         """
 }
