@@ -29,9 +29,6 @@ def main(input_vcf, output_vcf):
     # Write new header in new output
     writer = vcfpy.Writer.from_stream(output_vcf, reader.header)
 
-    # Get sampleID (assuming single sample VCF!)
-    sample = reader.header.samples.names[0]
-
     for record in reader:
         # ADD FILTER to INFO field
         record.INFO["filterFlag"] = record.FILTER
