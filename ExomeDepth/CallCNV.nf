@@ -10,10 +10,10 @@ process CallCNV {
 
     output:
         path("*.log", emit: ED_log)
-        path("HC_*.igv", emit: HC_igv)
-        path("UMCU_*.igv", emit: UMCU_igv)
-        path("HC_*.vcf", emit: HC_vcf)
-        path("UMCU_*.vcf", emit: UMCU_vcf)
+        path("*_HC_*.igv", emit: HC_igv)
+        path("*_UMCU_*.igv", emit: UMCU_igv)
+        path("*_HC_*.vcf", emit: HC_vcf)
+        path("*_UMCU_*.vcf", emit: UMCU_vcf)
         path('HC_*_stats.log', emit: HC_stats_log)
         path('UMCU_*_stats.log', emit: UMCU_stats_log)
 
