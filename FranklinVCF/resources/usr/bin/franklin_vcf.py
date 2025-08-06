@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.1"
+# requires-python = ">=3.11"
 # dependencies = [
 #   "click",
 #   "vcfpy",
