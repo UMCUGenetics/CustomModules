@@ -1,16 +1,16 @@
 process FranklinVCF {
     // Custom process to add FILTER status to INFO field as needed by Franklin software
-    tag {"FranklinVCF ${input_vcf.name}"}
+    tag {"FranklinVCF ${analysis_id}"}
     label 'FranklinVCF'
     container 'ghcr.io/astral-sh/uv:python3.13-alpine'
 
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        path(input_vcf)
+        tuple val(analysis_id), path(input_vcf), path(input_vcf_idx)
 
     output:
-        path("${input_vcf.baseName}.franklin.vcf")
+        tuple val(analysis_id), path("${input_vcf.baseName}.franklin.vcf")
 
     script:
         """
