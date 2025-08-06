@@ -1,21 +1,19 @@
 process FranklinVCF {
     // Custom process to add FILTER status to INFO field as needed by Franklin software
-    tag {"FranklinVCF ${sample_id}"}
+    tag {"FranklinVCF ${input_vcf.name}"}
     label 'FranklinVCF'
-    //container = 'ghcr.io/umcugenetics/custommodules_gendercheck:1.0.0'
+    container 'ghcr.io/astral-sh/uv:python3.13-alpine'
+
     shell = ['/bin/bash', '-eo', 'pipefail']
 
     input:
-        path(vcf_file)
+        path(input_vcf)
 
     output:
-        tuple(path("*_corrected.vcf"), emit: FranklinVCF)
+        path("${input_vcf.baseName}.franklin.vcf")
 
     script:
-        output_file = "${vcf_file}_corrected.vcf"
         """
-        python ${projectDir}/CustomModules/AddFilterToInfoField/franklinvcf.py \
-            $vcf_file \
-            $output_file
+        uv run franklinvcf.py $input_vcf ${input_vcf.baseName}.franklin.vcf
         """
 }
