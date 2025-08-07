@@ -2,7 +2,7 @@ process FranklinVCF {
     // Custom process to add FILTER status to INFO field as needed by Franklin software
     tag {"FranklinVCF ${analysis_id}"}
     label 'FranklinVCF'
-    container 'ghcr.io/astral-sh/uv:python3.13-bookworm-slim'
+    container 'ghcr.io/astral-sh/uv:python3.13-bookworm'
 
     shell = ['/bin/bash', '-eo', 'pipefail']
 
