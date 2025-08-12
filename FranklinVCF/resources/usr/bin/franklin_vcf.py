@@ -21,6 +21,12 @@ def add_info_header(reader, ID, Number, Type, Description):
 @click.argument("input_vcf", type=click.File("r"))
 @click.argument("output_vcf", type=click.File("w"))
 def main(input_vcf, output_vcf):
+    """Read VCF file and add Filter column values to INFO field.
+
+    Args:
+        input_vcf (File): Input VCF file.
+        output_vcf (File): Output VCF file.
+    """
     reader = vcfpy.Reader.from_stream(input_vcf)
 
     # Add filterFlag to INFO field
