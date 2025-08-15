@@ -143,7 +143,7 @@ for (metabolite_dir in metabolite_dirs) {
     if (grepl("Diagnost", pdf_dir)) {
       top_metabs_patient <- prepare_alarmvalues(patient_id, dims_helix_table)
     } else {
-      top_metabs_patient <- prepare_toplist(patient_id, zscore_patients)
+      top_metabs_patient <- prepare_toplist(patient_id, zscore_patients_df)
     }
 
     # generate normal violin plots

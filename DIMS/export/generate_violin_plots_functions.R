@@ -30,7 +30,8 @@ get_intentities_for_ratios <- function(ratios_metabs_df, row_index, intensities_
 #'
 #' @returns: vector of sample IDs that are in both input vectors (vector of strings)
 get_zscore_columns <- function(colnames_zscore, intensity_cols) {
-  intersect(paste0(intensity_cols, "_Zscore"), grep("_Zscore", colnames_zscore, value = T))
+  sample_intersect <- intersect(paste0(intensity_cols, "_Zscore"), grep("_Zscore", colnames_zscore, value = TRUE))
+  return(sample_intersect)
 }
 
 #' Get a list with dataframes for all off the metabolite group in a directory
@@ -261,16 +262,18 @@ prepare_alarmvalues <- function(patient_name, dims_helix_table) {
   patient_high_df <- patient_metabs_helix %>% filter(Z_score > high_zscore)
   patient_low_df <- patient_metabs_helix %>% filter(Z_score < low_zscore)
   
-  # sort tables on zscore
-  patient_high_df <- patient_high_df %>% arrange(desc(Z_score))
-  patient_low_df <- patient_low_df %>% arrange(Z_score)
+  if (nrow(patient_high_df) > 0 | nrow(patient_low_df) > 0) {
+    # sort tables on zscore
+    patient_high_df <- patient_high_df %>% arrange(desc(Z_score)) %>% select(c(HMDB_name, Z_score))
+    patient_low_df <- patient_low_df %>% arrange(Z_score) %>% select(c(HMDB_name, Z_score))
+  }
   # add lines for increased, decreased
   extra_line1 <- c("Increased", "")
   extra_line2 <- c("Decreased", "")
   
   # combine the two lists
   top_metab_patient <- rbind(extra_line1, patient_high_df, extra_line2, patient_low_df)
-  top_metab_patient <- top_metab_patient %>% select(c(HMDB_name, Z_score))
+  
   # remove row names
   rownames(top_metab_patient) <- NULL
   # change column names for display
@@ -291,21 +294,21 @@ prepare_toplist <- function(patient_id, zscore_patients) {
   top_highest <- 20
   top_lowest <- 10
   patient_df <- zscore_patients %>%
-    select(c(HMDB_code, HMDB_name, all_of(patient_id))) %>%
-    arrange(desc(across(patient_id)))
+    select(HMDB_code, HMDB_name, !!sym(patient_id)) %>%
+    arrange(!!sym(patient_id))
   
   # Get lowest Zscores
   patient_df_low <- patient_df[1:top_lowest, ]
-  patient_df_low <- patient_df_low %>% mutate(across(patient_id, ~ round(.x ,2)))
+  patient_df_low <- patient_df_low %>% mutate(across(!!sym(patient_id), ~ round(.x ,2)))
   
   # Get highest Zscores
   patient_df_high <- patient_df[nrow(patient_df):(nrow(patient_df) - top_highest + 1), ]
-  patient_df_high <- patient_df_high %>% mutate(across(patient_id, ~ round(.x ,2)))
+  patient_df_high <- patient_df_high %>% mutate(across(!!sym(patient_id), ~ round(.x ,2)))
   
   # add lines for increased, decreased
   extra_line1 <- c("Increased", "", "")
   extra_line2 <- c("Decreased", "", "")
-  top_metab_pt <- rbind(extra_line1, patient_df_high, extra_line2, patient_df_high)
+  top_metab_pt <- rbind(extra_line1, patient_df_high, extra_line2, patient_df_low)
   # remove row names
   rownames(top_metab_pt) <- NULL
   
@@ -420,7 +423,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 #' @param sub_perpage: subtitle of the page (string) 
 #' @param patient_id: the patient id of the selected patient (string)
 #'
-#' @returns
+#' @returns ggpplot_object: a violin plot of metabolites that highlights the selected patient (ggplot object)
 create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id) {
   fontsize <- 1
   circlesize <- 0.8
@@ -509,16 +512,18 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
     mutate(across(
       all_of(sample_cols),
       ~ .x * Total_Weight
-    ))
+    )) %>%
+    arrange(desc(Disease), desc(Absolute_Weight))
   
-  #TODO: dit klopt nu niet, checken dat alleen de eerste waarde wordt gebruikt in orginele dIEM algoritme
   # Calculate the probability score for each disease - Mz combination
-  probability_score <- metabolite_weight_score %>% 
-    group_by(Disease, M.z) %>% 
-    summarise(across(
-      all_of(sample_cols),
-      ~ sum(.x, na.rm = TRUE)
-    ), .groups = "drop")
+  probability_score <- metabolite_weight_score %>%
+    filter(
+      !duplicated(select(., Disease, M.z)) |
+      !duplicated(select(., Disease, M.z), fromLast = FALSE)
+    ) %>%
+    group_by(Disease) %>% 
+    summarise(across(all_of(sample_cols), sum), .groups = "drop")
+  
   
   # Set probability score to 0 for Z-scores == 0
   for (sample_col in sample_cols) {
