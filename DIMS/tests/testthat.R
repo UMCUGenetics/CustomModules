@@ -1,6 +1,7 @@
 # Run all unit tests
 library(testthat)
 library(withr)
+library(vdiffr)
 # enable snapshots
 local_edition(3)
 
