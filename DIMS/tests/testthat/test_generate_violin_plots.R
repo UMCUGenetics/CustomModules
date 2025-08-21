@@ -323,8 +323,9 @@ testthat::test_that("Create a pdf with a table of top metabolites and violin plo
   expect_silent(create_pdf_violin_plots(test_pdf_dir, test_patient_id,
                                         test_metab_perpage, test_top_metab_pt, test_explanation))
 
-  expect_true(file.exists(paste0(test_pdf_dir, "R_P2025M1.pdf")))
-  expect_snapshot_file(paste0(test_pdf_dir, "R_P2025M1.pdf"), "violin_pdf_P2025M1.pdf")
+  out_pdf_violinplots <- file.path(test_pdf_dir, "R_P2025M1.pdf")
+  expect_true(file.exists(out_pdf_violinplots))
+  expect_snapshot_file(out_pdf_violinplots, "violin_pdf_P2025M1.pdf")
 
   unlink(test_pdf_dir, recursive = TRUE)
 })
@@ -387,11 +388,12 @@ testthat::test_that("Saving the probability score dataframe as an Excel file", {
   dir.create(test_output_dir)
 
   test_run_name <- "test_run"
+  out_excel_file <- file.path(test_output_dir, paste0("/dIEM_algoritme_output_", test_run_name, ".xlsx"))
 
   expect_silent(save_prob_scores_to_excel(test_probability_score_df, test_output_dir, test_run_name))
-  expect_true(file.exists(paste0(test_output_dir, "/dIEM_algoritme_output_", test_run_name, ".xlsx")))
+  expect_true(file.exists(out_excel_file))
 
-  expect_snapshot_file(paste0(test_output_dir, "/dIEM_algoritme_output_", test_run_name, ".xlsx"), "test_excel_dIEM.xlsx")
+  expect_snapshot_file(out_excel_file, "test_excel_dIEM.xlsx")
 
   unlink(test_output_dir, recursive = TRUE)
 })
