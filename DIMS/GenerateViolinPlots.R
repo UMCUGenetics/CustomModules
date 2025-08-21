@@ -38,7 +38,7 @@ protocol_name <- "DIMS_PL_DIAG"
 
 # Remove columns, move HMDB_code & HMDB_name column to the front, change intensity columns to numeric
 intensities_zscore_df <- intensities_zscore_df %>%
-  select(-c(plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMBD_ID_rlvnc, name, 
+  select(-c(plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMBD_ID_rlvnc, name,
             relevance, descr, origin, fluids, tissue, disease, pathway, nr_ctrls)) %>%
   relocate(c(HMDB_code, HMDB_name)) %>%
   rename(mean_controls = avg_ctrls, sd_controls = sd_ctrls) %>%
@@ -70,11 +70,11 @@ colnames(ratio_zscore_df) <- colnames(intensities_zscore_df)
 ratio_zscore_df$HMDB_code <- ratios_metabs_df$HMDB.code
 ratio_zscore_df$HMDB_name <- ratios_metabs_df$Ratio_name
 
-for (row_index in 1:nrow(ratios_metabs_df)) {
-  numerator_intensities <- get_intentities_for_ratios(ratios_metabs_df, row_index, 
-                                                  intensities_zscore_df, "HMDB_numerator", intensity_cols)
-  denominator_intensities <- get_intentities_for_ratios(ratios_metabs_df, row_index, 
-                                                    intensities_zscore_df, "HMDB_denominator", intensity_cols)
+for (row_index in seq_len(nrow(ratios_metabs_df))) {
+  numerator_intensities <- get_intentities_for_ratios(ratios_metabs_df, row_index,
+                                                      intensities_zscore_df, "HMDB_numerator", intensity_cols)
+  denominator_intensities <- get_intentities_for_ratios(ratios_metabs_df, row_index,
+                                                        intensities_zscore_df, "HMDB_denominator", intensity_cols)
   # calculate intensity ratios
   ratio_zscore_df[row_index, intensity_cols_index] <- log2(numerator_intensities / denominator_intensities)
 }
@@ -103,8 +103,8 @@ colnames(zscore_controls_df) <- gsub("_Zscore", "", colnames(zscore_controls_df)
 
 expected_biomarkers_df <- expected_biomarkers_df %>% rename(HMDB_code = HMDB.code, HMDB_name = Metabolite)
 
-expected_biomarkers_info <- expected_biomarkers_df %>% 
-  select(c(Disease, HMDB_code, HMDB_name)) %>% 
+expected_biomarkers_info <- expected_biomarkers_df %>%
+  select(c(Disease, HMDB_code, HMDB_name)) %>%
   distinct(Disease, HMDB_code, .keep_all = TRUE)
 
 metabolite_dirs <- list.files(path = path_metabolite_groups, full.names = FALSE, recursive = FALSE)
@@ -122,20 +122,20 @@ for (metabolite_dir in metabolite_dirs) {
                                         nr_plots_perpage, nr_of_patients, nr_of_controls)
 
   # for Diagnostics metabolites to be saved in Helix
-  if(grepl("Diagnost", pdf_dir)) {
+  if (grepl("Diagnost", pdf_dir)) {
     # get table that combines DIMS results with stofgroepen/Helix table
     dims_helix_table <- get_patient_data_to_helix(metab_interest_sorted, metab_list_all)
-    
+
     # check if run contains Diagnostics patients (e.g. "P2024M"), not for research runs
-    if(any(is_diagnostic_patient(dims_helix_table$Sample))){
+    if (any(is_diagnostic_patient(dims_helix_table$Sample))) {
       # get output file for Helix
       output_helix <- output_for_helix(protocol_name, dims_helix_table)
       # write output to file
-      path_helixfile <- paste0(output_dir, "output_Helix_", run_name,".csv")
-      write.csv(output_helix, path_helixfile, quote = F, row.names = F)
+      path_helixfile <- paste0(output_dir, "output_Helix_", run_name, ".csv")
+      write.csv(output_helix, path_helixfile, quote = FALSE, row.names = FALSE)
     }
   }
-  
+
   # make violin plots per patient
   for (patient_id in patients) {
     # for category Diagnostics, make list of metabolites that exceed alarm values for this patient
@@ -157,7 +157,7 @@ expected_biomarkers_df <- expected_biomarkers_df %>% rename(HMDB_code = HMDB.cod
 
 diem_probability_score <- run_diem_algorithm(expected_biomarkers_df, zscore_patients_df, patients)
 
-save_prob_scores_to_Excel(diem_probability_score, output_dir, run_name)
+save_prob_scores_to_excel(diem_probability_score, output_dir, run_name)
 
 
 #### Generate dIEM plots #########
@@ -174,7 +174,7 @@ for (patient_id in patients) {
     arrange(desc(!!sym(patient_id))) %>%
     slice(1:top_number_iem_diseases) %>%
     filter(!!sym(patient_id) >= threshold_iem)
-  
+
   if (nrow(patient_top_iems_probs) > 0) {
     top_iems <- patient_top_iems_probs %>% pull(Disease)
     # Get the metabolites for each IEM and their probability
@@ -186,26 +186,27 @@ for (patient_id in patients) {
       return(metab_iem)
     })
     names(metabs_iems) <- metabs_iems_names
-    
+
     # Get the Z-scores with metabolite information
     metab_iem_sorted <- combine_metab_info_zscores(metabs_iems, zscore_patients_df)
     metab_iem_controls <- combine_metab_info_zscores(metabs_iems, zscore_controls_df)
     # Get a list of dataframes for each IEM
     diem_metab_perpage <- prepare_data_perpage(metab_iem_sorted, metab_iem_controls,
                                                nr_plots_perpage, nr_of_patients, nr_of_controls)
-    # Get a dataframe of the top metabolites 
+    # Get a dataframe of the top metabolites
     top_metabs_patient <- prepare_toplist(patient_id, zscore_patients_df)
-    
+
     # Generate and save dIEM violin plots
     create_pdf_violin_plots(diem_plot_dir, patient_id, diem_metab_perpage, top_metabs_patient, explanation_violin_plot)
-    
+
   } else {
     patient_no_iem <- c(patient_no_iem, patient_id)
   }
 }
 
 if (length(patient_no_iem) > 0) {
-  patient_no_iem <- c(paste0("The following patient(s) did not have dIEM probability scores higher than ", threshold_iem, " :"),
+  patient_no_iem <- c(paste0("The following patient(s) did not have dIEM probability scores higher than ",
+                             threshold_iem, " :"),
                       patient_no_iem)
   write(file = paste0(output_dir, "missing_probability_scores.txt"), patient_no_iem)
 }
