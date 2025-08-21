@@ -1,0 +1,4 @@
+HMDB_code	HMDB_name	Helix	Helix_naam	high_zscore	low_zscore
+HMDB001	metab1	ja	Metab_1	2	-1.5
+HMDB003	metab3	nee	Metab_3	2	-1.5
+HMDBAA1	ratio1	ja	Ratio_1	2	-1.5

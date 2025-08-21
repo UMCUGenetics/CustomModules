@@ -1,0 +1,16 @@
+HMDB_code	Disease	M.z	Change	Total_Weight	Absolute_Weight	Dispensability
+HMDB002	Disease A	1.2	Increase	10	10	Dispensable
+HMDB002	Disease B	1.2	Decrease	-1.5	1.5	Dispensable
+HMDB005	Disease B	2.5	Increase	2	2	Indispensable
+HMDB005	Disease B	2.5	Increase	5	5	Dispensable
+HMDB005	Disease C	2.5	Decrease	-2.5	2.5	Dispensable
+HMDB009	Disease D	3.0	Decrease	-3	3	Indispensable
+HMDB012	Disease A	4.5	Increase	14.5	14.5	Dispensable
+HMDB012	Disease E	4.5	Increase	4	4	Dispensable
+HMDB020	Disease F	2.5	Decrease	-7.5	7.5	Indispensable
+HMDB020	Disease C	2.5	Increase	6	6	Indispensable
+HMDB025	Disease F	5.1	Increase	20	20	Dispensable
+HMDB025	Disease G	5.1	Decrease	-5	5	Dispensable
+HMDB025	Disease D	5.1	Increase	3	3	Dispensable
+HMDB028	Disease G	5.8	Decrease	-1.5	1.5	Dispensable
+HMDB028	Disease E	5.8	Increase	4	4	Indispensable
