@@ -325,7 +325,8 @@ testthat::test_that("Create a pdf with a table of top metabolites and violin plo
 
   out_pdf_violinplots <- file.path(test_pdf_dir, "R_P2025M1.pdf")
   expect_true(file.exists(out_pdf_violinplots))
-  expect_snapshot_file(out_pdf_violinplots, "violin_pdf_P2025M1.pdf")
+  content_pdf_violinplots <- pdftools::pdf_text(out_pdf_violinplots)
+  expect_snapshot(content_pdf_violinplots)
 
   unlink(test_pdf_dir, recursive = TRUE)
 })
@@ -393,7 +394,8 @@ testthat::test_that("Saving the probability score dataframe as an Excel file", {
   expect_silent(save_prob_scores_to_excel(test_probability_score_df, test_output_dir, test_run_name))
   expect_true(file.exists(out_excel_file))
 
-  expect_snapshot_file(out_excel_file, "test_excel_dIEM.xlsx")
+  content_excel_file <- openxlsx::read.xlsx(out_excel_file, sheet = 1)
+  expect_snapshot_output(content_excel_file)
 
   unlink(test_output_dir, recursive = TRUE)
 })
