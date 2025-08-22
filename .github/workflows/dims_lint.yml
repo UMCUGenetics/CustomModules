@@ -1,0 +1,33 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+name: DIMS Lint
+
+on:
+  pull_request:
+    paths: [DIMS/**]
+  push:
+    branches: [master, develop]
+    paths: [DIMS/**]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://umcugenbioinf/dims:1.3
+
+    defaults:
+      run:
+        working-directory: DIMS/
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lintr
+        run: install.packages("lintr")
+        shell: Rscript {0}
+
+      - name: Lint
+        run: lintr::lint_dir()
+        shell: Rscript {0}
+        env:
+            LINTR_ERROR_ON_LINT: false
