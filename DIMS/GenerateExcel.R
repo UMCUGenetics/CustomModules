@@ -107,6 +107,10 @@ if (z_score == 1) {
   # output filtered metabolites after removal of outliers
   save_to_rdata_and_txt(outlist_nooutliers, "AdductSums_filtered_outliersremovedZ")
 
+  # use outlier-removed outlist for generating Excel file
+  outlist <- outlist_nooutliers
+  colnames(outlist) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist))
+
   # save outlist for GenerateQC step
   save(outlist, file = "outlist.RData")
 

@@ -7,7 +7,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
   #'
   #' @return adductsum: peak group list with summed intensities (matrix)
-  hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), all_HMDB_ids = hmdb_part[, "HMDB_ID_all"])
+  hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), CompoundName = hmdb_part[, "CompoundName"])
 
   # create overview of row indices for each metabolite_adduct combination in peaklist
   hmdb_in_peaklist <- peakgroup_list$HMDB_code
@@ -47,7 +47,6 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   }
 
   for (hmdb_index in 1:nrow(hmdb_part_info)) {
-    print(hmdb_index)
     compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
     compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
@@ -63,8 +62,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     if (sum(total) != 0) {
       names <- c(names, compound)
       adductsum <- rbind(adductsum, total)
-      names_long <- c(names_long, hmdb_part_info[hmdb_index, "all_HMDB_ids"])
-      print(dim(adductsum))
+      names_long <- c(names_long, hmdb_part_info[hmdb_index, "CompoundName"])
     }
   }
 

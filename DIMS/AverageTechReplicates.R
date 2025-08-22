@@ -175,8 +175,8 @@ for (sample_nr in c(1:length(repl_pattern))) {
       geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
-      geom_segment(aes(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos), colour = "green", lty = 2) + 
-      geom_segment(aes(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg), colour = "blue", lty = 2) + 
+      geom_segment(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos, colour = "green", lty = 2) + 
+      geom_segment(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg, colour = "blue", lty = 2) + 
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),

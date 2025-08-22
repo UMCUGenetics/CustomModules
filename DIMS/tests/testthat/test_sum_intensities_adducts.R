@@ -25,6 +25,7 @@ testthat::test_that("adduct sums are correctly calculated", {
                                      "Composition", "MNeutral", "MNeg", "Mpos")
   rownames(test_hmdb_main_part) <- c("HMDB1234567", "HMDB7654321")
   test_hmdb_main_part[, 1] <- c("HMDB1234567;HMDB0000567", "HMDB7654321;HMDB0000321")
+  test_hmdb_main_part[, "CompoundName"] <- c("metab_1", "metab_2")
   
   expect_type(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1), "character")
   expect_equal(rownames(sum_intensities_adducts(test_peakgroup_list, test_hmdb_main_part, c(1, 2), 1))[1], "HMDB1234567", TRUE)
