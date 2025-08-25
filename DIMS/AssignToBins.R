@@ -11,9 +11,6 @@ parser$add_argument("--breaks_filepath", dest = "breaks_filepath",
 
 args <- parser$parse_args()
 
-mzml_filepath <- args$mzml_filepath
-breaks_filepath <- args$breaks_filepath
-
 # load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(args$breaks_filepath)
