@@ -11,7 +11,7 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   # set up object for intensities for all samples
   ints_allsamps <- matrix(0, nrow = nrow(outlist_sorted), ncol = 3 + (length(sample_names)))
   colnames(ints_allsamps) <- c("mzmed.pgrp", "mzmin.pgrp", "mzmax.pgrp", sample_names)
- 
+
   # start with the m/z with the highest intensity
   row_index <- 1
   while (nrow(outlist_sorted) > 1) {
@@ -52,14 +52,14 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   # remove empty rows
   ints_allsamps <- ints_allsamps[-which(apply(ints_allsamps, 1, sum) == 0), ]
   # sort by ascending m/z
-  ints_allsamps_df <- as.data.frame(ints_allsamps) 
+  ints_allsamps_df <- as.data.frame(ints_allsamps)
   ints_sorted_bymz <- ints_allsamps_df %>% dplyr::arrange(mzmed.pgrp)
- 
+
   # count the number of non-zero intensities per row. First 3 columns are m/z
   nr_nonzero <- apply(ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)], 1, function(x) sum(x > 0))
   # add nrsamples column before intensity columns
   ints_sorted <- cbind(ints_sorted_bymz[, 1:3], nrsamples = nr_nonzero, ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)])
- 
+
   return(ints_sorted)
 }
 
@@ -77,7 +77,7 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   assigned_hmdb <- matrix("", nrow = nrow(ints_sorted), ncol = 7)
   colnames(assigned_hmdb) <- c("assi_HMDB", "all_hmdb_names", "iso_HMDB", "HMDB_code",
                                "all_hmdb_ids", "sec_hmdb_ids", "theormz_HMDB")
- 
+
   # for each peak group, find all entries in HMDB part with mass within ppm range
   for (row_number in 1:nrow(ints_sorted)) {
     # initialize to make sure there's no information from the previous peak group
@@ -91,12 +91,15 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
     first_hmdb_code <- ""
     sec_hmdb_ids <- ""
     theor_mz <- 0
- 
+
+    # make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
+    hmdb_add_iso[grep("iso", rownames(hmdb_add_iso)), "HMDB_ID_all"] <- ""
+
     # take reference mass
     reference_mass <- ints_sorted[row_number, "mzmed.pgrp"]
     # select indices for all HMDB entries with mass between +/- ppm tolerance
-    select_from_hmdb <- which(hmdb_add_iso[, column_label] > (reference_mass - mz_tolerance) & 
-                              hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
+    select_from_hmdb <- which(hmdb_add_iso[, column_label] > (reference_mass - mz_tolerance) &
+                                hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
     if (length(select_from_hmdb) > 0) {
       # get dataframe of all entries which are selected
       select_hmdb_df <- hmdb_add_iso[select_from_hmdb, ]
@@ -149,7 +152,12 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
 
   # combine all information
   peakgrouplist_identified <- cbind(ints_sorted, assigned_hmdb)
- 
+
+  # add column for ppm deviation
+  peakgrouplist_identified[, "theormz_HMDB"] <- as.numeric(peakgrouplist_identified[, "theormz_HMDB"])
+  peakgrouplist_identified[, "ppmdev"] <- 1000000 * (peakgrouplist_identified[, "mzmed.pgrp"] -
+                                                       peakgrouplist_identified[, "theormz_HMDB"]) /
+    peakgrouplist_identified[, "theormz_HMDB"]
+
   return(peakgrouplist_identified)
 }
-
