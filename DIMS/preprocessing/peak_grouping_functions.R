@@ -151,10 +151,11 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   }
 
   # combine all information
-  peakgrouplist_identified <- cbind(ints_sorted, assigned_hmdb)
+  peakgrouplist_identified <- as.data.frame(cbind(ints_sorted, assigned_hmdb))
 
   # add column for ppm deviation
   peakgrouplist_identified[, "theormz_HMDB"] <- as.numeric(peakgrouplist_identified[, "theormz_HMDB"])
+  peakgrouplist_identified[, "mzmed.pgrp"] <- as.numeric(peakgrouplist_identified[, "mzmed.pgrp"])
   peakgrouplist_identified[, "ppmdev"] <- 1000000 * (peakgrouplist_identified[, "mzmed.pgrp"] -
                                                        peakgrouplist_identified[, "theormz_HMDB"]) /
     peakgrouplist_identified[, "theormz_HMDB"]
