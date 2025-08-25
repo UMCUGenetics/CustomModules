@@ -1,19 +1,25 @@
 # load required packages
+library("argparse")
 suppressPackageStartupMessages(library("xcms"))
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "AssignToBins")
 
-mzml_filepath <- cmd_args[1]
-breaks_filepath <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
+parser$add_argument("--mzML_filepath", dest = "mzml_filepath",
+                    help = "File path for the mzML file", required = TRUE)
+parser$add_argument("--breaks_filepath", dest = "breaks_filepath",
+                    help = "File path for the breaks RData file", required = TRUE)
+
+args <- parser$parse_args()
+
+mzml_filepath <- args$mzml_filepath
+breaks_filepath <- args$breaks_filepath
 
 # load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
-load(breaks_filepath)
+load(args$breaks_filepath)
 
 # get sample name
-techrep_name <- sub("\\..*$", "", basename(mzml_filepath))
+techrep_name <- sub("\\..*$", "", basename(args$mzml_filepath))
 
 options(digits = 16)
 
@@ -25,7 +31,7 @@ pos_bins <- bins
 neg_bins <- bins
 
 # read in the data for 1 sample
-raw_data <- suppressMessages(xcms::xcmsRaw(mzml_filepath))
+raw_data <- suppressMessages(xcms::xcmsRaw(args$mzml_filepath))
 
 # Generate a matrix with retention times and intensities
 raw_data_matrix <- xcms::rawMat(raw_data)
