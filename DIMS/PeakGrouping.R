@@ -16,8 +16,8 @@ options(digits = 16)
 # load part of the HMDB
 hmdb_add_iso <- get(load(hmdb_part_file))
 # make sure any internal standard entries are at the top of the dataframe
-internal_standard_indices <- grep("IS", hmdb_add_iso$CompoundName)
-if (length(is_indices) > 0) {
+internal_standard_indices <- grep("\\(IS\\)", hmdb_add_iso$CompoundName)
+if (length(internal_standard_indices) > 0) {
   hmdb_add_iso <- rbind(hmdb_add_iso[internal_standard_indices, ], hmdb_add_iso[-internal_standard_indices, ])
 }
 

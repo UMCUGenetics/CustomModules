@@ -78,6 +78,9 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   colnames(assigned_hmdb) <- c("assi_HMDB", "all_hmdb_names", "iso_HMDB", "HMDB_code",
                                "all_hmdb_ids", "sec_hmdb_ids", "theormz_HMDB")
 
+  # make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
+  hmdb_add_iso[grep("iso", rownames(hmdb_add_iso)), "HMDB_ID_all"] <- ""
+  
   # for each peak group, find all entries in HMDB part with mass within ppm range
   for (row_number in 1:nrow(ints_sorted)) {
     # initialize to make sure there's no information from the previous peak group
@@ -91,9 +94,6 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
     first_hmdb_code <- ""
     sec_hmdb_ids <- ""
     theor_mz <- 0
-
-    # make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
-    hmdb_add_iso[grep("iso", rownames(hmdb_add_iso)), "HMDB_ID_all"] <- ""
 
     # take reference mass
     reference_mass <- ints_sorted[row_number, "mzmed.pgrp"]
@@ -121,7 +121,7 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
         select_isotopes <- select_hmdb_df[grep_isotopes, ]
       }
       # find adducts
-      grep_adducts <- grep("_", rownames(select_hmdb_df[-grep_isotopes, ]))
+      grep_adducts <- grep("HMDB[0-9]{7}_", rownames(select_hmdb_df[-grep_isotopes, ]))
       if (length(grep_adducts) > 0) {
         select_adducts <- select_hmdb_df[grep_adducts, ]
       }
@@ -133,8 +133,8 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
         theor_mz       <- select_metabolites[, column_label][1]
       }
       if (length(select_adducts) > 0) {
-        all_hmdb_names <- paste0(all_hmdb_names, paste0(select_adducts[, "HMDB_name_all"], collapse =  ";"), collapse = ";")
-        all_hmdb_ids   <- paste0(all_hmdb_ids, paste0(select_adducts[, "HMDB_ID_all"], collapse = ";"), collapse = ";")
+        all_hmdb_names <- paste(all_hmdb_names, paste0(select_adducts[, "HMDB_name_all"], collapse =  ";"), sep = ";")
+        all_hmdb_ids   <- paste(all_hmdb_ids, paste0(select_adducts[, "HMDB_ID_all"], collapse = ";"), sep = ";")
         theor_mz <- select_adducts[, column_label][1]
       }
       if (length(select_isotopes) > 0) {
