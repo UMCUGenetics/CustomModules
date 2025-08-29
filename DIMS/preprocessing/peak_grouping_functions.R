@@ -121,20 +121,22 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
         select_isotopes <- select_hmdb_df[grep_isotopes, ]
       }
       # find adducts
-      grep_adducts <- grep("HMDB[0-9]{7}_", rownames(select_hmdb_df[-grep_isotopes, ]))
+      grep_adducts <- grep("^HMDB[0-9]{7}_", rownames(select_hmdb_df[, ]))
       if (length(grep_adducts) > 0) {
         select_adducts <- select_hmdb_df[grep_adducts, ]
       }
       # take metabolite info first, then adducts. Isotope info in separate column.
       if (length(select_metabolites) > 0) {
-        all_hmdb_names <- paste0(select_metabolites[, "HMDB_name_all"], collapse = ";")
-        all_hmdb_ids   <- paste0(select_metabolites[, "HMDB_ID_all"], collapse = ";")
-        sec_hmdb_ids   <- paste0(select_metabolites[, "sec_HMDB_ID"], collapse = ";")
+        all_hmdb_names <- paste0(select_metabolites$HMDB_name_all[select_metabolites$HMDB_name_all != ""], collapse = ";")
+        all_hmdb_ids   <- paste0(select_metabolites$HMDB_ID_all[select_metabolites$HMDB_ID_all != ""], collapse = ";")
+        sec_hmdb_ids   <- paste0(select_metabolites$sec_HMDB_ID[select_metabolites$sec_HMDB_ID != ""], collapse = ";")
         theor_mz       <- select_metabolites[, column_label][1]
       }
       if (length(select_adducts) > 0) {
-        all_hmdb_names <- paste(all_hmdb_names, paste0(select_adducts[, "HMDB_name_all"], collapse =  ";"), sep = ";")
-        all_hmdb_ids   <- paste(all_hmdb_ids, paste0(select_adducts[, "HMDB_ID_all"], collapse = ";"), sep = ";")
+        all_hmdb_names_adducts <- paste0(select_adducts$HMDB_name_all[select_adducts$HMDB_name_all != ""], collapse =  ";")
+        all_hmdb_names <- paste(all_hmdb_names_adducts, all_hmdb_names, sep = ";")
+        all_hmdb_ids_adducts <- paste0(select_adducts$HMDB_ID_all[select_adducts$HMDB_ID_all != ""], collapse = ";")
+        all_hmdb_ids   <- paste(all_hmdb_ids_adducts, all_hmdb_ids, sep = ";")
         theor_mz <- select_adducts[, column_label][1]
       }
       if (length(select_isotopes) > 0) {
