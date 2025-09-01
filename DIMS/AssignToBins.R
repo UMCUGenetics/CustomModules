@@ -43,13 +43,13 @@ neg_times_trimmed <- neg_times[neg_times > trim_left_neg & neg_times < trim_righ
 # get TIC intensities for areas between trim_left and trim_right
 tic_intensity_persample <- cbind(round(raw_data@scantime, 2), raw_data@tic)
 colnames(tic_intensity_persample) <- c("retention_time", "tic_intensity")
-tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(pos_times_trimmed) &
-                                             tic_intensity_persample[ , "retention_time"] < max(pos_times_trimmed), ]
-tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(neg_times_trimmed) &
-                                             tic_intensity_persample[ , "retention_time"] < max(neg_times_trimmed), ]
+tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[, "retention_time"] > min(pos_times_trimmed) &
+                                               tic_intensity_persample[, "retention_time"] < max(pos_times_trimmed), ]
+tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[, "retention_time"] > min(neg_times_trimmed) &
+                                               tic_intensity_persample[, "retention_time"] < max(neg_times_trimmed), ]
 # calculate weighted mean of intensities for pos and neg separately
-mean_pos <- weighted.mean(tic_intensity_pos[ , "tic_intensity"], tic_intensity_pos[ , "tic_intensity"])
-mean_neg <- weighted.mean(tic_intensity_neg[ , "tic_intensity"], tic_intensity_neg[ , "tic_intensity"])
+mean_pos <- weighted.mean(tic_intensity_pos[, "tic_intensity"], tic_intensity_pos[, "tic_intensity"])
+mean_neg <- weighted.mean(tic_intensity_neg[, "tic_intensity"], tic_intensity_neg[, "tic_intensity"])
 # intensity per scan should be at least 80% of weighted mean
 dims_thresh_pos <- 0.8 * mean_pos
 dims_thresh_neg <- 0.8 * mean_neg
@@ -69,17 +69,17 @@ neg_raw_data_matrix <- raw_data_matrix[neg_index, ]
 
 # Get index for binning intensity values
 bin_indices_pos <- cut(
-  pos_raw_data_matrix[, "mz"], 
+  pos_raw_data_matrix[, "mz"],
   breaks_fwhm,
-  include.lowest = TRUE, 
-  right = TRUE, 
+  include.lowest = TRUE,
+  right = TRUE,
   labels = FALSE
 )
 bin_indices_neg <- cut(
-  neg_raw_data_matrix[, "mz"], 
-  breaks_fwhm, 
-  include.lowest = TRUE, 
-  right = TRUE, 
+  neg_raw_data_matrix[, "mz"],
+  breaks_fwhm,
+  include.lowest = TRUE,
+  right = TRUE,
   labels = FALSE
 )
 
@@ -90,8 +90,8 @@ if (nrow(pos_raw_data_matrix) > 0) {
   pos_raw_data_matrix[is.na(pos_raw_data_matrix[, "intensity"]), "intensity"] <- 0
   # aggregate intensities, calculate mean, use only values above dims_thresh_pos
   aggr_int_pos <- stats::aggregate(pos_raw_data_matrix[, "intensity"],
-				   list(bin_indices_pos),
-				   FUN = function(x) { mean(x[which(x > dims_thresh_pos)]) })
+                                   list(bin_indices_pos),
+                                   FUN = function(x) {mean(x[which(x > dims_thresh_pos)])})
   # set NA to zero in second column
   aggr_int_pos[is.na(aggr_int_pos[, 2]), 2] <- 0
   pos_bins[aggr_int_pos[, 1]] <- aggr_int_pos[, 2]
@@ -101,8 +101,8 @@ if (nrow(neg_raw_data_matrix) > 0) {
   neg_raw_data_matrix[is.na(neg_raw_data_matrix[, "intensity"]), "intensity"] <- 0
   # aggregate intensities, calculate mean, use only values above dims_thresh_neg
   aggr_int_neg <- stats::aggregate(neg_raw_data_matrix[, "intensity"],
-				   list(bin_indices_neg),
-				   FUN = function(x) { mean(x[which(x > dims_thresh_neg)]) })
+                                   list(bin_indices_neg),
+                                   FUN = function(x) {mean(x[which(x > dims_thresh_neg)])})
   # set NA to zero in second column
   aggr_int_neg[is.na(aggr_int_neg[, 2]), 2] <- 0
   neg_bins[aggr_int_neg[, 1]] <- aggr_int_neg[, 2]
