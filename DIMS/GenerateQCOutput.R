@@ -1,3 +1,4 @@
+library("argparse")
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
@@ -6,23 +7,30 @@ suppressMessages(library("dplyr"))
 # set the number of digits for floats
 options(digits = 16)
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "GenerateQCOutput")
 
-init_file <- cmd_args[1]
-project <- cmd_args[2]
-dims_matrix <- cmd_args[3]
-z_score <- cmd_args[4]
-sst_components_file <- cmd_args[5]
-export_scripts_dir <- cmd_args[6]
+parser$add_argument("--init_file_path", dest = "init_file",
+                    help = "File path for the init RData file", required = TRUE)
+parser$add_argument("--project", dest = "project",
+                    help = "Project name", required = TRUE)
+parser$add_argument("--matrix", dest = "dims_matrix",
+                    help = "The matrix used, e.g. Plasma, Research, ...", required = TRUE)
+parser$add_argument("-z", "--z_score", dest = "z_score", type = "integer",
+                    help = "Numeric value, z-score = 1", required = TRUE)
+parser$add_argument("--sst_components_file", dest = "sst_components_file",
+                    help = "File path to the SST components file", required = TRUE)
+parser$add_argument("--export_scripts_dir", dest = "export_scripts_dir",
+                    help = "File path to the directory containing functions used in this script", required = TRUE)
+
+args <- parser$parse_args()
 
 outdir <- "./"
 
 # load in function scripts
-source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
+source(paste0(args$export_scripts_dir, "generate_qc_output_functions.R"))
 
 # load init files
-load(init_file)
+load(args$init_file)
 # load outlist from GenerateExcel
 load("outlist.RData")
 # load combined adducts for each scanmodus
@@ -38,7 +46,7 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-if (z_score == 1) {
+if (args$z_score == 1) {
   file_name <- "Check_number_of_controls.txt"
   min_num_controls <- 25
   check_number_of_controls(outlist, min_num_controls, file_name)
@@ -67,14 +75,14 @@ outlist_tot_neg <- outlist_tot_neg[, samples_both_modes]
 outlist_tot_pos <- outlist_tot_pos[, samples_both_modes]
 
 # Retrieve IS summed adducts
-is_summed <- get_internal_standards(is_list, "summed", repl_pattern, dims_matrix, rundate, project)
+is_summed <- get_internal_standards(is_list, "summed", repl_pattern, args$dims_matrix, rundate, args$project)
 # Retrieve IS positive mode
-is_pos <- get_internal_standards(is_list, "pos", outlist_tot_pos, dims_matrix, rundate, project)
+is_pos <- get_internal_standards(is_list, "pos", outlist_tot_pos, args$dims_matrix, rundate, args$project)
 # Retrieve IS negative mode
-is_neg <- get_internal_standards(is_list, "neg", outlist_tot_neg, dims_matrix, rundate, project)
+is_neg <- get_internal_standards(is_list, "neg", outlist_tot_neg, args$dims_matrix, rundate, args$project)
 
 # Save results
-save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
+save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", args$project, "_IS_results.RData"))
 
 # number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
@@ -138,7 +146,7 @@ is_sum_selection <- c(
 )
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
-if (dims_matrix == "DBS") {
+if (args$dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
@@ -155,7 +163,7 @@ if (dims_matrix == "DBS") {
       int_line = c(1300000, 2500000, 500000, 1800000, 1400000),
       HMDB_name = is_sum_selection
     )
-} else if (dims_matrix == "Plasma") {
+} else if (args$dims_matrix == "Plasma") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
@@ -239,7 +247,7 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (z_score == 1) {
+if (args$z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
@@ -280,16 +288,16 @@ if (z_score == 1) {
 
     positive_control$Zscore <- as.numeric(positive_control$Zscore)
     # extra information added to excel for future reference. made in beginning of this script
-    positive_control$Matrix <- dims_matrix
+    positive_control$Matrix <- args$dims_matrix
     positive_control$Rundate <- rundate
-    positive_control$Project <- project
+    positive_control$Project <- args$project
 
     # Save results
-    save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
+    save(positive_control, file = paste0(outdir, "/", args$project, "_positive_control.RData"))
     # round the Z-scores to 2 digits
     positive_control$Zscore <- round_df(positive_control$Zscore, 2)
     write.xlsx(positive_control,
-      file = paste0(outdir, "/", project, "_positive_control.xlsx"),
+      file = paste0(outdir, "/", args$project, "_positive_control.xlsx"),
       sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
     )
   }
@@ -315,7 +323,7 @@ is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
 is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
 # SST components.
-sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_comp <- read.csv(args$sst_components_file, header = TRUE, sep = "\t")
 sst_list <- outlist %>% filter(HMDB_code %in% sst_comp$HMDB_ID)
 sst_colnrs <- grep("P1001", colnames(sst_list))
 
@@ -352,7 +360,7 @@ setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
 openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
 setColWidths(wb, 4, cols = 1:3, widths = 24)
-xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
+xlsx_name <- paste0(outdir, "/", args$project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
