@@ -1,7 +1,7 @@
 process CollectSumAdducts {
     tag "DIMS CollectSumAdducts"
     label 'CollectSumAdducts'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -13,6 +13,7 @@ process CollectSumAdducts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R $params.preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R \\
+        --preprocessing_scripts_dir $params.preprocessing_scripts_dir
         """
 }
