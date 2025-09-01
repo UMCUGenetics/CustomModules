@@ -1,28 +1,37 @@
 # adapted from 3-AverageTechReplicates.R
 
 # load packages
+library("argparse")
 library("ggplot2")
 library("gridExtra")
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "AverageTechReplicates")
 
-init_file <- cmd_args[1]
-nr_replicates <- as.numeric(cmd_args[2])
-run_name <- cmd_args[3]
-dims_matrix <- cmd_args[4]
-highest_mz_file <- cmd_args[5]
-highest_mz <- get(load(highest_mz_file))
-breaks_filepath <- cmd_args[6]
+parser$add_argument("--init_filepath", dest = "init_file",
+                    help = "File path for the init RData file", required = TRUE)
+parser$add_argument("-n", "--nr_replicates", dest = "nr_replicates", type = "integer",
+                    help = "Number of replicates", required = TRUE)
+parser$add_argument("--run_name", dest = "run_name",
+                    help = "The run name/analysis ID", required = TRUE)
+parser$add_argument("--matrix", dest = "dims_matrix",
+                    help = "The matrix used, e.g. Plasma, Research, ...")
+parser$add_argument("--highest_mz_file", dest = "highest_mz_file",
+                    help = "File path for the highest Mz RData file", required = TRUE)
+parser$add_argument("--breaks_filepath", dest = "breaks_filepath",
+                    help = "File path for the breaks RData file", required = TRUE)
+
+args <- parser$parse_args()
+
+highest_mz <- get(load(args$highest_mz_file))
 thresh2remove <- 1000000000
 
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   # collect list of samples to remove from replication pattern
   remove_from_group <- NULL
-  for (sample_nr in 1:length(repl_pattern)){
+  for (sample_nr in seq_along(repl_pattern)){
     repl_pattern_1sample <- repl_pattern[[sample_nr]]
     remove <- NULL
-    for (file_nr in 1:length(repl_pattern_1sample)) {
+    for (file_nr in seq_along(repl_pattern_1sample)) {
       if (repl_pattern_1sample[file_nr] %in% bad_samples) {
         remove <- c(remove, file_nr)
       }
@@ -41,14 +50,14 @@ remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
 }
 
 # load init_file: contains repl_pattern
-load(init_file)
+load(args$init_file)
 
 # load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
-load(breaks_filepath)
+load(args$breaks_filepath)
 
 # lower the threshold below which a sample will be removed for DBS and for high m/z
-if (dims_matrix == "DBS") {
+if (args$dims_matrix == "DBS") {
   thresh2remove <- 500000000
 }
 if (highest_mz > 700) {
@@ -60,7 +69,7 @@ if (highest_mz > 700) {
 remove_neg <- NULL
 remove_pos <- NULL
 cat("Pklist sum threshold to remove technical replicate:", thresh2remove, "\n")
-for (sample_nr in 1:length(repl_pattern)) {
+for (sample_nr in seq_along(repl_pattern)) {
   tech_reps <- as.vector(unlist(repl_pattern[sample_nr]))
   tech_reps_array_pos <- NULL
   tech_reps_array_neg <- NULL
@@ -68,7 +77,7 @@ for (sample_nr in 1:length(repl_pattern)) {
   sum_pos <- 0
   nr_pos <- 0
   nr_neg <- 0
-  for (file_nr in 1:length(tech_reps)) {
+  for (file_nr in seq_along(tech_reps)) {
     load(paste(tech_reps[file_nr], ".RData", sep = ""))
     cat("\n\nParsing", tech_reps[file_nr])
     # negative scanmode
@@ -92,7 +101,7 @@ for (sample_nr in 1:length(repl_pattern)) {
     }
     tech_reps_array_pos <- cbind(tech_reps_array_pos, peak_list$pos)
   }
-  # save to file  
+  # save to file
   if (nr_neg != 0) {
     sum_neg[, 1] <- sum_neg[, 1] / nr_neg
     colnames(sum_neg) <- names(repl_pattern)[sample_nr]
@@ -105,25 +114,25 @@ for (sample_nr in 1:length(repl_pattern)) {
   }
 }
 
-pattern_list <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
+pattern_list <- remove_from_repl_pattern(remove_neg, repl_pattern, args$nr_replicates)
 repl_pattern_filtered <- pattern_list$pattern
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
 write.table(
-  remove_neg, 
-  file = "miss_infusions_negative.txt", 
-  row.names = FALSE, 
-  col.names = FALSE, 
+  remove_neg,
+  file = "miss_infusions_negative.txt",
+  row.names = FALSE,
+  col.names = FALSE,
   sep = "\t"
 )
 
-pattern_list <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
+pattern_list <- remove_from_repl_pattern(remove_pos, repl_pattern, args$nr_replicates)
 repl_pattern_filtered <- pattern_list$pattern
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
 write.table(
-  remove_pos, 
-  file = "miss_infusions_positive.txt", 
-  row.names = FALSE, 
-  col.names = FALSE, 
+  remove_pos,
+  file = "miss_infusions_positive.txt",
+  row.names = FALSE,
+  col.names = FALSE,
   sep = "\t"
 )
 
@@ -146,10 +155,10 @@ for (file in tic_files) {
 # create a list with information for all TIC plots
 tic_plot_list <- list()
 plot_nr <-  0
-for (sample_nr in c(1:length(repl_pattern))) {
+for (sample_nr in seq_along(repl_pattern)) {
   tech_reps <- as.vector(unlist(repl_pattern[sample_nr]))
   sample_name <- names(repl_pattern)[sample_nr]
-  for (file_nr in 1:length(tech_reps)) {
+  for (file_nr in seq_along(tech_reps)) {
     plot_nr <- plot_nr + 1
     # read file with retention time, intensity and dims_threshold values
     repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
@@ -159,7 +168,7 @@ for (sample_nr in c(1:length(repl_pattern))) {
     # for replicates with bad TIC, determine what color the border of the plot should be
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg
-    if (bad_color_neg & bad_color_pos) {
+    if (bad_color_neg && bad_color_pos) {
       plot_color <- "#F8766D"
     } else if (bad_color_pos) {
       plot_color <- "#ED8141"
@@ -175,8 +184,10 @@ for (sample_nr in c(1:length(repl_pattern))) {
       geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
-      geom_segment(aes(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos), colour = "green", lty = 2) + 
-      geom_segment(aes(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg), colour = "blue", lty = 2) + 
+      geom_segment(aes(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos),
+                   colour = "green", lty = 2) +
+      geom_segment(aes(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg),
+                   colour = "blue", lty = 2) +
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),
@@ -187,19 +198,19 @@ for (sample_nr in c(1:length(repl_pattern))) {
 }
 
 # create a layout matrix dependent on number of replicates
-layout <- matrix(1:(10 * nr_replicates), 10, nr_replicates, TRUE)
+layout <- matrix(1:(10 * args$nr_replicates), 10, args$nr_replicates, TRUE)
 # put TIC plots in matrix
 tic_plot_pdf <- marrangeGrob(
   grobs = tic_plot_list,
-  nrow = 10, ncol = nr_replicates,
+  nrow = 10, ncol = args$nr_replicates,
   layout_matrix = layout,
   top = quote(paste(
-    "TICs of run", run_name,
+    "TICs of run", args$run_name,
     " \n colors: red = both modes misinjection, orange = pos mode misinjection, purple = neg mode misinjection \n ",
     g, "/", npages
   ))
 )
 
 # save to file
-ggsave(filename = paste0(run_name, "_TICplots.pdf"),
+ggsave(filename = paste0(args$run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")

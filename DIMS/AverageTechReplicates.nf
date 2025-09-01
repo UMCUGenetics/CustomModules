@@ -1,7 +1,7 @@
 process AverageTechReplicates {
     tag "DIMS AverageTechReplicates"
     label 'AverageTechReplicates'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -23,12 +23,13 @@ process AverageTechReplicates {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R $init_file \
-                                                                      $params.nr_replicates \
-                                                                      $analysis_id \
-                                                                      $matrix \
-                                                                      $highest_mz_file \
-                                                                      $breaks_file
+        Rscript ${baseDir}/CustomModules/DIMS/AverageTechReplicates.R \\
+            --init_filepath $init_file \\
+            --nr_replicates $params.nr_replicates \\
+            --run_name $analysis_id \\
+            --matrix $matrix \\
+            --highest_mz_file $highest_mz_file \\
+            --breaks_filepath $breaks_file
         """
 }
 
