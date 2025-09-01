@@ -18,6 +18,11 @@ process GenerateExcel {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $analysis_id $relevance_file $params.zscore $params.export_scripts_dir $params.path_metabolite_groups
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R \\
+            --project $analysis_id \\
+            --hmdb_rlvc_file $relevance_file \\
+            --z_score $params.zscore \\
+            --export_scripts_dir $params.export_scripts_dir \\
+            --path_metabolite_groups $params.path_metabolite_groups
         """
 }
