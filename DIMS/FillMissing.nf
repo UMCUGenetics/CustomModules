@@ -1,7 +1,7 @@
 process FillMissing {
     tag "DIMS FillMissing ${peakgrouplist_file}"
     label 'FillMissing'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:

@@ -1,7 +1,7 @@
 process CollectFilled {
     tag "DIMS CollectFilled"
     label 'CollectFilled'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:

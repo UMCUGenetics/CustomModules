@@ -1,7 +1,7 @@
 process HMDBparts_main {
     tag "DIMS HMDBparts_main"
     label 'HMDBparts_main'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:

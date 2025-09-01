@@ -1,7 +1,7 @@
 process PeakGrouping {
     tag "DIMS PeakGrouping ${hmdbpart_file}"
     label 'PeakGrouping'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
