@@ -14,7 +14,7 @@ dims_matrix <- cmd_args[4]
 highest_mz_file <- cmd_args[5]
 highest_mz <- get(load(highest_mz_file))
 breaks_filepath <- cmd_args[6]
-thresh2remove <- 1000000000
+thresh2remove <- cmd_args[7]
 
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   # collect list of samples to remove from replication pattern
@@ -47,7 +47,11 @@ load(init_file)
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(breaks_filepath)
 
-# lower the threshold below which a sample will be removed for DBS and for high m/z
+# lower the threshold for non Plasma matrices
+if (dims_matrix != "Plasma") {
+  thresh2remove <- 1000000000
+}
+# lower the threshold for DBS or high m/z specific
 if (dims_matrix == "DBS") {
   thresh2remove <- 500000000
 }
