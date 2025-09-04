@@ -134,10 +134,12 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
       }
       if (length(select_adducts) > 0) {
         all_hmdb_names_adducts <- paste0(select_adducts$HMDB_name_all[select_adducts$HMDB_name_all != ""], collapse =  ";")
-        all_hmdb_names <- paste(all_hmdb_names_adducts, all_hmdb_names, sep = ";")
+        all_hmdb_names <- paste(all_hmdb_names, all_hmdb_names_adducts, sep = ";")
         all_hmdb_ids_adducts <- paste0(select_adducts$HMDB_ID_all[select_adducts$HMDB_ID_all != ""], collapse = ";")
-        all_hmdb_ids   <- paste(all_hmdb_ids_adducts, all_hmdb_ids, sep = ";")
-        theor_mz <- select_adducts[, column_label][1]
+        all_hmdb_ids   <- paste(all_hmdb_ids, all_hmdb_ids_adducts, sep = ";")
+        if (theor_mz == 0) {
+          theor_mz <- select_adducts[, column_label][1]
+        }
       }
       if (length(select_isotopes) > 0) {
         all_isotope_names <- paste0(select_isotopes[, "CompoundName"], collapse = ";")
@@ -160,7 +162,7 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   peakgrouplist_identified[, "mzmed.pgrp"] <- as.numeric(peakgrouplist_identified[, "mzmed.pgrp"])
   peakgrouplist_identified[, "ppmdev"] <- 1000000 * (peakgrouplist_identified[, "mzmed.pgrp"] -
                                                        peakgrouplist_identified[, "theormz_HMDB"]) /
-    peakgrouplist_identified[, "theormz_HMDB"]
+                                                         peakgrouplist_identified[, "theormz_HMDB"]
 
   return(peakgrouplist_identified)
 }
