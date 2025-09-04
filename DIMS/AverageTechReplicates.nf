@@ -11,7 +11,6 @@ process AverageTechReplicates {
        val(nr_replicates)
        val(analysis_id)
        val(matrix)
-       val(threshold_tics)
        path(highest_mz_file)
        path(breaks_file)
 
@@ -30,7 +29,7 @@ process AverageTechReplicates {
                                                                       $matrix \
                                                                       $highest_mz_file \
                                                                       $breaks_file \
-                                                                      $threshold_tics
+                                                                      $params.threshold_tics
         """
 }
 
