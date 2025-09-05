@@ -50,11 +50,6 @@ for (scanmode in scanmodes) {
   
   # make a copy of the outlist
   outlist_ident <- outlist_total
-  # select identified peak groups if ppm deviation is within limits
-  if (z_score == 1) {
-    outlist_ident$ppmdev <- as.numeric(outlist_ident$ppmdev)
-    outlist_ident <- outlist_ident[which(outlist_ident["ppmdev"] >= -ppm & outlist_ident["ppmdev"] <= ppm), ]
-  }
   # take care of NAs in theormz_noise
   outlist_ident$theormz_noise[which(is.na(outlist_ident$theormz_noise))] <- 0
   outlist_ident$theormz_noise <- as.numeric(outlist_ident$theormz_noise)
