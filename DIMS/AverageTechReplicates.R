@@ -14,7 +14,7 @@ dims_matrix <- cmd_args[4]
 highest_mz_file <- cmd_args[5]
 highest_mz <- get(load(highest_mz_file))
 breaks_filepath <- cmd_args[6]
-thresh2remove <- cmd_args[7]
+thresh2remove <- as.numeric(cmd_args[7])
 
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   # collect list of samples to remove from replication pattern
