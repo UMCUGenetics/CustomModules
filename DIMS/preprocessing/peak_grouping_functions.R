@@ -103,8 +103,9 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
       # separate into main metabolites, metabolites with adducts and isotopes
       # main metabolites have no "_" in their name
       # if there are rownames with "_", choose only those without "_"
-      if (grepl("_", rownames(select_hmdb_df))) {
-        grep_noiso_noadduct <- which(!grep("_", rownames(select_hmdb_df)))
+      # check if any rownames contain a hmdb code without "_"
+      if (any(!grepl("_", rownames(select_hmdb_df)))) {
+        grep_noiso_noadduct <- which(!grepl("_", rownames(select_hmdb_df)))
       } else {
         grep_noiso_noadduct <- c(1:nrow(select_hmdb_df))
       }
