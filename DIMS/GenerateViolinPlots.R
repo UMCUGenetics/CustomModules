@@ -101,6 +101,8 @@ zscore_controls_df <- intensities_zscore_ratios_df %>% select(HMDB_code, HMDB_na
 colnames(zscore_patients_df) <- gsub("_Zscore", "", colnames(zscore_patients_df))
 colnames(zscore_controls_df) <- gsub("_Zscore", "", colnames(zscore_controls_df))
 
+cat(colnames(expected_biomarkers_df))
+
 expected_biomarkers_df <- expected_biomarkers_df %>% rename(HMDB_code = HMDB.code, HMDB_name = Metabolite)
 
 expected_biomarkers_info <- expected_biomarkers_df %>%
