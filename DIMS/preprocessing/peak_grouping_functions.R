@@ -121,7 +121,7 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
         select_isotopes <- select_hmdb_df[grep_isotopes, ]
       }
       # find adducts
-      grep_adducts <- grep("^HMDB[0-9]{7}_", rownames(select_hmdb_df[, ]))
+      grep_adducts <- grep("^HMDB[0-9]{6,7}_", rownames(select_hmdb_df[, ]))
       if (length(grep_adducts) > 0) {
         select_adducts <- select_hmdb_df[grep_adducts, ]
       }
