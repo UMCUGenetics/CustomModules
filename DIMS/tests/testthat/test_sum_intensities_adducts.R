@@ -14,6 +14,8 @@ testthat::test_that("adduct sums are correctly calculated", {
   test_peakgroup_list[ , c(1)] <- 300 + runif(4)
   test_peakgroup_list[ , c(2, 3)] <- runif(8)
   test_peakgroup_list[ , "HMDB_code"] <- c("HMDB1234567", "HMDB1234567_1", "HMDB1234567_2", "HMDB1234567_7")
+  test_peakgroup_list[ , "all_hmdb_ids"] <- paste(test_peakgroup_list[ , "HMDB_code"],
+                                                  test_peakgroup_list[ , "HMDB_code"], sep=";")
   test_peakgroup_list[ , "all_hmdb_names"] <- paste(test_peakgroup_list[ , "assi_HMDB"], 
                                                     test_peakgroup_list[ , "assi_HMDB"], sep=";")
   test_peakgroup_list[ , grep("C", colnames(test_peakgroup_list))] <- 1000*(1:16)
