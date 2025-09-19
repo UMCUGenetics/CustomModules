@@ -1,3 +1,4 @@
+library("dplyr")
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
@@ -21,7 +22,6 @@ if (grepl("positive_hmdb", hmdbpart_main_file)) {
 # load input files
 collect_file <- paste0("outlist_identified_", scanmode, ".RData")
 peakgroup_list <- get(load(collect_file))
-repl_file <- paste0(scanmode, "_repl_pattern.RData")
 hmdb_main_part <- get(load(hmdbpart_main_file))
 
 # get the number from the file name
