@@ -159,17 +159,17 @@ if (dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      int_line = c(6500, 100000, 75000, 7500, 25000),
+      int_line = c(70000, 700000, 700000, 65000, 350000),
       HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      int_line = c(85000, 1000000, 425000, 70000, 180000),
+      int_line = c(1500000, 9000000, 3000000, 400000, 700000),
       HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      int_line = c(700000, 1250000, 150000, 425000, 300000),
+      int_line = c(8000000, 12500000, 2500000, 3000000, 4000000),
       HMDB_name = is_sum_selection
     )
 } else {

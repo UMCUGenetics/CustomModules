@@ -28,7 +28,8 @@ process AverageTechReplicates {
                                                                       $analysis_id \
                                                                       $matrix \
                                                                       $highest_mz_file \
-                                                                      $breaks_file
+                                                                      $breaks_file \
+                                                                      $params.threshold_tics
         """
 }
 
