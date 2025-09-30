@@ -30,14 +30,13 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
   segment_end <- min_mz + 5
   while (segment_end < max_mz) {
     if (segment_start < 100) {
-      mz_segments <- c(mz_segments, segment_start)
-      segment_start <- segment_start + 5
-      segment_end <- segment_end + 5
+      segment_size = 5
     } else {
-      mz_segments <- c(mz_segments, segment_start)
-      segment_start <- segment_start + 10
-      segment_end <- segment_end + 10
+      segment_size = 10
     }
+    mz_segments <- c(mz_segments, segment_start)
+    segment_start <- segment_start + segment_size
+    segment_end <- segment_end + segment_size
   }
   #last segment
   mz_segments <- c(mz_segments, max_mz)
