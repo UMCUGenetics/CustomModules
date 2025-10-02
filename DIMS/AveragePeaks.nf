@@ -13,6 +13,6 @@ process AveragePeaks {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AveragePeaks.R $sample_id $tech_reps $scanmode
+        Rscript ${baseDir}/CustomModules/DIMS/AveragePeaks.R $sample_id $tech_reps $scanmode $params.preprocessing_scripts_dir
         """
 }
