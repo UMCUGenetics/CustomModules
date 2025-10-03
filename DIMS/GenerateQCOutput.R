@@ -356,6 +356,13 @@ xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
+# generate text file for workflow completed mail for components with Z-score < 2
+if (grepl("Zscore", colnames(sst_list_intensities))) {
+  zscore_column <- grep("_Zscore", colnames(sst_list_intensities)
+  sst_list_intensities_qc <- sst_list_intensities[sst_list_intensities[, zscore_column] < 2, ]
+  write.table(sst_list_intensities_qc, file = paste(outdir, "sst_qc.txt", sep = "/"))
+}
+
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file

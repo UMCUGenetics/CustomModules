@@ -17,6 +17,7 @@ process GenerateQCOutput {
        tuple path('*_IS_SST.xlsx'), path('*_positive_control.xlsx'), optional: true
        path('plots/IS_*.png'), emit: plot_files
        path('Check_number_of_controls.txt'), optional: true
+       path('sst_qc.txt'), optional: true
 
     script:
         """
