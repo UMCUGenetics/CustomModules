@@ -14,29 +14,6 @@ highest_mz <- get(load(highest_mz_file))
 trim_params_filepath <- cmd_args[6]
 thresh2remove <- 1000000000
 
-remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
-  # collect list of samples to remove from replication pattern
-  remove_from_group <- NULL
-  for (sample_nr in 1:length(repl_pattern)){
-    repl_pattern_1sample <- repl_pattern[[sample_nr]]
-    remove <- NULL
-    for (file_nr in 1:length(repl_pattern_1sample)) {
-      if (repl_pattern_1sample[file_nr] %in% bad_samples) {
-        remove <- c(remove, file_nr)
-      }
-    }
-    if (length(remove) == nr_replicates) {
-      remove_from_group <- c(remove_from_group, sample_nr)
-    }
-    if (!is.null(remove)) {
-      repl_pattern[[sample_nr]] <- repl_pattern[[sample_nr]][-remove]
-    }
-  }
-  if (length(remove_from_group) != 0) {
-    repl_pattern <- repl_pattern[-remove_from_group]
-  }
-  return(list("pattern" = repl_pattern))
-}
 
 # load init_file: contains repl_pattern
 load(init_file)
@@ -52,86 +29,31 @@ if (highest_mz > 700) {
   thresh2remove <- 1000000
 }
 
-# remove technical replicates which are below the threshold and average intensity over time
-remove_neg <- NULL
-remove_pos <- NULL
-cat("Pklist sum threshold to remove technical replicate:", thresh2remove, "\n")
-for (sample_nr in 1:length(repl_pattern)) {
-  tech_reps <- as.vector(unlist(repl_pattern[sample_nr]))
-  tech_reps_array_pos <- NULL
-  tech_reps_array_neg <- NULL
-  for (file_nr in 1:length(tech_reps)) {
-    load(paste(tech_reps[file_nr], ".RData", sep = ""))
-    cat("\n\nParsing", tech_reps[file_nr])
-    # positive scan mode: determine whether sum of intensities is above threshold
-    cat("\n\tPositive peak_list sum", sum(peak_list$pos[, 1]))
-    if (sum(peak_list$pos[, 1]) < thresh2remove) {
-      cat(" ... Removed")
-      remove_pos <- c(remove_pos, tech_reps[file_nr])
-    }
-    tech_reps_array_pos <- cbind(tech_reps_array_pos, peak_list$pos)
-    # negative scan mode: determine whether sum of intensities is above threshold
-    cat("\n\tNegative peak_list sum", sum(peak_list$neg[, 1]))
-    if (sum(peak_list$neg[, 1]) < thresh2remove) {
-      cat(" ... Removed")
-      remove_neg <- c(remove_neg, tech_reps[file_nr])
-    }
-    tech_reps_array_neg <- cbind(tech_reps_array_neg, peak_list$neg)
-  }
-}
+# find out which technical replicates are below the threshold
+remove_tech_reps <- find_bad_replicates(repl_pattern, thresh2remove)
+print(remove_tech_reps)
 
 # negative scan mode
-print("neg")
-pattern_list <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
-repl_pattern_filtered <- pattern_list$pattern
-print(repl_pattern_filtered)
-print(length(repl_pattern_filtered))
+remove_neg <- remove_tech_reps$neg
+repl_pattern_filtered <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
-# save replication pattern in txt file for use in Nextflow
-allsamples_techreps_neg <- matrix("", ncol = 3, nrow = length(repl_pattern_filtered))
-for (sample_nr in 1:length(repl_pattern_filtered)) {
-  allsamples_techreps_neg[sample_nr, 1] <- names(repl_pattern_filtered)[sample_nr]
-  allsamples_techreps_neg[sample_nr, 2] <- paste0(repl_pattern_filtered[[sample_nr]], collapse = ";")
-}
-allsamples_techreps_neg[, 3] <- "negative"
-
-# write information on miss_infusions
-write.table(remove_neg,
-	    file = "miss_infusions_negative.txt",
-	    row.names = FALSE,
-	    col.names = FALSE,
-	    sep = "\t"
-)
 
 # positive scan mode
-pattern_list <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
-print(pattern_list)
-repl_pattern_filtered <- pattern_list$pattern
+remove_pos <- remove_tech_reps$pos
+repl_pattern_filtered <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
-# save replication pattern in txt file for use in Nextflow
-allsamples_techreps_pos <- matrix("", ncol = 3, nrow = length(repl_pattern_filtered))
-for (sample_nr in 1:length(repl_pattern_filtered)) {
-  allsamples_techreps_pos[sample_nr, 1] <- names(repl_pattern_filtered)[sample_nr]
-  allsamples_techreps_pos[sample_nr, 2] <- paste0(repl_pattern_filtered[[sample_nr]], collapse = ";")
-}
-allsamples_techreps_pos[, 3] <- "positive"
 
-# combine information on samples and technical replicates for pos and neg
-allsamples_techreps <- rbind(allsamples_techreps_pos, allsamples_techreps_neg)
-write.table(allsamples_techreps,
-	    file = paste0("replicates_per_sample.txt"),
+# get an overview of suitable technical replicates for both scan modes
+allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
+allsamples_techreps_pos <- get_overview_tech_reps(repl_pattern_filtered, "positive")
+allsamples_techreps_both_scanmodes <- rbind(allsamples_techreps_pos, allsamples_techreps_neg)
+write.table(allsamples_techreps_both_scanmodes,
+            file = "replicates_per_sample.txt",
             col.names = FALSE,
-	    row.names = FALSE,
-	    sep = ","
+            row.names = FALSE,
+            sep = ","
 )
 
-# write information on miss_infusions
-write.table(remove_pos,
-	    file = "miss_infusions_positive.txt",
-	    row.names = FALSE,
-	    col.names = FALSE,
-	    sep = "\t"
-)
 
 ## generate TIC plots
 # get all txt files
@@ -211,4 +133,5 @@ tic_plot_pdf <- marrangeGrob(
 # save to file
 ggsave(filename = paste0(run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")
+
 
