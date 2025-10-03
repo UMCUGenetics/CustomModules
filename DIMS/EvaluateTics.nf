@@ -8,9 +8,7 @@ process EvaluateTics {
        path(rdata_file)
        path(tic_txt_files)
        path(init_file)
-       val(nr_replicates)
        val(analysis_id)
-       val(matrix)
        path(highest_mz_file)
        path(trim_params_file)
 
@@ -19,14 +17,14 @@ process EvaluateTics {
        path('replicates_per_sample.txt'), emit: sample_techreps
        path('miss_infusions_negative.txt')
        path('miss_infusions_positive.txt')
-       path('*_TICplots.pdf')
+       path('*_TICplots.pdf'),            emit: tic_plots_pdf
 
     script:
         """
         Rscript ${baseDir}/CustomModules/DIMS/EvaluateTics.R $init_file \
                                                              $params.nr_replicates \
                                                              $analysis_id \
-                                                             $matrix \
+                                                             $params.matrix \
                                                              $highest_mz_file \
                                                              $trim_params_file
         """
