@@ -21,7 +21,7 @@ search_regions_of_interest <- function(ints_fullrange) {
   } else {
     regions_of_interest_gte3 <- regions_of_interest_length
   }
-  # test for length of roi. If length is greater than 11, remove roi and break up into separate rois
+  # test for length of roi (region of interest). If length is greater than 11, break up into separate rois
   remove_roi_index <- c()
   new_rois_all <- regions_of_interest_gte3[0, ]
   for (roi_nr in 1:nrow(regions_of_interest_gte3)) {
@@ -43,7 +43,7 @@ search_regions_of_interest <- function(ints_fullrange) {
           new_rois_splitroi <- rbind(new_rois_splitroi, new_rois)
           start_pos <- new_rois[, 2]
         }
-        # last part
+        # intensities after last local minimum
         new_rois[, 1] <- start_pos
         new_rois[, 2] <- regions_of_interest_gte3[roi_nr, "to"]
         new_rois[, 3] <- new_rois[, 2] - new_rois[, 1] + 1
@@ -67,13 +67,11 @@ search_regions_of_interest <- function(ints_fullrange) {
   }
 
   # remove rois that have been split into chunks or shortened
-  #print(dim(regions_of_interest_gte3))
   if (length(remove_roi_index) > 0) {
     regions_of_interest_minus_short <- regions_of_interest_gte3[-remove_roi_index, ]
   } else {
     regions_of_interest_minus_short <- regions_of_interest_gte3
   }
-  #print(dim(regions_of_interest_minus_short))
   # combine remaining rois with info on chunks
   regions_of_interest_split <- rbind(regions_of_interest_minus_short, new_rois_all)
   # remove regions of interest with short lengths again

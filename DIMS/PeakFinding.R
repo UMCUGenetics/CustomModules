@@ -1,3 +1,5 @@
+library(dplyr)
+
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
@@ -10,8 +12,6 @@ peak_thresh <- 2000
 # source functions script
 source(paste0(preprocessing_scripts_dir, "peak_finding_functions.R"))
 
-library(dplyr)
-
 # Load output of AssignToBins (peak_list) for a technical replicate
 load(replicate_rdatafile)
 techrepl_name <- colnames(peak_list$pos)[1]
@@ -22,7 +22,7 @@ techreps_passed <- read.table("replicates_per_sample.txt", sep=",")
 # Initialize
 options(digits = 16)
 
-# run the findPeaks function
+# do peak finding
 scanmodes <- c("positive", "negative")
 for (scanmode in scanmodes) {
   # get intensities for scan mode
