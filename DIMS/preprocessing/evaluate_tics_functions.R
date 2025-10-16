@@ -12,8 +12,6 @@ find_bad_replicates <- function(repl_pattern, thresh2remove) {
   cat("Pklist sum threshold to remove technical replicate:", thresh2remove, "\n")
   for (sample_nr in 1:length(repl_pattern)) {
     tech_reps <- as.vector(unlist(repl_pattern[sample_nr]))
-    tech_reps_array_pos <- NULL
-    #tech_reps_array_neg <- NULL
     for (file_nr in 1:length(tech_reps)) {
       load(paste0(tech_reps[file_nr], ".RData"))
       cat("\n\nParsing", tech_reps[file_nr])
