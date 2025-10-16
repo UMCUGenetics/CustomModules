@@ -7,23 +7,24 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
   #'
   #' @return adductsum: peak group list with summed intensities (matrix)
-  hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), all_HMDB_ids = hmdb_part[, "HMDB_ID_all"])
+  hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), CompoundName = hmdb_part[, "CompoundName"])
 
   # create overview of row indices for each metabolite_adduct combination in peaklist
-  hmdb_in_peaklist <- peakgroup_list$HMDB_code
+  # split the all_hmdb_ids column into list with each id as a value
+  hmdb_in_peaklist <- strsplit(peakgroup_list$all_hmdb_ids, ";")
   # avoid rows with only "" in HMDB_code column
   hmdb_in_peaklist[which(hmdb_in_peaklist == "")] <- ";"
   hmdb_in_peaklist_rownr <- c()
-  for (row_nr in 1:length(hmdb_in_peaklist)) {
-    hmdb_split <- strsplit(hmdb_in_peaklist[row_nr], ";")[[1]]
-    hmdb_rownr <- cbind(hmdb_split, row_nr)
-    hmdb_in_peaklist_rownr <- rbind(hmdb_in_peaklist_rownr, hmdb_rownr)
-  }
-  hmdb_in_peaklist_rownr <- as.data.frame(hmdb_in_peaklist_rownr)
-  # remove NA, if any
-  if (sum(is.na(hmdb_in_peaklist_rownr$hmdb_split)) > 0) {
-    hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr[-which(is.na(hmdb_in_peaklist_rownr$hmdb_split)), ]
-  }
+  
+  # create dataframe with for each HMDB id a row number
+  hmdb_in_peaklist_rownr <- data.frame(
+    row_id = rep(seq_along(hmdb_in_peaklist), lengths(hmdb_in_peaklist)),
+    hmdb_id = unlist(hmdb_in_peaklist)
+  )
+  # remove empty rows and duplicates
+  hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr %>% 
+    filter(hmdb_id != "") %>% 
+    distinct()
 
   # find intensity columns in peakgroup_list
   if (z_score == 1) {
@@ -47,13 +48,12 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   }
 
   for (hmdb_index in 1:nrow(hmdb_part_info)) {
-    print(hmdb_index)
     compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
     compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
     # find indices of rows in peakgroup_list that contain compound plus adducts
-    metab_row <- which(hmdb_in_peaklist_rownr$hmdb_split %in% compound_plus_adducts)
-    metab_indices <- as.numeric(hmdb_in_peaklist_rownr$row_nr[metab_row])
+    metab_row <- which(hmdb_in_peaklist_rownr$hmdb_id %in% compound_plus_adducts)
+    metab_indices <- as.numeric(hmdb_in_peaklist_rownr$row_id[metab_row])
 
     # find intensities and sum them
     ints <- peakgroup_list[metab_indices, int_cols]
@@ -63,8 +63,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     if (sum(total) != 0) {
       names <- c(names, compound)
       adductsum <- rbind(adductsum, total)
-      names_long <- c(names_long, hmdb_part_info[hmdb_index, "all_HMDB_ids"])
-      print(dim(adductsum))
+      names_long <- c(names_long, hmdb_part_info[hmdb_index, "CompoundName"])
     }
   }
 

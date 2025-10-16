@@ -109,8 +109,8 @@ if (nrow(neg_raw_data_matrix) > 0) {
 }
 
 # Zero any values that are below the threshold
-pos_bins[pos_bins < dims_thresh_pos] <- 0
-neg_bins[neg_bins < dims_thresh_neg] <- 0
+pos_bins[pos_bins < dims_thresh] <- 0
+neg_bins[neg_bins < dims_thresh] <- 0
 
 pos_results <- cbind(pos_results, pos_bins)
 neg_results <- cbind(neg_results, neg_bins)
