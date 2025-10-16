@@ -7,7 +7,9 @@ average_peaks_per_sample <- function(peaklist_allrepl_sorted) {
   
   # initialize
   averaged_peaks <- peaklist_allrepl_sorted[0, ]
-  
+  # set ppm as fixed value, not the same ppm as in peak grouping
+  ppm_peak <- 2
+
   while (nrow(peaklist_allrepl_sorted) > 1) {
     # store row numbers
     peaklist_allrepl_sorted$rownr <- 1:nrow(peaklist_allrepl_sorted)

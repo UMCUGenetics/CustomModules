@@ -12,9 +12,6 @@ tech_reps <- strsplit(techreps, ";")[[1]]
 # load in function scripts
 source(paste0(preprocessing_scripts_dir, "average_peaks_functions.R"))
 
-# set ppm as fixed value, not the same ppm as in peak grouping
-ppm_peak <- 2
-
 # Initialize per sample
 peaklist_allrepl <- NULL
 nr_repl_persample <- 0
