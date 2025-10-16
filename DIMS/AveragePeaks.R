@@ -32,6 +32,6 @@ peaklist_allrepl_df$height.pkt <- as.numeric(peaklist_allrepl_df$height.pkt)
 peaklist_allrepl_sorted <- peaklist_allrepl_df %>% arrange(mzmed.pkt)
 
 # average over technical replicates
-averaged_peaks <- average_peaks_per_sample(peaklist_allrepl_sorted)
+averaged_peaks <- average_peaks_per_sample(peaklist_allrepl_sorted, sample_name)
 save(averaged_peaks, file = paste0("AvgPeaks_", sample_name, "_", scanmode, ".RData"))
 

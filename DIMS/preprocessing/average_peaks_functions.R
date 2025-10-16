@@ -1,4 +1,4 @@
-average_peaks_per_sample <- function(peaklist_allrepl_sorted) {
+average_peaks_per_sample <- function(peaklist_allrepl_sorted, sample_name) {
   #' Average the intensity of peaks that occur in different technical replicates of a biological sample
   #'
   #' @param peaklist_allrepl_sorted: Dataframe with peaks sorted on median m/z (float)
