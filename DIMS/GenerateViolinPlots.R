@@ -73,16 +73,12 @@ if (z_score == 1){
   #### STEP 1: Preparation ####
   # in: run_name, path_dims_file, header_row ||| out: output_dir, DIMS
 
-  # path to DIMS excel file
-  path_dims_file <- paste0(run_name, ".xlsx")
+  # load outlist instead of excel file
+  load("outlist.RData")
 
-  # Load the excel file.
-  dims_xls <- readWorkbook(xlsxFile = path_dims_file, sheet = 1, startRow = header_row)
-  if (exists("dims_xls")) {
-    cat(paste0("\nThe excel file is succesfully loaded:\n -> ", path_dims_file))
-  } else {
-    cat(paste0("\n\n**** Error: Could not find an Excel file. Please check location of file:\n -> ", path_dims_file, "\n"))
-  }
+  # save outlist as dims_xls, will be changed during refactor 
+  dims_xls <- outlist
+  rm(outlist)
 
   #### STEP 2: Edit DIMS data #####
   # in: dims_xls ||| out: Data, nr_contr, nr_pat
@@ -333,9 +329,6 @@ if (z_score == 1){
 
     # preparation
     zscore_patients_copy <- zscore_patients
-    # for robust scaler, rename Z-score columns
-    colnames(zscore_patients) <- gsub("_RobustZscore", "_Zscore", colnames(zscore_patients))
-    colnames(zscore_controls) <- gsub("_RobustZscore", "_Zscore", colnames(zscore_controls))
     colnames(zscore_patients) <- gsub("_Zscore", "", colnames(zscore_patients))
     colnames(zscore_controls) <- gsub("_Zscore", "", colnames(zscore_controls))
 
