@@ -13,6 +13,8 @@ process MakeInit {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/MakeInit.R $samplesheet $nr_replicates 
+        Rscript ${baseDir}/CustomModules/DIMS/MakeInit.R \\
+            --samplesheet $samplesheet \\
+            --nr_replicates $nr_replicates 
         """
 }
