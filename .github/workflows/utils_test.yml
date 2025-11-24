@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: [Utils/**]
   push:
-    branches: [master, develop]
+    branches: [master, develop, origin/fix/github_actions_yaml_syntax_v2]
     paths: [Utils/**]
 
 jobs:
