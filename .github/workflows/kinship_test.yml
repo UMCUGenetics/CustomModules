@@ -5,7 +5,7 @@ on:
     paths: [Kinship/**]
   push:
     branches: [master, develop, origin/fix/github_actions_yaml_syntax_v2]
-    paths: [Kinship/**]
+    # paths: [Kinship/**]
 
 jobs:
   pytest:

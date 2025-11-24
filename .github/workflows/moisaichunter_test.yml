@@ -5,7 +5,7 @@ on:
     paths: [MosaicHunter/**]
   push:
     branches: [master, develop, origin/fix/github_actions_yaml_syntax_v2]
-    paths: [MosaicHunter/**]
+    # paths: [MosaicHunter/**]
 
 jobs:
   pytest:
