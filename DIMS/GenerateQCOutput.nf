@@ -1,7 +1,7 @@
 process GenerateQCOutput {
     tag "DIMS GenerateQCOutput"
     label 'GenerateQCOutput'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -20,11 +20,12 @@ process GenerateQCOutput {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R $init_file \
-                                                                 $analysis_id \
-                                                                 $params.matrix \
-                                                                 $params.zscore \
-                                                                 $params.sst_components_file \
-                                                                 $params.export_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R \\
+            --init_file_path $init_file \\
+            --project $analysis_id \\
+            --matrix $params.matrix \\
+            --z_score $params.zscore \\
+            --sst_components_file $params.sst_components_file \\
+            --export_scripts_dir $params.export_scripts_dir
         """
 }

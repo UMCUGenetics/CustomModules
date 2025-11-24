@@ -1,7 +1,7 @@
 process AssignToBins {
     tag "DIMS AssignToBins ${file_id}"
     label 'AssignToBins'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
@@ -13,7 +13,9 @@ process AssignToBins {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AssignToBins.R $mzML_file $breaks_file $params.resolution
+        Rscript ${baseDir}/CustomModules/DIMS/AssignToBins.R \\
+            --mzML_filepath $mzML_file \\
+            --breaks_filepath $breaks_file
         """
 }
 

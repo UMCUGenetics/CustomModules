@@ -1,19 +1,22 @@
 # load required packages
+library("argparse")
 suppressPackageStartupMessages(library("xcms"))
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "AssignToBins")
 
-mzml_filepath <- cmd_args[1]
-breaks_filepath <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
+parser$add_argument("--mzML_filepath", dest = "mzml_filepath",
+                    help = "File path for the mzML file", required = TRUE)
+parser$add_argument("--breaks_filepath", dest = "breaks_filepath",
+                    help = "File path for the breaks RData file", required = TRUE)
+
+args <- parser$parse_args()
 
 # load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
-load(breaks_filepath)
+load(args$breaks_filepath)
 
 # get sample name
-techrep_name <- sub("\\..*$", "", basename(mzml_filepath))
+techrep_name <- sub("\\..*$", "", basename(args$mzml_filepath))
 
 options(digits = 16)
 
@@ -26,7 +29,7 @@ neg_bins <- bins
 dims_thresh <- 100
 
 # read in the data for 1 sample
-raw_data <- suppressMessages(xcms::xcmsRaw(mzml_filepath))
+raw_data <- suppressMessages(xcms::xcmsRaw(args$mzml_filepath))
 
 # Generate a matrix with retention times and intensities
 raw_data_matrix <- xcms::rawMat(raw_data)
@@ -41,13 +44,13 @@ neg_times_trimmed <- neg_times[neg_times > trim_left_neg & neg_times < trim_righ
 # get TIC intensities for areas between trim_left and trim_right
 tic_intensity_persample <- cbind(raw_data@scantime, raw_data@tic)
 colnames(tic_intensity_persample) <- c("retention_time", "tic_intensity")
-tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(pos_times_trimmed) &
-                                             tic_intensity_persample[ , "retention_time"] < max(pos_times_trimmed), ]
-tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(neg_times_trimmed) &
-                                             tic_intensity_persample[ , "retention_time"] < max(neg_times_trimmed), ]
+tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[, "retention_time"] > min(pos_times_trimmed) &
+                                               tic_intensity_persample[, "retention_time"] < max(pos_times_trimmed), ]
+tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[, "retention_time"] > min(neg_times_trimmed) &
+                                               tic_intensity_persample[, "retention_time"] < max(neg_times_trimmed), ]
 # calculate weighted mean of intensities for pos and neg separately
-mean_pos <- weighted.mean(tic_intensity_pos[ , "tic_intensity"], tic_intensity_pos[ , "tic_intensity"])
-mean_neg <- weighted.mean(tic_intensity_neg[ , "tic_intensity"], tic_intensity_neg[ , "tic_intensity"])
+mean_pos <- weighted.mean(tic_intensity_pos[, "tic_intensity"], tic_intensity_pos[, "tic_intensity"])
+mean_neg <- weighted.mean(tic_intensity_neg[, "tic_intensity"], tic_intensity_neg[, "tic_intensity"])
 # intensity per scan should be at least 80% of weighted mean
 dims_thresh_pos <- 0.8 * mean_pos
 dims_thresh_neg <- 0.8 * mean_neg
@@ -67,17 +70,17 @@ neg_raw_data_matrix <- raw_data_matrix[neg_index, ]
 
 # Get index for binning intensity values
 bin_indices_pos <- cut(
-  pos_raw_data_matrix[, "mz"], 
+  pos_raw_data_matrix[, "mz"],
   breaks_fwhm,
-  include.lowest = TRUE, 
-  right = TRUE, 
+  include.lowest = TRUE,
+  right = TRUE,
   labels = FALSE
 )
 bin_indices_neg <- cut(
-  neg_raw_data_matrix[, "mz"], 
-  breaks_fwhm, 
-  include.lowest = TRUE, 
-  right = TRUE, 
+  neg_raw_data_matrix[, "mz"],
+  breaks_fwhm,
+  include.lowest = TRUE,
+  right = TRUE,
   labels = FALSE
 )
 

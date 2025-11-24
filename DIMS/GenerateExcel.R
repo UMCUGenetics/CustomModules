@@ -1,4 +1,5 @@
 # load required packages
+library("argparse")
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
@@ -6,17 +7,23 @@ suppressMessages(library("tidyr"))
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "GenerateExcel")
 
-project <- cmd_args[1]
-hmdb_rlvc_file <- cmd_args[2]
-z_score <- as.numeric(cmd_args[3])
-export_scripts_dir <- cmd_args[4]
-path_metabolite_groups <- cmd_args[5]
+parser$add_argument("--project", dest = "project",
+                    help = "Project name", required = TRUE)
+parser$add_argument("--hmdb_rlvc_file", dest = "hmdb_rlvc_file",
+                    help = "File path to the HMDB relevance file", required = TRUE)
+parser$add_argument("-z", "--z_score", dest = "z_score", type = "integer",
+                    help = "Numeric value, z-score = 1", required = TRUE)
+parser$add_argument("--export_scripts_dir", dest = "export_scripts_dir",
+                    help = "File path to the directory containing functions used in this script", required = TRUE)
+parser$add_argument("--path_metabolite_groups", dest = "path_metabolite_groups",
+                    help = "File path to the directory containing the metabolite groups", required = TRUE)
+
+args <- parser$parse_args()
 
 # load in function scripts
-source(paste0(export_scripts_dir, "generate_excel_functions.R"))
+source(paste0(args$export_scripts_dir, "generate_excel_functions.R"))
 
 # set the number of digits for floats
 options(digits = 16)
@@ -35,7 +42,7 @@ perc <- 5
 outlier_threshold <- 2
 
 # load HMDB rlvnc table
-load(hmdb_rlvc_file)
+load(args$hmdb_rlvc_file)
 
 # load outlist object
 load("AdductSums_combined.RData")
@@ -64,7 +71,7 @@ wb_intensities <- openxlsx::createWorkbook("SinglePatient")
 openxlsx::addWorksheet(wb_intensities, sheetname)
 
 # Add Z-scores and create plots
-if (z_score == 1) {
+if (args$z_score == 1) {
   dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
   wb_helix_intensities <- openxlsx::createWorkbook("SinglePatient")
   openxlsx::addWorksheet(wb_helix_intensities, sheetname)
@@ -121,13 +128,13 @@ if (z_score == 1) {
 
   # get Helix IDs for extra Excel file
   metabolite_files <- list.files(
-    path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
+    path = paste(args$path_metabolite_groups, "Diagnostics", sep = "/"),
     pattern = "*.txt", full.names = FALSE, recursive = FALSE
   )
   metab_df_helix <- NULL
   for (file_index in seq_along(metabolite_files)) {
     infile <- metabolite_files[file_index]
-    metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
+    metab_list <- read.table(paste(args$path_metabolite_groups, "Diagnostics", infile, sep = "/"),
       sep = "\t", header = TRUE, quote = ""
     )
     metab_df_helix <- rbind(metab_df_helix, metab_list)
@@ -243,7 +250,7 @@ if (z_score == 1) {
     plots_present = TRUE
   )
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
-  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
+  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", args$project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
 
   # reorder outlist for Excel file
@@ -267,6 +274,6 @@ if (z_score == 1) {
 
 # write Excel file
 openxlsx::writeData(wb_intensities, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
+openxlsx::saveWorkbook(wb_intensities, paste0(outdir, "/", args$project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities)
 unlink("plots", recursive = TRUE)

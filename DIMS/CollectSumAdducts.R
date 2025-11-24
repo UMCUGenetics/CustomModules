@@ -1,13 +1,16 @@
 ## Combining all AdductSums part files for each scanmode and
 # combine intensities if present in both scanmodes
+library("argparse")
 suppressMessages(library("dplyr"))
 
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser(description = "GenerateExcel")
 
-preprocessing_scripts_dir <- cmd_args[1]
+parser$add_argument("--preprocessing_scripts_dir", dest = "preprocessing_scripts_dir",
+                    help = "File path to the directory containing functions used in this script", required = TRUE)
 
-source(paste0(preprocessing_scripts_dir, "collect_sum_adducts_functions.R"))
+args <- parser$parse_args()
+
+source(paste0(args$preprocessing_scripts_dir, "collect_sum_adducts_functions.R"))
 
 # collect all AdductSums part files for each scanmode and save to RData file
 outlist_tot_pos <- combine_sum_adduct_parts("positive")

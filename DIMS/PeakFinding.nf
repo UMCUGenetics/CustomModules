@@ -1,7 +1,7 @@
 process PeakFinding {
     tag "DIMS PeakFinding ${rdata_file}"
     label 'PeakFinding'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'docker://umcugenbioinf/dims:1.4'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
