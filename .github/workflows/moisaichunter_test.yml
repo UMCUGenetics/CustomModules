@@ -10,8 +10,8 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-      env:
-        working-directory: MosaicHunter/1.0.0/
+    env:
+      working-directory: MosaicHunter/1.0.0/
     defaults:
       run:
         working-directory: ${{ env.working-directory }}
@@ -25,7 +25,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.5'
+          python-version: "3.11.5"
       #----------------------------------------------
       # install & configure poetry
       #----------------------------------------------
