@@ -56,8 +56,12 @@ load(args$init_file)
 # trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(args$breaks_filepath)
 
-# lower the threshold below which a sample will be removed for DBS and for high m/z
-if (args$dims_matrix == "DBS") {
+# lower the threshold for non Plasma matrices
+if (dims_matrix != "Plasma") {
+  thresh2remove <- 1000000000
+}
+# lower the threshold for DBS or high m/z specific
+if (dims_matrix == "DBS") {
   thresh2remove <- 500000000
 }
 if (highest_mz > 700) {
@@ -184,10 +188,8 @@ for (sample_nr in seq_along(repl_pattern)) {
       geom_vline(xintercept = trim_right_pos, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_left_neg, col = "red", linetype = 2, linewidth = 0.3) +
       geom_vline(xintercept = trim_right_neg, col = "red", linetype = 2, linewidth = 0.3) +
-      geom_segment(aes(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos),
-                   colour = "green", lty = 2) +
-      geom_segment(aes(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg),
-                   colour = "blue", lty = 2) +
+      geom_segment(x = trim_left_pos, y = dims_thresh_pos, xend = trim_right_pos, yend = dims_thresh_pos, colour = "green", lty = 2) + 
+      geom_segment(x = trim_left_neg, y = dims_thresh_neg, xend = trim_right_neg, yend = dims_thresh_neg, colour = "blue", lty = 2) + 
       labs(x = "t (s)", y = "tic_intensity", title = paste0(tech_reps[file_nr], "  ||  ", sample_name)) +
       theme(plot.background = element_rect(fill = plot_color),
             axis.text = element_text(size = 4),

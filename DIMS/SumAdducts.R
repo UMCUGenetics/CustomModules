@@ -1,12 +1,13 @@
-# load in function scripts
-source(paste0(scripts_dir, "sum_intensities_adducts.R"))
-
+library("dplyr")
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 hmdbpart_main_file <- cmd_args[1]
 scripts_dir <- cmd_args[2]
 z_score <- as.numeric(cmd_args[3])
+
+# load in function scripts
+source(paste0(scripts_dir, "sum_intensities_adducts.R"))
 
 if (grepl("positive_hmdb", hmdbpart_main_file)) {
   scanmode <- "positive"
@@ -21,7 +22,6 @@ if (grepl("positive_hmdb", hmdbpart_main_file)) {
 # load input files
 collect_file <- paste0("outlist_identified_", scanmode, ".RData")
 peakgroup_list <- get(load(collect_file))
-repl_file <- paste0(scanmode, "_repl_pattern.RData")
 hmdb_main_part <- get(load(hmdbpart_main_file))
 
 # get the number from the file name
