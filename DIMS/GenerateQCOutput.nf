@@ -23,7 +23,6 @@ process GenerateQCOutput {
         Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R $init_file \
                                                                  $analysis_id \
                                                                  $params.matrix \
-                                                                 $params.zscore \
                                                                  $params.sst_components_file \
                                                                  $params.export_scripts_dir
         """
