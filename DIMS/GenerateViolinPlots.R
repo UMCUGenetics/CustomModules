@@ -184,14 +184,6 @@ for (patient_id in patients) {
       metab_iem_df <- expected_biomarkers_df %>% filter(Disease == iem) %>% select(HMDB_code, HMDB_name)
       metabs_iems[[iem]] <- metab_iem_df
     }
-    # metabs_iems <- lapply(top_iems, function(iem) {
-    #   iem_probablity <- patient_top_iems_probs %>% filter(Disease == iem) %>% pull(!!sym(patient_id))
-    #   metabs_iems_names <- c(metabs_iems_names, paste0(iem, ", probability score ", iem_probablity))
-    #   metab_iem <- expected_biomarkers_df %>% filter(Disease == iem) %>% select(HMDB_code, HMDB_name)
-    #   return(metab_iem)
-    # })
-    # names(metabs_iems) <- metabs_iems_names
-
     # Get the Z-scores with metabolite information
     metab_iem_sorted <- combine_metab_info_zscores(metabs_iems, zscore_patients_df)
     metab_iem_controls <- combine_metab_info_zscores(metabs_iems, zscore_controls_df)
