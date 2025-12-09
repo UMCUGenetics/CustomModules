@@ -329,6 +329,7 @@ if (length(sst_colnrs) > 0) {
   sst_list_intensities <- sst_list[, intensity_col_ids]
 }
 for (col_nr in seq_len(ncol(sst_list_intensities))) {
+  sst_list_intensities <- as.data.frame(sst_list_intensities)
   sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
   if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
     sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
