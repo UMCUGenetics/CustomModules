@@ -32,4 +32,3 @@ outputfile_name <- gsub(".RData", "_filled.RData", peakgrouplist_file)
 
 # save output
 save(peakgrouplist_filled, file = outputfile_name)
-
