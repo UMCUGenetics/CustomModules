@@ -151,11 +151,13 @@ if (z_score == 1) {
   # Remove SST mix (P1001.x) and positive controls (P1002.x, P1002.x, P1005.x)
   intensities_plots_df <- outlist %>%
     select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"), -matches("^P\\d{4}\\.\\d+$"))
-  
+
   for (row_index in seq_len(nrow(intensities_plots_df))) {
     # get HMDB ID
-    hmdb_id <- intensities_plots_df %>% slice(row_index) %>% pull(HMDB_key)
-    
+    hmdb_id <- intensities_plots_df %>%
+      slice(row_index) %>%
+      pull(HMDB_key)
+
     # get intensities of controls and patient for the selected metabolite,
     # pivot to long format, arrange Samples nummerically, change Sample names, get group size and
     # set Intensities to numeric.
@@ -186,7 +188,8 @@ if (z_score == 1) {
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
     p <- ggplot(intensities_plots_df_long, aes(Samples, Intensities)) +
       geom_boxplot(data = subset(intensities_plots_df_long, group_size > 2), aes(fill = type)) +
-      geom_point(data = subset(intensities_plots_df_long, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
+      geom_point(data = subset(intensities_plots_df_long, group_size <= 2),
+                 shape = "-", size = 10, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
       scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
       theme(
