@@ -18,6 +18,7 @@ process GenerateQCOutput {
        path('plots/IS_*.png'), emit: plot_files
        path('Check_number_of_controls.txt'), optional: true
        path('sst_qc.txt'), optional: true
+       path('internal_standards_below_threshold.txt'), optional: true
 
     script:
         """

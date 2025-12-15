@@ -136,40 +136,52 @@ is_sum_selection <- c(
   "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)",
   "13C6-Tyrosine (IS)"
 )
+all_is_names <- list(neg = is_neg_selection, pos = is_pos_selection, sum = is_sum_selection)
+
+# define threshold for acceptance of selected internal standards
+threshold_is_dbs_neg <- c(15000, 200000, 130000, 18000, 50000)
+threshold_is_dbs_pos <- c(150000, 3300000, 1750000, 150000, 270000)
+threshold_is_dbs_sum <- c(1300000, 2500000, 500000, 1800000, 1400000)
+threshold_is_pl_neg  <- c(70000, 700000, 700000, 65000, 350000)
+threshold_is_pl_pos  <- c(1500000, 9000000, 3000000, 400000, 700000)
+threshold_is_pl_sum  <- c(8000000, 12500000, 2500000, 3000000, 4000000)
+all_is_thresholds_dbs <- list(neg = threshold_is_dbs_neg, pos = threshold_is_dbs_pos, sum = threshold_is_dbs_sum)
+all_is_thresholds_pl  <- list(neg = threshold_is_pl_neg, pos = threshold_is_pl_pos, sum = threshold_is_pl_sum)
+all_is_thresholds <- list(names = all_is_names, plasma = all_is_thresholds_pl, dbs = all_is_thresholds_dbs)
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      int_line = c(15000, 200000, 130000, 18000, 50000),
+      int_line = threshold_is_dbs_neg,
       HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      int_line = c(150000, 3300000, 1750000, 150000, 270000),
+      int_line = threshold_is_dbs_pos,
       HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      int_line = c(1300000, 2500000, 500000, 1800000, 1400000),
+      int_line = threshold_is_dbs_sum,
       HMDB_name = is_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      int_line = c(70000, 700000, 700000, 65000, 350000),
+      int_line = threshold_is_pl_neg,
       HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      int_line = c(1500000, 9000000, 3000000, 400000, 700000),
+      int_line = threshold_is_pl_pos,
       HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      int_line = c(8000000, 12500000, 2500000, 3000000, 4000000),
+      int_line = threshold_is_pl_sum,
       HMDB_name = is_sum_selection
     )
 } else {
@@ -180,9 +192,60 @@ if (dims_matrix == "DBS") {
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
-is_neg_selection <- subset(is_neg, HMDB_name %in% is_neg_selection)
-is_pos_selection <- subset(is_pos, HMDB_name %in% is_pos_selection)
-is_sum_selection <- subset(is_summed, HMDB_name %in% is_sum_selection)
+is_neg_selection_subset <- subset(is_neg, HMDB_name %in% is_neg_selection)
+is_pos_selection_subset <- subset(is_pos, HMDB_name %in% is_pos_selection)
+is_sum_selection_subset <- subset(is_summed, HMDB_name %in% is_sum_selection)
+
+# export txt file with samples with internal standard level below threshold
+is_below_threshold <- is_pos_selection_subset[0, ]
+scanmode_is <- c()
+if (dims_matrix == "Plasma") {
+  # pos
+  for (line_index in seq_len(nrow(is_pos_selection_subset))) {
+    is_selected <- is_pos_selection_subset$HMDB_name[line_index]
+    thresh_selected <- all_is_thresholds$plasma$pos[which(all_is_thresholds$names$pos == is_selected)]
+    if (is_pos_selection_subset$Intensity[line_index] < thresh_selected) {
+      is_below_threshold <- rbind(is_below_threshold, is_pos_selection_subset[line_index, ])
+      scanmode_is <- c(scanmode_is, "pos")
+    }
+  }
+  # neg
+  for (line_index in seq_len(nrow(is_neg_selection_subset))) {
+    is_selected <- is_neg_selection_subset$HMDB_name[line_index]
+    thresh_selected <- all_is_thresholds$plasma$neg[which(all_is_thresholds$names$neg == is_selected)]
+    if (is_neg_selection_subset$Intensity[line_index] < thresh_selected) {
+      is_below_threshold <- rbind(is_below_threshold, is_neg_selection_subset[line_index, ])
+      scanmode_is <- c(scanmode_is, "neg")
+    }
+  }
+} else if (dims_matrix == "DBS") {
+  # pos
+  for (line_index in seq_len(nrow(is_pos_selection_subset))) {
+    is_selected <- is_pos_selection_subset$HMDB_name[line_index]
+    thresh_selected <- all_is_thresholds$dbs$pos[which(all_is_thresholds$names$pos == is_selected)]
+    if (is_pos_selection_subset$Intensity[line_index] < thresh_selected) {
+      is_below_threshold <- rbind(is_below_threshold, is_pos_selection_subset[line_index, ])
+      scanmode_is <- c(scanmode_is, "pos")
+    }
+  }
+  # neg
+  for (line_index in seq_len(nrow(is_neg_selection_subset))) {
+    is_selected <- is_neg_selection_subset$HMDB_name[line_index]
+    thresh_selected <- all_is_thresholds$dbs$neg[which(all_is_thresholds$names$neg == is_selected)]
+    if (is_neg_selection_subset$Intensity[line_index] < thresh_selected) {
+      is_below_threshold <- rbind(is_below_threshold, is_neg_selection_subset[line_index, ])
+      scanmode_is <- c(scanmode_is, "neg")
+    }
+  }
+}
+if (nrow(is_below_threshold) > 0) {
+  write.table(cbind(is_below_threshold, scanmode = scanmode_is), file = "internal_standards_below_threshold.txt", sep = "\t")
+} else { 
+  write.table("no internal standards are below threshold",
+	      file = "internal_standards_below_threshold.txt"
+	      row.names = FALSE, col.names = FALSE
+	      )
+}
 
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
@@ -325,10 +388,12 @@ if (length(sst_colnrs) > 0) {
   control_list_intensities <- sst_list[, control_col_ids]
   control_list_cv <- calc_coefficient_of_variation(control_list_intensities)
   sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[, "CV_perc"])
+  sst_list_intensities <- as.data.frame(sst_list_intensities)
 } else {
   sst_list_intensities <- sst_list[, intensity_col_ids]
 }
 for (col_nr in seq_len(ncol(sst_list_intensities))) {
+  sst_list_intensities <- as.data.frame(sst_list_intensities)
   sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
   if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
     sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
@@ -355,13 +420,6 @@ setColWidths(wb, 4, cols = 1:3, widths = 24)
 xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
-
-# generate text file for workflow completed mail for components with Z-score < 2
-if (grepl("Zscore", colnames(sst_list_intensities))) {
-  zscore_column <- grep("_Zscore", colnames(sst_list_intensities)
-  sst_list_intensities_qc <- sst_list_intensities[sst_list_intensities[, zscore_column] < 2, ]
-  write.table(sst_list_intensities_qc, file = paste(outdir, "sst_qc.txt", sep = "/"))
-}
 
 
 ### MISSING M/Z CHECK
