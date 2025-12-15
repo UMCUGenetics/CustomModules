@@ -115,10 +115,6 @@ if (z_score == 1) {
   # save outlist for GenerateQC step
   save(outlist, file = "outlist.RData")
 
-  # get the IDs of the patients and sort
-  patient_ids <- unique(gsub("\\.[0-9]*", "", patient_columns))
-  patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
-
   # get Helix IDs for extra Excel file
   metabolite_files <- list.files(
     path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
@@ -151,16 +147,21 @@ if (z_score == 1) {
     relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
     rename(Name = H_Name)
 
-  for (row_index in seq_len(nrow(outlist))) {
+  # Get intensity columns for controls and patients
+  # Remove SST mix (P1001.x) and positive controls (P1002.x, P1002.x, P1005.x)
+  intensities_plots_df <- outlist %>%
+    select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"), -matches("^P\\d{4}\\.\\d+$"))
+  
+  for (row_index in seq_len(nrow(intensities_plots_df))) {
     # get HMDB ID
-    hmdb_name <- rownames(outlist[row_index, ])
-
-    # get intensities of controls and patient for a metabolite, get intensity columns,
+    hmdb_id <- intensities_plots_df %>% slice(row_index) %>% pull(HMDB_key)
+    
+    # get intensities of controls and patient for the selected metabolite,
     # pivot to long format, arrange Samples nummerically, change Sample names, get group size and
     # set Intensities to numeric.
-    intensities <- outlist %>%
+    intensities_plots_df_long <- intensities_plots_df %>%
       slice(row_index) %>%
-      select(all_of(intensity_col_ids)) %>%
+      select(-HMDB_key) %>%
       as.data.frame() %>%
       pivot_longer(everything(), names_to = "Samples", values_to = "Intensities") %>%
       arrange(nchar(Samples)) %>%
@@ -175,17 +176,17 @@ if (z_score == 1) {
       ungroup()
 
     # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities$Samples)) * 40
+    plot_width <- length(unique(intensities_plots_df_long$Samples)) * 40
     col_width <- plot_width * 2
 
     plot.new()
-    tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
+    tmp_png <- paste0("plots/plot_", hmdb_id, ".png")
     png(filename = tmp_png, width = plot_width, height = 300)
 
     # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    p <- ggplot(intensities, aes(Samples, Intensities)) +
-      geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
-      geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
+    p <- ggplot(intensities_plots_df_long, aes(Samples, Intensities)) +
+      geom_boxplot(data = subset(intensities_plots_df_long, group_size > 2), aes(fill = type)) +
+      geom_point(data = subset(intensities_plots_df_long, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
       scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
       scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
       theme(
@@ -193,7 +194,7 @@ if (z_score == 1) {
         plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
         panel.background = element_rect(fill = "white", colour = "black")
       ) +
-      ggtitle(hmdb_name)
+      ggtitle(hmdb_id)
 
     print(p)
     dev.off()
@@ -210,8 +211,7 @@ if (z_score == 1) {
       units = "px"
     )
 
-    if (hmdb_name %in% metab_list_helix) {
-      print(row_helix)
+    if (hmdb_id %in% metab_list_helix) {
       openxlsx::insertImage(
         wb_helix_intensities,
         sheetname,
