@@ -46,7 +46,8 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
                                                                     control_cols, stat_filter))
         } else {
           # Calculate mean, sd and number of remaining controls, remove outlier controls by using grubbs test
-          intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist[metabolite_index, control_cols]), stat_filter)
+          intensities_without_outliers <- remove_outliers_grubbs(as.numeric(outlist[metabolite_index, control_cols]),
+                                                                 stat_filter)
           outlist$avg_ctrls[metabolite_index] <- mean(intensities_without_outliers)
           outlist$sd_ctrls[metabolite_index]  <- sd(intensities_without_outliers)
           outlist$nr_ctrls[metabolite_index]  <- length(intensities_without_outliers)
@@ -61,7 +62,7 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
   })
   outlist <- cbind(outlist, outlist_zscores)
   colnames(outlist)[startcol:ncol(outlist)] <- paste0(colnames(outlist)[intensity_col_ids], zscore_type)
-  
+
   return(outlist)
 }
 
