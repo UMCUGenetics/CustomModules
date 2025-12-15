@@ -42,10 +42,11 @@ load("AdductSums_combined.RData")
 
 # Filter for biological relevance
 peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
-rlvnc_in_list <- rlvnc %>%
-  filter(HMDB_key %in% rownames(outlist)[peaks_in_list]) %>%
-  rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID)
-outlist <- cbind(outlist[peaks_in_list, ], as.data.frame(rlvnc_in_list))
+outlist_subset <- outlist[peaks_in_list, ]
+outlist_subset$HMDB_key <- rownames(outlist_subset)
+outlist <- outlist_subset %>%
+  left_join(rlvnc %>% rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
+rownames(outlist) <- outlist$HMDB_key
 
 # filter out all irrelevant HMDBs
 outlist <- outlist %>%
