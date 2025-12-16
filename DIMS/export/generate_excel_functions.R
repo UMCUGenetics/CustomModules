@@ -51,7 +51,7 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
         } else {
           # Calculate mean, sd and number of remaining controls, remove outlier controls by using grubbs test
           intensities_without_outliers <- remove_outliers_grubbs(
-            outlist[metabolite_index, control_cols],
+            as.numeric(outlist[metabolite_index, control_cols]),
             stat_filter
           )
           outlist$avg_ctrls[metabolite_index] <- mean(intensities_without_outliers)
@@ -83,7 +83,7 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   nr_to_remove <- ceiling(length(control_col_ids) * perc / 100)
   sorted_control_intensities <- sort(as.numeric(control_intensities))
   trimmed_control_intensities <- sorted_control_intensities[(nr_to_remove + 1):
-  (length(sorted_control_intensities) - nr_to_remove)]
+                                                              (length(sorted_control_intensities) - nr_to_remove)]
   return(trimmed_control_intensities)
 }
 
@@ -94,8 +94,6 @@ remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
   #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
   #'
   #' @return trimmed_control_intensities: Intensities trimmed for outliers
-
-  control_intensities <- as.numeric(control_intensities)
   mean_permetabolite <- mean(as.numeric(control_intensities))
   stdev_permetabolite <- sd(as.numeric(control_intensities))
   zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
@@ -105,7 +103,6 @@ remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
   } else {
     trimmed_control_intensities <- control_intensities
   }
-  trimmed_control_intensities <- as.numeric(trimmed_control_intensities)
   return(trimmed_control_intensities)
 }
 
