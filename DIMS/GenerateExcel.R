@@ -148,9 +148,7 @@ if (z_score == 1) {
     rename(Name = H_Name)
 
   # Get intensity columns for controls and patients
-  # Remove SST mix (P1001.x) and positive controls (P1002.x, P1002.x, P1005.x)
-  intensities_plots_df <- outlist %>%
-    select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"), -matches("^P\\d{4}\\.\\d+$"))
+  intensities_plots_df <- outlist %>% select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"))
 
   for (row_index in seq_len(nrow(intensities_plots_df))) {
     # get HMDB ID
@@ -158,48 +156,47 @@ if (z_score == 1) {
       slice(row_index) %>%
       pull(HMDB_key)
 
-    # get intensities of controls and patient for the selected metabolite,
-    # pivot to long format, arrange Samples nummerically, change Sample names, get group size and
-    # set Intensities to numeric.
-    intensities_plots_df_long <- intensities_plots_df %>%
-      slice(row_index) %>%
-      select(-HMDB_key) %>%
-      as.data.frame() %>%
-      pivot_longer(everything(), names_to = "Samples", values_to = "Intensities") %>%
-      arrange(nchar(Samples)) %>%
-      mutate(
-        Samples = gsub("\\..*", "", Samples),
-        Samples = gsub("(C).*", "\\1", Samples),
-        Intensities = as.numeric(Intensities),
-        type = ifelse(Samples == "C", "Control", "Patients")
-      ) %>%
-      group_by(Samples) %>%
-      mutate(group_size = n()) %>%
-      ungroup()
+    # Transform dataframe to long format
+    intensities_plots_df_long <- transform_ints_df_plots(intensities_plots_df, row_index)
 
     # set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities_plots_df_long$Samples)) * 40
     col_width <- plot_width * 2
 
+    if (hmdb_id %in% metab_list_helix) {
+      # Make separate plot for Helix Excel containing all samples
+      plot.new()
+      tmp_png_helix <- paste0("plots/plot_helix_", hmdb_id, ".png")
+      png(filename = tmp_png_helix, width = plot_width, height = 300)
+
+      boxplot_excel_helix <- create_boxplot_excel(intensities_plots_df_long, hmdb_id)
+
+      print(boxplot_excel_helix)
+      dev.off()
+
+      openxlsx::insertImage(
+        wb_helix_intensities,
+        sheetname,
+        tmp_png_helix,
+        startRow = row_helix,
+        startCol = 1,
+        height = 560,
+        width = col_width,
+        units = "px"
+      )
+      row_helix <- row_helix + 1
+    }
+
+    # Remove postive controls and SST mix samples, (e.g. P1001, P1002, P1003, P1005)
+    intensities_plots_df_long <- intensities_plots_df_long %>% filter(!grepl("^P[0-9]{4}$", Samples))
+
     plot.new()
     tmp_png <- paste0("plots/plot_", hmdb_id, ".png")
     png(filename = tmp_png, width = plot_width, height = 300)
 
-    # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    p <- ggplot(intensities_plots_df_long, aes(Samples, Intensities)) +
-      geom_boxplot(data = subset(intensities_plots_df_long, group_size > 2), aes(fill = type)) +
-      geom_point(data = subset(intensities_plots_df_long, group_size <= 2),
-                 shape = "-", size = 10, aes(colour = type, fill = type)) +
-      scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
-      scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
-      theme(
-        legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
-        plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
-        panel.background = element_rect(fill = "white", colour = "black")
-      ) +
-      ggtitle(hmdb_id)
+    boxplot_excel <- create_boxplot_excel(intensities_plots_df_long, hmdb_id)
 
-    print(p)
+    print(boxplot_excel)
     dev.off()
 
     # place the plot in the Excel file
@@ -213,20 +210,6 @@ if (z_score == 1) {
       width = col_width,
       units = "px"
     )
-
-    if (hmdb_id %in% metab_list_helix) {
-      openxlsx::insertImage(
-        wb_helix_intensities,
-        sheetname,
-        tmp_png,
-        startRow = row_helix,
-        startCol = 1,
-        height = 560,
-        width = col_width,
-        units = "px"
-      )
-      row_helix <- row_helix + 1
-    }
   }
   wb_intensities <- set_row_height_col_width_wb(
     wb_intensities,
