@@ -1,25 +1,29 @@
+# CollectFilled functions
+
+collapse <- function(column_label, peakgroup_list, index_dup) {
+  #' Collapse identification info for peak groups with the same mass
+  #'
+  #' @param column_label: Name of column in peakgroup_list (string)
+  #' @param peakgroup_list: Peak group list (matrix)
+  #' @param index_dup: Index of duplicate peak group (integer)
+  #'
+  #' @return collapsed_items: Semicolon-separated list of info (string)
+  # get the item(s) that need to be collapsed
+  list_items <- as.vector(peakgroup_list[index_dup, column_label])
+  # remove NA
+  if (length(which(is.na(list_items))) > 0) {
+    list_items <- list_items[-which(is.na(list_items))]
+  }
+  collapsed_items <- paste(list_items, collapse = ";")
+  return(collapsed_items)
+}
+
 merge_duplicate_rows <- function(peakgroup_list) {
   #' Merge identification info for peak groups with the same mass
   #'
   #' @param peakgroup_list: Peak group list (matrix)
   #'
   #' @return peakgroup_list_dedup: de-duplicated peak group list (matrix)
-
-  collapse <- function(column_label, peakgroup_list, index_dup) {
-    #' Collapse identification info for peak groups with the same mass
-    #'
-    #' @param column_label: Name of column in peakgroup_list (string)
-    #' @param peakgroup_list: Peak group list (matrix)
-    #' @param index_dup: Index of duplicate peak group (integer)
-    #'
-    #' @return collapsed_items: Semicolon-separated list of info (string)
-    # get the item(s) that need to be collapsed
-    list_items <- as.vector(peakgroup_list[index_dup, column_label])
-    # remove NA
-    if (length(which(is.na(list_items))) > 0) list_items <- list_items[-which(is.na(list_items))]
-    collapsed_items <- paste(list_items, collapse = ";")
-    return(collapsed_items)
-  }
 
   options(digits = 16)
   collect <- NULL
@@ -50,8 +54,66 @@ merge_duplicate_rows <- function(peakgroup_list) {
   }
 
   # remove duplicate entries
-  if (!is.null(remove)) peakgroup_list <- peakgroup_list[-remove, ]
+  if (!is.null(remove)) {
+    peakgroup_list <- peakgroup_list[-remove, ]
+  }
   # append deduplicated entries
   peakgroup_list_dedup <- rbind(peakgroup_list, collect)
   return(peakgroup_list_dedup)
 }
+
+calculate_zscores <- function(peakgroup_list) {
+  #' Calculate Z-scores for peak groups based on average and standard deviation of controls
+  #'
+  #' @param peakgroup_list: Peak group list (matrix)
+  #' @param sort_col: Column to sort on (string)
+  #' @param adducts: Parameter indicating whether there are adducts in the list (boolean)
+  #'
+  #' @return peakgroup_list_dedup: de-duplicated peak group list (matrix)
+
+  case_label <- "P"
+  control_label <- "C"
+  # get index for new column names
+  startcol <- ncol(peakgroup_list) + 3
+
+  # calculate mean and standard deviation for Control group
+  ctrl_cols <- grep(control_label, colnames(peakgroup_list), fixed = TRUE)
+  case_cols <- grep(case_label, colnames(peakgroup_list), fixed = TRUE)
+  int_cols <- c(ctrl_cols, case_cols)
+  # set all zeros to NA
+  peakgroup_list[, int_cols][peakgroup_list[, int_cols] == 0] <- NA
+  ctrl_ints <- peakgroup_list[, ctrl_cols, drop = FALSE]
+  peakgroup_list$avg.ctrls <- apply(ctrl_ints, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
+  peakgroup_list$sd.ctrls <- apply(ctrl_ints, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
+
+  # set new column names and calculate Z-scores
+  colnames_zscores <- NULL
+  for (col_index in int_cols) {
+    col_name <- colnames(peakgroup_list)[col_index]
+    colnames_zscores <- c(colnames_zscores, paste0(col_name, "_Zscore"))
+    zscores_1col <- (as.numeric(as.vector(unlist(peakgroup_list[, col_index]))) -
+                     peakgroup_list$avg.ctrls) / peakgroup_list$sd.ctrls
+    peakgroup_list <- cbind(peakgroup_list, zscores_1col)
+  }
+
+  # apply new column names to columns at end plus avg and sd columns
+  colnames(peakgroup_list)[startcol:ncol(peakgroup_list)] <- colnames_zscores
+
+  # add ppm deviation column
+  zscore_cols <- grep("Zscore", colnames(peakgroup_list), fixed = TRUE)
+  # calculate ppm deviation
+  for (row_index in seq_len(nrow(peakgroup_list))) {
+    if (!is.na(peakgroup_list$theormz_HMDB[row_index]) &&
+        !is.null(peakgroup_list$theormz_HMDB[row_index]) &&
+        (peakgroup_list$theormz_HMDB[row_index] != "")) {
+      peakgroup_list$ppmdev[row_index] <- 10^6 * (as.numeric(as.vector(peakgroup_list$mzmed.pgrp[row_index])) -
+                                                  as.numeric(as.vector(peakgroup_list$theormz_HMDB[row_index]))) /
+                                                  as.numeric(as.vector(peakgroup_list$theormz_HMDB[row_index]))
+    } else {
+      peakgroup_list$ppmdev[row_index] <- NA
+    }
+  }
+
+  return(peakgroup_list)
+}
+
