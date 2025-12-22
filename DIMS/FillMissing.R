@@ -4,8 +4,6 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 peakgrouplist_file <- cmd_args[1]
 preprocessing_scripts_dir <- cmd_args[2]
 thresh <- as.numeric(cmd_args[3])
-resol <- as.numeric(cmd_args[4])
-ppm <- as.numeric(cmd_args[5])
 
 # load in function scripts
 source(paste0(preprocessing_scripts_dir, "fill_missing_functions.R"))
