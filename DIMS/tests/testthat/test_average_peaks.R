@@ -15,6 +15,7 @@ testthat::test_that("peaks are correctly averaged", {
   test_peaklist_sorted[, 2] <- as.numeric(test_peaklist_sorted[, 2])
   test_peaklist_sorted[, 6] <- as.numeric(test_peaklist_sorted[, 6])
   test_sample_name <- "P001"
+  test_empty_peaklist <- test_peaklist_sorted[0, ]
 
   # test that first peak is correctly averaged
   expect_equal(as.numeric(average_peaks_per_sample(test_peaklist_sorted, test_sample_name)[1, 6]), 600, tolerance = 0.001, TRUE)
@@ -23,5 +24,7 @@ testthat::test_that("peaks are correctly averaged", {
   # test column names
   expect_equal(colnames(average_peaks_per_sample(test_peaklist_sorted, test_sample_name)),
                c("samplenr", "mzmed.pkt", "fq", "mzmin.pkt", "mzmax.pkt", "height.pkt"), TRUE)
+  # test what happens when peak list is empty
+  expect_error(average_peaks_per_sample(test_empty_peaklist, test_sample_name))
 })
 
