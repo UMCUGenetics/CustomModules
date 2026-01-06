@@ -54,5 +54,6 @@ for (scanmode in scanmodes) {
  
   # save output to file
   save(integrated_peak_df, file = paste0(techrepl_name, "_", scanmode, ".RData"))
+  write.table(integrated_peak_df, file = paste0(techrepl_name, "_", scanmode, ".txt"), sep = "\t", row.names = FALSE)
 }
 

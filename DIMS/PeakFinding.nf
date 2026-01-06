@@ -9,7 +9,8 @@ process PeakFinding {
        each path(sample_techreps)
 
     output:
-       path '*tive.RData', optional: true
+       path '*tive.RData', emit: peaklist_rdata, optional: true
+       path '*tive.txt', optional: true
 
     script:
         """
