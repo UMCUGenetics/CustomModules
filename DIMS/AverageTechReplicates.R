@@ -112,6 +112,9 @@ for (sample_nr in 1:length(repl_pattern)) {
 pattern_list <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 repl_pattern_filtered <- pattern_list$pattern
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
+if (is.null(remove_neg)) {
+  remove_neg <- "none"
+}
 write.table(
   remove_neg, 
   file = "miss_infusions_negative.txt", 
@@ -123,6 +126,9 @@ write.table(
 pattern_list <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
 repl_pattern_filtered <- pattern_list$pattern
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
+if (is.null(remove_pos)) {
+  remove_pos <- "none"
+}
 write.table(
   remove_pos, 
   file = "miss_infusions_positive.txt", 

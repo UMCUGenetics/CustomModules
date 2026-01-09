@@ -17,8 +17,8 @@ process AverageTechReplicates {
     output:
        path('*_repl_pattern.RData'), emit: pattern_files
        path('*_avg.RData'), emit: binned_files
-       path('miss_infusions_negative.txt')
-       path('miss_infusions_positive.txt')
+       path('miss_infusions_negative.txt'), emit: qc_miss_neg
+       path('miss_infusions_positive.txt'), emit: qc_miss_pos
        path('*_TICplots.pdf'), emit: tic_plots_pdf
 
     script:
