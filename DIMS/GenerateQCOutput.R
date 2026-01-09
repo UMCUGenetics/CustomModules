@@ -48,14 +48,16 @@ if (z_score == 1) {
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
 is_codes <- rownames(is_list)
 
-# check if there is data present for all the samples that the pipeline started with,
-# if not write sample name to a log file.
+# check if there is data present for all the samples that the pipeline started with
 sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
+if (length(sample_names_nodata) == 0) {
+  sample_names_nodata <- "none"
+}
+write.table(sample_names_nodata,
+  file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
+  row.names = FALSE, col.names = FALSE, quote = FALSE
+)
 if (!is.null(sample_names_nodata)) {
-  write.table(sample_names_nodata,
-    file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
-    row.names = FALSE, col.names = FALSE, quote = FALSE
-  )
   for (sample_name in sample_names_nodata) {
     repl_pattern[[sample_name]] <- NULL
   }
@@ -238,8 +240,11 @@ if (dims_matrix == "Plasma") {
     }
   }
 }
+is_below_threshold <- select(is_below_threshold, -c("Matrix", "Rundata", "Sample_level"))
 if (nrow(is_below_threshold) > 0) {
-  write.table(cbind(is_below_threshold, scanmode = scanmode_is), file = "internal_standards_below_threshold.txt", sep = "\t")
+  write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
+	      file = "internal_standards_below_threshold.txt", 
+	      row.names = FALSE, sep = "\t")
 } else { 
   write.table("no internal standards are below threshold",
 	      file = "internal_standards_below_threshold.txt"
@@ -421,6 +426,15 @@ xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
+# generate text file for workflow completed mail for components with Z-score < 2
+if (sum(grepl("P1001", colnames(sst_list_intensities))) > 0) {
+  zscore_column <- grep("_Zscore", colnames(sst_list_intensities))[1]
+  sst_list_intensities_qc <- sst_list_intensities[sst_list_intensities[, zscore_column] < 2, ]
+  sst_list_intensities_qc <- select(sst_list_intensities_qc, -c("CV_controls"))
+  write.table(sst_list_intensities_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
+} else {
+  write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
+}
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file
