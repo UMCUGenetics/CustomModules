@@ -138,7 +138,6 @@ is_sum_selection <- c(
   "2H3-Glutamate (IS)", "2H4_13C5-Arginine (IS)",
   "13C6-Tyrosine (IS)"
 )
-all_is_names <- list(neg = is_neg_selection, pos = is_pos_selection, sum = is_sum_selection)
 
 # define threshold for acceptance of selected internal standards
 threshold_is_dbs_neg <- c(15000, 200000, 130000, 18000, 50000)
@@ -147,9 +146,6 @@ threshold_is_dbs_sum <- c(1300000, 2500000, 500000, 1800000, 1400000)
 threshold_is_pl_neg  <- c(70000, 700000, 700000, 65000, 350000)
 threshold_is_pl_pos  <- c(1500000, 9000000, 3000000, 400000, 700000)
 threshold_is_pl_sum  <- c(8000000, 12500000, 2500000, 3000000, 4000000)
-all_is_thresholds_dbs <- list(neg = threshold_is_dbs_neg, pos = threshold_is_dbs_pos, sum = threshold_is_dbs_sum)
-all_is_thresholds_pl  <- list(neg = threshold_is_pl_neg, pos = threshold_is_pl_pos, sum = threshold_is_pl_sum)
-all_is_thresholds <- list(names = all_is_names, plasma = all_is_thresholds_pl, dbs = all_is_thresholds_dbs)
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
@@ -199,48 +195,21 @@ is_pos_selection_subset <- subset(is_pos, HMDB_name %in% is_pos_selection)
 is_sum_selection_subset <- subset(is_summed, HMDB_name %in% is_sum_selection)
 
 # export txt file with samples with internal standard level below threshold
-is_below_threshold <- is_pos_selection_subset[0, ]
-scanmode_is <- c()
 if (dims_matrix == "Plasma") {
-  # pos
-  for (line_index in seq_len(nrow(is_pos_selection_subset))) {
-    is_selected <- is_pos_selection_subset$HMDB_name[line_index]
-    thresh_selected <- all_is_thresholds$plasma$pos[which(all_is_thresholds$names$pos == is_selected)]
-    if (is_pos_selection_subset$Intensity[line_index] < thresh_selected) {
-      is_below_threshold <- rbind(is_below_threshold, is_pos_selection_subset[line_index, ])
-      scanmode_is <- c(scanmode_is, "pos")
-    }
-  }
-  # neg
-  for (line_index in seq_len(nrow(is_neg_selection_subset))) {
-    is_selected <- is_neg_selection_subset$HMDB_name[line_index]
-    thresh_selected <- all_is_thresholds$plasma$neg[which(all_is_thresholds$names$neg == is_selected)]
-    if (is_neg_selection_subset$Intensity[line_index] < thresh_selected) {
-      is_below_threshold <- rbind(is_below_threshold, is_neg_selection_subset[line_index, ])
-      scanmode_is <- c(scanmode_is, "neg")
-    }
-  }
+  is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_pl_neg, is_neg_selection, "neg")
+  is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_pl_pos, is_pos_selection, "pos")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_pl_sum, is_sum_selection, "sum")
+  is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
 } else if (dims_matrix == "DBS") {
-  # pos
-  for (line_index in seq_len(nrow(is_pos_selection_subset))) {
-    is_selected <- is_pos_selection_subset$HMDB_name[line_index]
-    thresh_selected <- all_is_thresholds$dbs$pos[which(all_is_thresholds$names$pos == is_selected)]
-    if (is_pos_selection_subset$Intensity[line_index] < thresh_selected) {
-      is_below_threshold <- rbind(is_below_threshold, is_pos_selection_subset[line_index, ])
-      scanmode_is <- c(scanmode_is, "pos")
-    }
-  }
-  # neg
-  for (line_index in seq_len(nrow(is_neg_selection_subset))) {
-    is_selected <- is_neg_selection_subset$HMDB_name[line_index]
-    thresh_selected <- all_is_thresholds$dbs$neg[which(all_is_thresholds$names$neg == is_selected)]
-    if (is_neg_selection_subset$Intensity[line_index] < thresh_selected) {
-      is_below_threshold <- rbind(is_below_threshold, is_neg_selection_subset[line_index, ])
-      scanmode_is <- c(scanmode_is, "neg")
-    }
-  }
+  is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_dbs_neg, is_neg_selection, "neg")
+  is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_dbs_pos, is_pos_selection, "pos")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_neg_selection, "sum")
+  is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
+} else {
+  # generate empty table
+  is_below_threshold <- is_neg_selection_subset[0, ]
 }
-is_below_threshold <- select(is_below_threshold, -c("Matrix", "Rundata", "Sample_level"))
+
 if (nrow(is_below_threshold) > 0) {
   write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
 	      file = "internal_standards_below_threshold.txt", 
