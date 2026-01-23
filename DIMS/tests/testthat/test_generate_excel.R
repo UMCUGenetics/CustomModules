@@ -371,7 +371,7 @@ testthat::test_that("set_row_height_col_width_wb: Check row height and column wi
   rm(test_wb_no_plots)
 })
 
-testthat::test_that("transform_ints_df_plots: Check transformation of dataframe to long format", {
+testthat::test_that("intensities_df_to_long_format: Check transformation of dataframe to long format", {
   test_intensities_plots_df <- data.frame(
     C101.1 = c(100, 200, 300, 400),
     C102.1 = c(125, 225, 325, 425),
@@ -382,10 +382,10 @@ testthat::test_that("transform_ints_df_plots: Check transformation of dataframe 
 
   test_row_index <- 1
 
-  expect_equal(dim(transform_ints_df_plots(test_intensities_plots_df, test_row_index)), c(4, 4))
+  expect_equal(dim(intensities_df_to_long_format(test_intensities_plots_df, test_row_index)), c(4, 4))
   expect_identical(
     colnames(
-      transform_ints_df_plots(
+      intensities_df_to_long_format(
         test_intensities_plots_df,
         test_row_index
       )
@@ -393,28 +393,28 @@ testthat::test_that("transform_ints_df_plots: Check transformation of dataframe 
     c("Samples", "Intensities", "type", "group_size")
   )
   expect_identical(
-    transform_ints_df_plots(
+    intensities_df_to_long_format(
       test_intensities_plots_df,
       test_row_index
     )$Samples,
     c("C", "C", "P2000M00002", "P3000M00003")
   )
   expect_identical(
-    transform_ints_df_plots(
+    intensities_df_to_long_format(
       test_intensities_plots_df,
       test_row_index
     )$Intensities,
     c(100, 125, 150, 175)
   )
   expect_identical(
-    transform_ints_df_plots(
+    intensities_df_to_long_format(
       test_intensities_plots_df,
       test_row_index
     )$type,
     c("Control", "Control", "Patients", "Patients")
   )
   expect_equal(
-    transform_ints_df_plots(
+    intensities_df_to_long_format(
       test_intensities_plots_df,
       test_row_index
     )$group_size,
@@ -423,7 +423,7 @@ testthat::test_that("transform_ints_df_plots: Check transformation of dataframe 
 
   test_row_index <- 2
   expect_identical(
-    transform_ints_df_plots(
+    intensities_df_to_long_format(
       test_intensities_plots_df,
       test_row_index
     )$Intensities,
