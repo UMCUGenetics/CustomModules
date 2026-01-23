@@ -4,6 +4,7 @@
 #            get_is_intensities, calc_coefficient_of_variation,
 #            check_missing_mz
 library(ggplot2)
+library(data.table)
 suppressMessages(library("dplyr"))
 source("../../export/generate_qc_output_functions.R")
 
