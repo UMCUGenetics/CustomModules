@@ -4,7 +4,7 @@
 #            get_is_intensities, calc_coefficient_of_variation,
 #            check_missing_mz
 library(ggplot2)
-library(data.table)
+library(reshape2)
 suppressMessages(library("dplyr"))
 source("../../export/generate_qc_output_functions.R")
 
@@ -208,7 +208,7 @@ testthat::test_that("list of internal standards below threshold is correctly cre
   # select columns
   test_is_wide <- test_is[ , c("HMDB_code", "HMDB_name", "C101.1", "C102.1", "P2.1", "P3.1")]
   # melt into long format
-  test_is_long <- melt(setDT(test_is_wide), id.vars = c("HMDB_name","HMDB_code"))
+  test_is_long <- reshape2::melt(test_is_wide, id.vars = c("HMDB_name","HMDB_code"))
   colnames(test_is_long)[4] <- "Intensity"
 
   test_is_names <- c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)")
