@@ -202,7 +202,7 @@ testthat::test_that("Check missing mz values", {
                    c(550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560))
 })
 
-testthat::testthat("list of internal standards below threshold is correctly created", {
+testthat::test_that("list of internal standards below threshold is correctly created", {
   test_is <- read.delim(test_path("fixtures", "test_internal_standards.txt"))
   # select columns
   test_is_wide <- test_is[ , c("HMDB_code", "HMDB_name", "C101.1", "C102.1", "P2.1", "P3.1")]
