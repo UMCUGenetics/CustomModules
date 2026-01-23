@@ -82,8 +82,9 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
   #' @return trimmed_control_intensities: Intensities trimmed for outliers
   nr_to_remove <- ceiling(length(control_col_ids) * perc / 100)
   sorted_control_intensities <- sort(as.numeric(control_intensities))
-  trimmed_control_intensities <- sorted_control_intensities[(nr_to_remove + 1):
-                                                              (length(sorted_control_intensities) - nr_to_remove)]
+  start_index <- nr_to_remove + 1
+  end_index <- length(sorted_control_intensities) - nr_to_remove
+  trimmed_control_intensities <- sorted_control_intensities[start_index:end_index]
   return(trimmed_control_intensities)
 }
 
@@ -145,9 +146,9 @@ set_row_height_col_width_wb <- function(wb, sheetname, num_rows_df, num_cols_df,
 #'
 #' @param intensities_plots_df: a dataframe with HMDB_key column and intensities for all samples
 #'
-#' @returns intensities_plots_df_long: a dataframe with on each row a sample and their intensity
-transform_ints_df_plots <- function(intensities_plots_df, row_index) {
-  intensities_plots_df_long <- intensities_plots_df %>%
+#' @returns intensities_df_long: a dataframe with on each row a sample and their intensity
+intensities_df_to_long_format <- function(intensities_plots_df, row_index) {
+  intensities_df_long <- intensities_plots_df %>%
     slice(row_index) %>%
     select(-HMDB_key) %>%
     as.data.frame() %>%
@@ -163,22 +164,21 @@ transform_ints_df_plots <- function(intensities_plots_df, row_index) {
     mutate(group_size = n()) %>%
     ungroup()
 
-  return(intensities_plots_df_long)
+  return(intensities_df_long)
 }
-
 
 #' Create a plot of intensities of samples for Excel
 #' Use boxplot if group size is above 2, otherwise use a dash/line
 #'
-#' @param intensities_plots_df_long: a dataframe with on each row a sample and their intensity
+#' @param intensities_df_long: a dataframe with on each row a sample and their intensity
 #' @param hmdb_id: HMDB ID of the selected metabolite
 #'
-#' @returns boxplot_excel: ggplot2 object containing the plot of intensities
-create_boxplot_excel <- function(intensities_plots_df_long, hmdb_id) {
-  boxplot_excel <- ggplot(intensities_plots_df_long, aes(Samples, Intensities)) +
-    geom_boxplot(data = subset(intensities_plots_df_long, group_size > 2), aes(fill = type)) +
+#' @returns boxplot_object: ggplot2 object containing the plot of intensities
+create_boxplot <- function(intensities_df_long, hmdb_id) {
+  boxplot_object <- ggplot(intensities_df_long, aes(Samples, Intensities)) +
+    geom_boxplot(data = subset(intensities_df_long, group_size > 2), aes(fill = type)) +
     geom_point(
-      data = subset(intensities_plots_df_long, group_size <= 2),
+      data = subset(intensities_df_long, group_size <= 2),
       shape = "-",
       size = 10,
       aes(colour = type, fill = type)
@@ -195,5 +195,48 @@ create_boxplot_excel <- function(intensities_plots_df_long, hmdb_id) {
     ) +
     ggtitle(hmdb_id)
 
-  return(boxplot_excel)
+  return(boxplot_object)
+}
+
+#' Make and save a boxplot of intensities to an Excel workbook
+#'
+#' For the Helix Excel the positive controls and SST mix samples are removed.
+#'
+#' @param excel_workbook: an openxlsx Workbook object
+#' @param sheetname: a string containing the sheetname where the plots are to be placed
+#' @param intensities_df: a dataframe containing intensities for controls and patients of a specific HMDB ID
+#' @param file_path: a string containing the filepath for the png
+#' @param hmdb_id: a string containing the HMDB ID that the intensities_df contains data for
+#' @param plot_width: an integer containing the plot width for the png
+#' @param col_width: an integer containing the width of the column that has the plots
+#' @param start_row_index: an integer containing the index of the row where the plot has to be placed
+save_plot_to_excel_workbook <- function(excel_workbook,
+                                        sheetname,
+                                        intensities_df,
+                                        file_path,
+                                        hmdb_id,
+                                        plot_width,
+                                        col_width,
+                                        start_row_index) {
+  plot.new()
+  tmp_png <- paste0(file_path, hmdb_id, ".png")
+  png(filename = tmp_png, width = plot_width, height = 300)
+
+  boxplot <- create_boxplot(intensities_df, hmdb_id)
+
+  print(boxplot)
+  dev.off()
+
+  openxlsx::insertImage(
+    excel_workbook,
+    sheetname,
+    tmp_png,
+    startRow = start_row_index,
+    startCol = 1,
+    height = 560,
+    width = col_width,
+    units = "px"
+  )
+  
+  return(excel_workbook)
 }

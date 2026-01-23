@@ -431,8 +431,8 @@ testthat::test_that("transform_ints_df_plots: Check transformation of dataframe 
   )
 })
 
-testthat::test_that("create_boxplot_excel: Create a boxplot for the Excel", {
-  test_ints_plots_df_long <- data.frame(
+testthat::test_that("create_boxplot: Create a boxplot for the Excel", {
+  test_ints_df_long <- data.frame(
     Samples = c("C", "C", "C", "C", "C", "P1", "P2", "P3", "P4", "P5"),
     Intensities = c(150, 250, 225, 300, 175, 325, 600, 150, 350, 275),
     type = c(
@@ -444,10 +444,47 @@ testthat::test_that("create_boxplot_excel: Create a boxplot for the Excel", {
 
   test_hmdb_id <- "Test Metab 1"
 
-  expect_silent(create_boxplot_excel(test_ints_plots_df_long, test_hmdb_id))
+  expect_silent(create_boxplot(test_ints_df_long, test_hmdb_id))
 
   expect_doppelganger(
     title = "create boxplot excel",
-    fig = create_boxplot_excel(test_ints_plots_df_long, test_hmdb_id)
+    fig = create_boxplot(test_ints_df_long, test_hmdb_id)
   )
+})
+
+testthat::test_that("save_plot_to_excel_workbook: Make and save a boxplot of intensities to an Excel workbook", {
+  test_excel_workbook <- openxlsx::createWorkbook("Test")
+  openxlsx::addWorksheet(test_excel_workbook, "Test_with_plots")
+
+  test_intensities_df_long <- data.frame(
+    Samples = c("C", "C", "C", "C", "C", "P1", "P2", "P3", "P4", "P5"),
+    Intensities = c(150, 250, 225, 300, 175, 325, 600, 150, 350, 275),
+    type = c(
+      "Control", "Control", "Control", "Control", "Control",
+      "Patients", "Patients", "Patients", "Patients", "Patients"
+    ),
+    group_size = c(5, 5, 5, 5, 5, 1, 1, 1, 1, 1)
+  )
+
+  test_hmdb_id <- "Test_metab_1"
+  test_sheetname <- "Test_with_plots"
+  test_file_path <- "./plot_test_"
+  test_plot_width <- length(unique(test_intensities_df_long$Samples)) * 40
+  test_col_width <- test_plot_width * 2
+  test_start_row_index <- 1
+
+  expect_silent(save_plot_to_excel_workbook(test_excel_workbook,
+                                            test_sheetname,
+                                            test_intensities_df_long,
+                                            test_file_path,
+                                            test_hmdb_id,
+                                            test_plot_width,
+                                            test_col_width,
+                                            test_start_row_index))
+
+  expect_identical(test_excel_workbook$media$image1.png, "./plot_test_Test_metab_1.png")
+
+  # Remove test png file
+  unlink(paste0(test_file_path, test_hmdb_id, ".png"))
+  rm(test_excel_workbook)
 })
