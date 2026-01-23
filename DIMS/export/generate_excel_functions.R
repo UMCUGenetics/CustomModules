@@ -144,11 +144,11 @@ set_row_height_col_width_wb <- function(wb, sheetname, num_rows_df, num_cols_df,
 #' pivot to long format, arrange Samples nummerically, change Sample names, get group size and
 #' set Intensities to numeric.
 #'
-#' @param intensities_plots_df: a dataframe with HMDB_key column and intensities for all samples
+#' @param intensities_df: a dataframe with HMDB_key column and intensities for all samples
 #'
 #' @returns intensities_df_long: a dataframe with on each row a sample and their intensity
-intensities_df_to_long_format <- function(intensities_plots_df, row_index) {
-  intensities_df_long <- intensities_plots_df %>%
+intensities_df_to_long_format <- function(intensities_df, row_index) {
+  intensities_df_long <- intensities_df %>%
     slice(row_index) %>%
     select(-HMDB_key) %>%
     as.data.frame() %>%
@@ -237,6 +237,6 @@ save_plot_to_excel_workbook <- function(excel_workbook,
     width = col_width,
     units = "px"
   )
-  
+
   return(excel_workbook)
 }
