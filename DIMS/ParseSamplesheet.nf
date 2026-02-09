@@ -9,7 +9,7 @@ process ParseSamplesheet {
 
     output:
        path('init.RData')
-       path('technical_replicates.txt')
+       path('replication_pattern.txt')
 
     script:
         """
