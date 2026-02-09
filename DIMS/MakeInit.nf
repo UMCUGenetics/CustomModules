@@ -6,13 +6,12 @@ process MakeInit {
 
     input:
        path(samplesheet) 
-       val(nr_replicates)
 
     output:
        path('init.RData')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/MakeInit.R $samplesheet $nr_replicates 
+        Rscript ${baseDir}/CustomModules/DIMS/MakeInit.R $samplesheet $params.preprocessing_scripts_dir
         """
 }

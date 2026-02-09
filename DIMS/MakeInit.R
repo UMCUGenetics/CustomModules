@@ -1,31 +1,19 @@
-## adapted from makeInit in old pipeline
-
 # define parameters
 args <- commandArgs(trailingOnly = TRUE)
 
-sample_sheet <- read.csv(args[1], sep = "\t")
-nr_replicates <- as.numeric(args[2])
+sample_sheet <- as.data.frame(read.csv(args[1], sep = "\t"))
+preprocessing_scripts_dir <- args[2]
 
-sample_names <- trimws(as.vector(unlist(sample_sheet[1])))
-nr_sample_groups <- length(sample_names) / nr_replicates
-group_names <- trimws(as.vector(unlist(sample_sheet[2])))
-group_names <- gsub("[^-.[:alnum:]]", "_", group_names)
-group_names_unique <- unique(group_names)
+# load in function script
+source(paste0(preprocessing_scripts_dir, "parse_samplesheet_functions.R"))
 
 # generate the replication pattern
-repl_pattern <- c()
-for (sample_group in 1:nr_sample_groups) {
-  tmp <- c()
-  for (repl in nr_replicates:1) {
-    index <- ((sample_group * nr_replicates) - repl) + 1
-    tmp <- c(tmp, sample_names[index])
-  }
-  repl_pattern <- c(repl_pattern, list(tmp))
-}
+repl_pattern <- generate_repl_pattern(sample_sheet)
 
-names(repl_pattern) <- group_names_unique
+# write the replication pattern to text file for troubleshooting purposes
+sink("replication_pattern.txt")
+print(repl_pattern)
+sink()
 
-# preview the replication pattern
-print(tail(repl_pattern))
-
+# save replication pattern to file
 save(repl_pattern, file = "init.RData")
