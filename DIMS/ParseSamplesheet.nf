@@ -1,6 +1,6 @@
-process MakeInit {
-    tag "DIMS MakeInit"
-    label 'MakeInit'
+process ParseSamplesheet {
+    tag "DIMS ParseSamplesheet"
+    label 'ParseSamplesheet'
     container = 'docker://umcugenbioinf/dims:1.3'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
@@ -9,9 +9,10 @@ process MakeInit {
 
     output:
        path('init.RData')
+       path('technical_replicates.txt')
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/MakeInit.R $samplesheet $params.preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/ParseSamplesheet.R $samplesheet $params.preprocessing_scripts_dir
         """
 }
