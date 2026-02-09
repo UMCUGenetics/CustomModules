@@ -1,5 +1,3 @@
-## adapted from 1-generateBreaksFwhm.HPC.R ##
-
 # load required package
 suppressPackageStartupMessages(library("xcms"))
 
@@ -7,15 +5,10 @@ suppressPackageStartupMessages(library("xcms"))
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 filepath <- cmd_args[1]
-outdir <- cmd_args[2]
-trim <- as.numeric(cmd_args[3])
-resol <- as.numeric(cmd_args[4])
+trim <- as.numeric(cmd_args[2])
+resol <- as.numeric(cmd_args[3])
 
 # initialize
-trim_left_pos <- NULL
-trim_right_pos <- NULL
-trim_left_neg <- NULL
-trim_right_neg <- NULL
 breaks_fwhm <- NULL
 breaks_fwhm_avg <- NULL
 bins <- NULL
@@ -27,13 +20,17 @@ raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
 neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
 
-# trim (remove) scans at the start and end for positive
-trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)]) # 15% aan het begin
-trim_right_pos <- round(pos_times[length(pos_times) * (1 - (trim * 0.5))]) # 5% aan het eind
+# trim (remove) scans at the start (15%) and end (5%) for positive
+trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)])
+trim_right_pos <- round(pos_times[length(pos_times) * (1 - (trim * 0.5))])
 
-# trim (remove) scans at the start and end for negative
+# trim (remove) scans at the start and end (10%) for negative
 trim_left_neg  <- round(neg_times[length(neg_times) * trim])
 trim_right_neg <- round(neg_times[length(neg_times) * (1 - trim)])
+
+# save trim parameters
+save(trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "trim_params.RData")
+
 
 # Mass range m/z
 low_mz  <- raw_data@mzrange[1]
@@ -57,5 +54,5 @@ for (i in 1:nr_segments) {
 }
 
 # generate output file
-save(breaks_fwhm, breaks_fwhm_avg, trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "breaks.fwhm.RData")
+save(breaks_fwhm, breaks_fwhm_avg, file = "breaks.fwhm.RData")
 save(high_mz, file = "highest_mz.RData")
