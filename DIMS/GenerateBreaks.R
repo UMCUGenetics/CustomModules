@@ -12,7 +12,7 @@ resol <- as.numeric(cmd_args[3])
 raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 
 # get trim parameters and save them to file
-get_trim_parameters(raw_data@scantime, raw_data@polarity)
+get_trim_parameters(raw_data@scantime, raw_data@polarity, trim)
 
 # create breaks of bins for intensities. Bin size is a function of fwhm which is a function of m/z
 get_breaks_for_bins(raw_data$mzrange, resol)

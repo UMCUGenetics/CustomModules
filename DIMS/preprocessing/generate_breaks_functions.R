@@ -1,5 +1,5 @@
 # GenerateBreaks functions
-get_trim_parameters <- function(scantimes, polarities) {
+get_trim_parameters <- function(scantimes, polarities, trim = 0.1) {
   #' determine the scans per scanmode which are trimmed off; save trim parameters to file
   #'
   #' @param scantimes: vector of scan times in seconds 
@@ -21,7 +21,7 @@ get_trim_parameters <- function(scantimes, polarities) {
   save(trim_left_pos, trim_right_pos, trim_left_neg, trim_right_neg, file = "trim_params.RData")
 }
 
-get_breaks_for_bins <- function(mzrange, resol) {
+get_breaks_for_bins <- function(mzrange, resol = 140000) {
   #' create a vector with the breaks in m/z of bins for intensities
   #'
   #' @param mzrange: vector of minimum and maximum m/z values (integeers)
@@ -37,8 +37,8 @@ get_breaks_for_bins <- function(mzrange, resol) {
   
   # determine start and end of each bin. fwhm (width of peaks) is assumed to be constant within a segment
   for (segment_index in 1:nr_segments) {
-    start_segment <- segment[segment_index]
-    end_segment <- segment[segment_index + 1]
+    start_segment <- segments[segment_index]
+    end_segment <- segments[segment_index + 1]
     # determine resolution at given m/z value
     resol_mz <- resol * (1 / sqrt(2) ^ (log2(start_segment / 200)))
     # determine fwhm (full width at half maximum) of the peaks in this segment
