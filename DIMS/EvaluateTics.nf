@@ -26,7 +26,8 @@ process EvaluateTics {
                                                              $analysis_id \
                                                              $params.matrix \
                                                              $highest_mz_file \
-                                                             $trim_params_file
+                                                             $trim_params_file \
+                                                             $params.preprocessing_scripts_dir
         """
 }
 
