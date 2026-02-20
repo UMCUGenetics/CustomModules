@@ -217,3 +217,29 @@ check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
   }
   return(results_mz_missing)
 }
+
+find_is_below_threshold <- function(is_selection_subset, thresholds, is_names, scanmode) {
+  #' Create a list of all internal standards with intensity below a threshold value
+  #'
+  #' @param is_selection_subset: Matrix with intensities for each internal standard in each sample
+  #' @param thresholds: Threshold values for a given scan mode and matrix
+  #' @param is_names: Array of names of internal standards for a given scan mode
+  #' @param scanmode: string indicating scan mode to include in output
+  #'
+  #' @return is_below_threshold: Matrix listing all samples for which internal standard intensity is below threshold
+
+  # initialize; get the headers of the matrix
+  is_below_threshold <- is_selection_subset[0, ]
+  # for every line, check if intensity is below the appropriate threshold
+  for (line_index in seq_len(nrow(is_selection_subset))) {
+    is_selected <- is_selection_subset$HMDB_name[line_index]
+    thresh_selected <- thresholds[which(is_names == is_selected)]
+    if (is_selection_subset$Intensity[line_index] < thresh_selected) {
+      is_below_threshold <- rbind(is_below_threshold, is_selection_subset[line_index, ])
+    }
+  }
+  # add information on scan mode
+  is_below_threshold <- cbind(is_below_threshold, scanmode = rep(scanmode, nrow(is_below_threshold)))
+  return(is_below_threshold)
+}
+

@@ -41,10 +41,34 @@ remove_neg <- remove_tech_reps$neg
 repl_pattern_filtered <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
 
+# write output for QC info on missed infusions
+if (is.null(remove_neg)) {
+  remove_neg <- "none"
+}
+write.table(
+  remove_neg, 
+  file = "miss_infusions_negative.txt", 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  sep = "\t"
+)
+
 # positive scan mode
 remove_pos <- remove_tech_reps$pos
 repl_pattern_filtered <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
+
+# write output for QC info on missed infusions
+if (is.null(remove_pos)) {
+  remove_pos <- "none"
+}
+write.table(
+  remove_pos, 
+  file = "miss_infusions_positive.txt", 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  sep = "\t"
+)
 
 # get an overview of suitable technical replicates for both scan modes
 allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
@@ -56,7 +80,6 @@ write.table(allsamples_techreps_both_scanmodes,
             row.names = FALSE,
             sep = ","
 )
-
 
 ## generate TIC plots
 # get all txt files
@@ -134,5 +157,4 @@ tic_plot_pdf <- marrangeGrob(
 # save to file
 ggsave(filename = paste0(run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")
-
 
