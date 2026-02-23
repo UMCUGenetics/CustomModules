@@ -27,7 +27,7 @@ for (scanmode in scanmodes) {
   repl_pattern <- get(load(pattern_file))
   # calculate Z-scores
   if (z_score == 1) {
-    outlist_stats <- calculate_zscores(outlist_total, adducts = FALSE)
+    outlist_stats <- calculate_zscores(outlist_total)
     nr_removed_samples <- length(which(repl_pattern[] == "character(0)"))
     order_index_int <- order(colnames(outlist_stats)[8:(length(repl_pattern) - nr_removed_samples + 7)])
     outlist_stats_more <- cbind(
