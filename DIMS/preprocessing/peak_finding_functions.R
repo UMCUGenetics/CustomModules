@@ -83,7 +83,7 @@ search_regions_of_interest <- function(ints_fullrange) {
 
   # sort on first index
   if (nrow(regions_of_interest_final) > 1){
-    regions_of_interest_sorted <- regions_of_interest_final %>% dplyr::arrange(from)
+    regions_of_interest_sorted <- regions_of_interest_final %>% as.data.frame %>% dplyr::arrange(from)
   } else {
     regions_of_interest_sorted <- regions_of_interest_final
   }
