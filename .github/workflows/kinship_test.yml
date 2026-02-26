@@ -10,9 +10,11 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    env:
+      working-directory: Kinship/
     defaults:
       run:
-        working-directory: Kinship/
+        working-directory: ${{ env.working-directory }}
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -23,7 +25,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.5'
+          python-version: "3.11.5"
       #----------------------------------------------
       # install & configure poetry
       #----------------------------------------------
@@ -42,7 +44,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: .venv
+          path: ${{ env.working-directory }}/.venv
           key: venv_kinship-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist

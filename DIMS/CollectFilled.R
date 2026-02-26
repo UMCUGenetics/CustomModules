@@ -1,14 +1,11 @@
-## adapted from 10-collectSamplesFilled.R
-
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
-scripts_dir <- cmd_args[1]
+preprocessing_scripts_dir <- cmd_args[1]
 ppm <- as.numeric(cmd_args[2])
 z_score <- as.numeric(cmd_args[3])
 
-source(paste0(scripts_dir, "merge_duplicate_rows.R"))
-source(paste0(scripts_dir, "calculate_zscores.R"))
+source(paste0(preprocessing_scripts_dir, "collect_filled_functions.R"))
 
 # for each scan mode, collect all filled peak group lists
 scanmodes <- c("positive", "negative")
@@ -17,7 +14,7 @@ for (scanmode in scanmodes) {
   filled_files <- list.files("./", full.names = TRUE, pattern = paste0(scanmode, "_identified_filled"))
   # load files and combine into one object
   outlist_total <- NULL
-  for (file_nr in 1:length(filled_files)) {
+  for (file_nr in seq_along(filled_files)) {
     peakgrouplist_filled <- get(load(filled_files[file_nr]))
     outlist_total <- rbind(outlist_total, peakgrouplist_filled)
   }
@@ -30,7 +27,7 @@ for (scanmode in scanmodes) {
   repl_pattern <- get(load(pattern_file))
   # calculate Z-scores
   if (z_score == 1) {
-    outlist_stats <- calculate_zscores(outlist_total, adducts = FALSE)
+    outlist_stats <- calculate_zscores(outlist_total)
     nr_removed_samples <- length(which(repl_pattern[] == "character(0)"))
     order_index_int <- order(colnames(outlist_stats)[8:(length(repl_pattern) - nr_removed_samples + 7)])
     outlist_stats_more <- cbind(
@@ -47,14 +44,14 @@ for (scanmode in scanmodes) {
     outlist_stats_more <- cbind(outlist_stats_more, tmp)
     outlist_total <- outlist_stats_more
   }
-  
+
   # make a copy of the outlist
   outlist_ident <- outlist_total
-  # take care of NAs in theormz_noise
-  outlist_ident$theormz_noise[which(is.na(outlist_ident$theormz_noise))] <- 0
-  outlist_ident$theormz_noise <- as.numeric(outlist_ident$theormz_noise)
-  outlist_ident$theormz_noise[which(is.na(outlist_ident$theormz_noise))] <- 0
-  outlist_ident$theormz_noise <- as.numeric(outlist_ident$theormz_noise)
+  # select identified peak groups if ppm deviation is within limits
+  if (z_score == 1) {
+    outlist_ident$ppmdev <- as.numeric(outlist_ident$ppmdev)
+    outlist_ident <- outlist_ident[which(outlist_ident["ppmdev"] >= -ppm & outlist_ident["ppmdev"] <= ppm), ]
+  }
 
   # Extra output in Excel-readable format:
   remove_columns <- c("fq.best", "fq.worst", "mzmin.pgrp", "mzmax.pgrp")

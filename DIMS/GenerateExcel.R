@@ -60,14 +60,14 @@ outlist <- outlist[order(outlist[, "HMDB_code"]), ]
 
 # Create excel
 sheetname <- "AllPeakGroups"
-wb_intensities <- openxlsx::createWorkbook("SinglePatient")
-openxlsx::addWorksheet(wb_intensities, sheetname)
+wb_intensities_zscores <- openxlsx::createWorkbook("SinglePatient")
+openxlsx::addWorksheet(wb_intensities_zscores, sheetname)
 
 # Add Z-scores and create plots
 if (z_score == 1) {
   dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
-  wb_helix_intensities <- openxlsx::createWorkbook("SinglePatient")
-  openxlsx::addWorksheet(wb_helix_intensities, sheetname)
+  wb_helix_zscores <- openxlsx::createWorkbook("SinglePatient")
+  openxlsx::addWorksheet(wb_helix_zscores, sheetname)
   row_helix <- 2 # start on row 2 because of header
   # add a column for plots
   outlist <- cbind(plots = NA, outlist)
@@ -115,10 +115,6 @@ if (z_score == 1) {
   # save outlist for GenerateQC step
   save(outlist, file = "outlist.RData")
 
-  # get the IDs of the patients and sort
-  patient_ids <- unique(gsub("\\.[0-9]*", "", patient_columns))
-  patient_ids <- patient_ids[order(nchar(patient_ids), patient_ids)]
-
   # get Helix IDs for extra Excel file
   metabolite_files <- list.files(
     path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
@@ -151,82 +147,56 @@ if (z_score == 1) {
     relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
     rename(Name = H_Name)
 
-  for (row_index in seq_len(nrow(outlist))) {
-    # get HMDB ID
-    hmdb_name <- rownames(outlist[row_index, ])
+  # Get intensity columns for controls and patients
+  intensities_df <- outlist %>% select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"))
 
-    # get intensities of controls and patient for a metabolite, get intensity columns,
-    # pivot to long format, arrange Samples nummerically, change Sample names, get group size and
-    # set Intensities to numeric.
-    intensities <- outlist %>%
+  for (row_index in seq_len(nrow(intensities_df))) {
+    # get HMDB ID
+    hmdb_id <- intensities_df %>%
       slice(row_index) %>%
-      select(all_of(intensity_col_ids)) %>%
-      as.data.frame() %>%
-      pivot_longer(everything(), names_to = "Samples", values_to = "Intensities") %>%
-      arrange(nchar(Samples)) %>%
-      mutate(
-        Samples = gsub("\\..*", "", Samples),
-        Samples = gsub("(C).*", "\\1", Samples),
-        Intensities = as.numeric(Intensities),
-        type = ifelse(Samples == "C", "Control", "Patients")
-      ) %>%
-      group_by(Samples) %>%
-      mutate(group_size = n()) %>%
-      ungroup()
+      pull(HMDB_key)
+
+    # Transform dataframe to long format
+    intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
 
     # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities$Samples)) * 40
+    plot_width <- length(unique(intensities_df_long$Samples)) * 40
     col_width <- plot_width * 2
 
-    plot.new()
-    tmp_png <- paste0("plots/plot_", hmdb_name, ".png")
-    png(filename = tmp_png, width = plot_width, height = 300)
+    if (hmdb_id %in% metab_list_helix) {
+      # Make separate plot for Helix Excel containing all samples
 
-    # plot intensities for the controls and patients, use boxplot if group size is above 2, otherwise use a dash/line
-    p <- ggplot(intensities, aes(Samples, Intensities)) +
-      geom_boxplot(data = subset(intensities, group_size > 2), aes(fill = type)) +
-      geom_point(data = subset(intensities, group_size <= 2), shape = "-", size = 10, aes(colour = type, fill = type)) +
-      scale_fill_manual(values = c("Control" = "green", "Patients" = "#b20000")) +
-      scale_color_manual(values = c("Control" = "black", "Patients" = "#b20000")) +
-      theme(
-        legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1), axis.title = element_blank(),
-        plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), axis.text = element_text(size = 12, face = "bold"),
-        panel.background = element_rect(fill = "white", colour = "black")
-      ) +
-      ggtitle(hmdb_name)
-
-    print(p)
-    dev.off()
-
-    # place the plot in the Excel file
-    openxlsx::insertImage(
-      wb_intensities,
-      sheetname,
-      tmp_png,
-      startRow = row_index + 1,
-      startCol = 1,
-      height = 560,
-      width = col_width,
-      units = "px"
-    )
-
-    if (hmdb_name %in% metab_list_helix) {
-      print(row_helix)
-      openxlsx::insertImage(
-        wb_helix_intensities,
+      start_row_index <- row_index + 1
+      save_plot_to_excel_workbook(
+        wb_helix_zscores,
         sheetname,
-        tmp_png,
-        startRow = row_helix,
-        startCol = 1,
-        height = 560,
-        width = col_width,
-        units = "px"
+        intensities_df_long,
+        "plots/plot_helix_",
+        hmdb_id,
+        plot_width,
+        col_width,
+        row_helix
       )
       row_helix <- row_helix + 1
     }
+
+    # Remove postive controls and SST mix samples, (e.g. P1001, P1002, P1003, P1005)
+    intensities_df_long <- intensities_df_long %>% filter(!grepl("^P[0-9]{4}$", Samples))
+
+    start_row_index <- row_index + 1
+    save_plot_to_excel_workbook(
+      wb_intensities_zscores,
+      sheetname,
+      intensities_df_long,
+      "plots/plot_",
+      hmdb_id,
+      plot_width,
+      col_width,
+      start_row_index
+    )
   }
   wb_intensities <- set_row_height_col_width_wb(
-    wb_intensities,
+    wb_intensities_zscores,
     sheetname,
     nrow(outlist),
     ncol(outlist),
@@ -235,7 +205,7 @@ if (z_score == 1) {
   )
 
   wb_helix_intensities <- set_row_height_col_width_wb(
-    wb_helix_intensities,
+    wb_helix_zscores,
     sheetname,
     nrow(outlist_helix),
     ncol(outlist_helix),
@@ -254,7 +224,7 @@ if (z_score == 1) {
 } else {
   save(outlist, file = "outlist.RData")
   wb_intensities <- set_row_height_col_width_wb(
-    wb_intensities,
+    wb_intensities_zscores,
     sheetname,
     nrow(outlist),
     ncol(outlist),
@@ -266,7 +236,7 @@ if (z_score == 1) {
 }
 
 # write Excel file
-openxlsx::writeData(wb_intensities, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
-rm(wb_intensities)
+openxlsx::writeData(wb_intensities_zscores, sheet = 1, outlist, startCol = 1)
+openxlsx::saveWorkbook(wb_intensities_zscores, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
+rm(wb_intensities_zscores)
 unlink("plots", recursive = TRUE)
