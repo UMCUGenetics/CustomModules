@@ -213,7 +213,7 @@ if (nrow(is_below_threshold) > 0) {
 	      row.names = FALSE, sep = "\t")
 } else { 
   write.table("no internal standards are below threshold",
-	      file = "internal_standards_below_threshold.txt"
+	      file = "internal_standards_below_threshold.txt",
 	      row.names = FALSE, col.names = FALSE
 	      )
 }
