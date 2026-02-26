@@ -426,6 +426,14 @@ get_list_page_plot_data <- function(
   })
 }
 
+#' Make the order of metabolites for the violin plots
+#' Create the order of metabolites and add empty strings if the number of metabolites is lower than
+#' the number of plots per page.
+#'
+#' @param number_of_plots_per_page: integer containing the number of metabolites per plot per page 
+#' @param metabolite_names_chunk: list of vectors, each containing metabolites
+#'
+#' @returns metabolite_order: a vector containing all metabolites and possibly empty strings
 make_metabolite_order <- function(number_of_plots_per_page, metabolite_names_chunk) {
   # Add empty dummy's to extend the number of metabs to the nr_plots_perpage
   number_of_plots_missing <- number_of_plots_per_page - length(metabolite_names_chunk)
@@ -868,7 +876,8 @@ make_and_save_diem_plots <- function(
     zscore_controls_df,
     nr_plots_perpage,
     number_of_samples,
-    number_of_metabolites) {
+    number_of_metabolites,
+    iem_variables) {
   diem_plot_dir <- paste("./dIEM_plots", sep = "/")
   dir.create(diem_plot_dir)
 
@@ -879,8 +888,8 @@ make_and_save_diem_plots <- function(
     patient_top_iems_probs <- diem_probability_score %>%
       select(c(Disease, !!sym(patient_id))) %>%
       arrange(desc(!!sym(patient_id))) %>%
-      slice(1:top_number_iem_diseases) %>%
-      filter(!!sym(patient_id) >= threshold_iem)
+      slice(1:iem_variables$top_number_iem_diseases) %>%
+      filter(!!sym(patient_id) >= iem_variables$threshold_iem)
 
     if (nrow(patient_top_iems_probs) > 0) {
       list_metabolites_top_iems <- get_probabilities_top_iems(patient_top_iems_probs, expected_biomarkers_df, patient_id)

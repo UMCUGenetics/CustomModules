@@ -32,6 +32,10 @@ expected_biomarkers_df <- expected_biomarkers_df %>%
 explanation_violin_plot <- readLines(file_explanation)
 
 # Set global variables
+iem_variables <- list(
+  top_number_iem_diseases = 5,
+  threshold_iem = 5
+)
 top_number_iem_diseases <- 5 # number of diseases that score highest in algorithm to plot
 threshold_iem <- 5 # probability score cut-off for plotting the top diseases
 nr_plots_perpage <- 20 # number of violin plots per page in PDF
@@ -90,9 +94,10 @@ patient_no_iem <- make_and_save_diem_plots(
   zscore_controls_df,
   nr_plots_perpage,
   number_of_samples,
-  number_of_metabolites
+  number_of_metabolites,
+  iem_variables
 )
 
 if (length(patient_no_iem) > 0) {
-  save_patient_no_iem(threshold_iem, patient_no_iem)
+  save_patient_no_iem(iem_variables$threshold_iem, patient_no_iem)
 }
