@@ -11,7 +11,8 @@ source("../../export/generate_violin_plots_functions.R")
 
 testthat::test_that("get_intensities_fraction_side: Get intensities for calculating the ratios", {
   test_intensities_zscore_df <- read.delim(test_path("fixtures", "test_intensities_zscore_df.txt"))
-
+  test_intensity_cols <- c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
+                           "P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5")
   test_ratios_metabs_df <- data.frame(
     HMDB.code = c("HMDBAA1", "HMDBAA2", "HMDBAB1"),
     Ratio_name = c("ratio1", "ratio2", "ratio3"),
@@ -111,8 +112,8 @@ testthat::test_that("get_list_dataframes_from_dir: Get a list with dataframes fr
 })
 
 testthat::test_that("merge_metabolite_info_zscores: Combine metabolite info dataframe and Z-score dataframe", {
-  test_acyl_carnitines_df <- read.delim(test_path("fixtures/test_metabolite_groups/", "test_acyl_carnitines.txt"))
-  test_crea_gua_df <- read.delim(test_path("fixtures/test_metabolite_groups/", "test_crea_gua.txt"))
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/test_metabolite_groups/Diagnostics", "test_acyl_carnitines.txt"))
+  test_crea_gua_df <- read.delim(test_path("fixtures/test_metabolite_groups/Diagnostics", "test_crea_gua.txt"))
 
   test_metab_list_all <- list(test_acyl_carnitines_df, test_crea_gua_df)
   names(test_metab_list_all) <- c("test_acyl_carnitines", "test_crea_gua")
@@ -280,14 +281,14 @@ testthat::test_that("get_data_per_metabolite_class: Combine patient and control 
 })
 
 testthat::test_that("prepare_helix_patient_data: Generate a dataframe with information for Helix", {
-  test_acyl_carnitines_pat <- read.delim(test_path("fixtures/", "test_acyl_carnitines_patients.txt"))
-  test_crea_gua_pat <- read.delim(test_path("fixtures/", "test_crea_gua_patients.txt"))
+  test_acyl_carnitines_pat <- read.delim(test_path("fixtures", "test_acyl_carnitines_patients.txt"))
+  test_crea_gua_pat <- read.delim(test_path("fixtures", "test_crea_gua_patients.txt"))
 
   test_metab_interest_sorted <- list(test_acyl_carnitines_pat, test_crea_gua_pat)
   names(test_metab_interest_sorted) <- c("test_acyl_carnitines", "test_crea_gua")
 
-  test_acyl_carnitines_df <- read.delim(test_path("fixtures/test_metabolite_groups/", "test_acyl_carnitines.txt"))
-  test_crea_gua_df <- read.delim(test_path("fixtures/test_metabolite_groups/", "test_crea_gua.txt"))
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/test_metabolite_groups/Diagnostics", "test_acyl_carnitines.txt"))
+  test_crea_gua_df <- read.delim(test_path("fixtures/test_metabolite_groups/Diagnostics", "test_crea_gua.txt"))
 
   test_metab_list_all <- list(test_acyl_carnitines_df, test_crea_gua_df)
   names(test_metab_list_all) <- c("test_acyl_carnitines", "test_crea_gua")
@@ -852,6 +853,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     top_number_iem_diseases = 5,
     threshold_iem = 5
   )
+  test_explanation_violin_plot <- "Unit test violin plot pdfs"
 
   expect_silent(make_and_save_diem_plots(
     test_diem_probability_score,
@@ -862,8 +864,10 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_nr_plots_perpage,
     test_number_of_samples,
     test_number_of_metabolites,
-    test_iem_variables
+    test_iem_variables,
+    test_explanation_violin_plot
   ))
+  unlink("dIEM_plots/", recursive = TRUE)
   
   expect_equal(make_and_save_diem_plots(
     test_diem_probability_score,
@@ -874,7 +878,8 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_nr_plots_perpage,
     test_number_of_samples,
     test_number_of_metabolites,
-    test_iem_variables
+    test_iem_variables,
+    test_explanation_violin_plot
   ), "P2025M3")
   
   expect_true(file.exists("dIEM_plots/IEM_P2025M1.pdf"))
@@ -922,4 +927,5 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   expect_true(file.exists("missing_probability_scores.txt"))
   
   expect_snapshot(save_patient_no_iem(test_threshold_iem, test_patient_no_iem))
+  file.remove("missing_probability_scores.txt")
 })

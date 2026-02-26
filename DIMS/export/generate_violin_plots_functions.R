@@ -877,7 +877,8 @@ make_and_save_diem_plots <- function(
     nr_plots_perpage,
     number_of_samples,
     number_of_metabolites,
-    iem_variables) {
+    iem_variables,
+    explanation_violin_plot) {
   diem_plot_dir <- paste("./dIEM_plots", sep = "/")
   dir.create(diem_plot_dir)
 

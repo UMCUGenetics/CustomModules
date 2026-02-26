@@ -95,7 +95,8 @@ patient_no_iem <- make_and_save_diem_plots(
   nr_plots_perpage,
   number_of_samples,
   number_of_metabolites,
-  iem_variables
+  iem_variables,
+  explanation_violin_plot
 )
 
 if (length(patient_no_iem) > 0) {
