@@ -42,7 +42,7 @@ testthat::test_that("Calculating Z-scores using different methods for excluding 
   expect_identical(colnames(calculate_zscores(test_outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)),
                    c("plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1", "C109.1", "C110.1",
                      "C111.1", "C112.1", "P2.1", "P3.1", "HMDB_name", "HMDB_name_all", "HMDB_ID_all", "sec_HMDB_ID",
-                     "HMDB_key", "sec_HMDB_ID_rlvc", "name", "relevance", "descr", "origin", "fluids", "tissue", "disease",
+                     "HMDB_key", "sec_HMDB_ID_rlvnc", "name", "relevance", "descr", "origin", "fluids", "tissue", "disease",
                      "pathway", "HMDB_code", "avg_ctrls", "sd_ctrls", "nr_ctrls", "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore",
                      "C104.1_Zscore", "C105.1_Zscore", "C106.1_Zscore", "C107.1_Zscore", "C108.1_Zscore", "C109.1_Zscore",
                      "C110.1_Zscore", "C111.1_Zscore", "C112.1_Zscore", "P2.1_Zscore", "P3.1_Zscore"))
