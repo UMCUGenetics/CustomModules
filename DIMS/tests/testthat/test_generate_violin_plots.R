@@ -926,6 +926,6 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   
   expect_true(file.exists("missing_probability_scores.txt"))
   
-  expect_snapshot(save_patient_no_iem(test_threshold_iem, test_patient_no_iem))
+  expect_snapshot_file("missing_probability_scores.txt")
   file.remove("missing_probability_scores.txt")
 })
