@@ -12,8 +12,8 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 init_file <- cmd_args[1]
 project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
-sst_components_file <- cmd_args[5]
-export_scripts_dir <- cmd_args[6]
+sst_components_file <- cmd_args[4]
+export_scripts_dir <- cmd_args[5]
 
 outdir <- "./"
 
@@ -273,7 +273,7 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (z_score == 1) {
+if (positive_controls_index > 0) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),

@@ -27,7 +27,7 @@ prepare_intensities_zscore_df <- function(intensities_zscore_df) {
 #'
 #' @returns sample_colnames: a vector of column names all containing the prefix.
 get_colnames_samples <- function(dataframe, sample_label) {
-  sample_colnames <- unique(gsub("_Zscore", "", grepv(paste0("^", sample_label), colnames(dataframe))))
+  sample_colnames <- unique(gsub("_Zscore", "", grep(paste0("^", sample_label), colnames(dataframe), value = TRUE)))
   return(sample_colnames)
 }
 

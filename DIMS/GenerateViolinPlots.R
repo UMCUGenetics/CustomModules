@@ -81,7 +81,7 @@ make_and_save_violin_plot_pdfs(
 )
 
 #### Run the IEM algorithm #########
-diem_probability_score <- run_diem_algorithm(expected_biomarkers_df, zscore_patients_df, patient_col_names)
+diem_probability_score <- run_diem_algorithm(expected_biomarkers_df, zscore_patients_df, patient_ids)
 
 save_prob_scores_to_excel(diem_probability_score, run_name)
 
