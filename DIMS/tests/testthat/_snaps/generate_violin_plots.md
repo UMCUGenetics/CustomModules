@@ -1,4 +1,4 @@
-# Create a pdf with a table of top metabolites and violin plots
+# create_pdf_violin_plots: Create a pdf with a table of top metabolites and violin plots
 
     Code
       content_pdf_violinplots
@@ -8,7 +8,7 @@
       [3] "                        Results for patient P2025M1\n                        test crea gua\n              metab4                                       Z=−0.46\nMetabolites\n              metab11                                      Z=0.84\n                         −5       0     5     10      15            20\n                                        Z−scores\n"                   
       [4] "          Unit test Generate Violin Plots\nUnit test Generate Violin Plots\n"                                                                                                                                                                                                                                                                                                                 
 
-# Saving the probability score dataframe as an Excel file
+# save_prob_scores_to_excel: Saving the probability score dataframe as an Excel file
 
         Disease P2025M1 P2025M2 P2025M3 P2025M4
     1 Disease A  10.900   -10.9   49.90   -49.9
