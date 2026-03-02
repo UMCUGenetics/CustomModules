@@ -132,7 +132,7 @@ if (z_score == 1) {
   metab_df_helix <- metab_df_helix %>%
     filter(Helix == "ja") %>%
     select(c(HMDB_code, HMDB_name)) %>%
-    rename(H_Name = HMDB_name)
+    rename(helix_name = HMDB_name)
   metab_list_helix <- unique(metab_df_helix$HMDB_code)
   metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
 
@@ -140,12 +140,12 @@ if (z_score == 1) {
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
-      -c(HMDB_key, sec_HMBD_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
+      -c(HMDB_key, sec_HMBD_ID_rlvnc, theormz_HMDB, name, relevance, descr, origin, fluids, tissue, disease, pathway),
       -all_of(control_col_idx), -all_of(patient_col_idx)
     ) %>%
-    relocate(c(HMDB_code, H_Name, avg_ctrls, sd_ctrls), .after = plots) %>%
+    relocate(c(HMDB_code, helix_name, avg_ctrls, sd_ctrls), .after = plots) %>%
     relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
-    rename(Name = H_Name)
+    rename(Name = helix_name)
 
   # Get intensity columns for controls and patients
   intensities_df <- outlist %>% select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"))
@@ -218,7 +218,7 @@ if (z_score == 1) {
 
   # reorder outlist for Excel file
   outlist <- outlist %>%
-    relocate(c(HMDB_code, HMDB_name_all, descr, avg_ctrls, sd_ctrls), .after = plots) %>%
+    relocate(c(HMDB_code, HMDB_name_all, theormz_HMDB, descr, avg_ctrls, sd_ctrls), .after = plots) %>%
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd_ctrls) %>%
     relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
 } else {
@@ -232,7 +232,7 @@ if (z_score == 1) {
     plots_present = FALSE
   )
   outlist <- outlist %>%
-    relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
+    relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all, theormz_HMDB))
 }
 
 # write Excel file

@@ -143,9 +143,9 @@ is_sum_selection <- c(
 threshold_is_dbs_neg <- c(15000, 200000, 130000, 18000, 50000)
 threshold_is_dbs_pos <- c(150000, 3300000, 1750000, 150000, 270000)
 threshold_is_dbs_sum <- c(1300000, 2500000, 500000, 1800000, 1400000)
-threshold_is_pl_neg  <- c(70000, 700000, 700000, 65000, 350000)
-threshold_is_pl_pos  <- c(1500000, 9000000, 3000000, 400000, 700000)
-threshold_is_pl_sum  <- c(8000000, 12500000, 2500000, 3000000, 4000000)
+threshold_is_pl_neg <- c(70000, 700000, 700000, 65000, 350000)
+threshold_is_pl_pos <- c(1500000, 9000000, 3000000, 400000, 700000)
+threshold_is_pl_sum <- c(8000000, 12500000, 2500000, 3000000, 4000000)
 
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
@@ -211,14 +211,15 @@ if (dims_matrix == "Plasma") {
 }
 
 if (nrow(is_below_threshold) > 0) {
-  write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
-	      file = "internal_standards_below_threshold.txt", 
-	      row.names = FALSE, sep = "\t")
-} else { 
+  write.table(cbind(is_below_threshold, scanmode = scanmode_is),
+    file = "internal_standards_below_threshold.txt",
+    row.names = FALSE, sep = "\t"
+  )
+} else {
   write.table("no internal standards are below threshold",
-	      file = "internal_standards_below_threshold.txt"
-	      row.names = FALSE, col.names = FALSE
-	      )
+    file = "internal_standards_below_threshold.txt",
+    row.names = FALSE, col.names = FALSE
+  )
 }
 
 # bar plot either with or without minimal intensity lines
@@ -279,8 +280,10 @@ positive_control_list <- column_list[positive_controls_index]
 if (z_score == 1) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
-  if (all(sapply(c("^P1002", "^P1003", "^P1005"),
-                 function(x) any(grepl(x, positive_control_list))))) {
+  if (all(sapply(
+    c("^P1002", "^P1003", "^P1005"),
+    function(x) any(grepl(x, positive_control_list))
+  ))) {
     cat("All three positive controls are present")
   } else {
     pos_contr_warning <- paste(

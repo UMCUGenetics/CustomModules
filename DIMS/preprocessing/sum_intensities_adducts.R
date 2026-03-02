@@ -15,15 +15,15 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   # avoid rows with only "" in HMDB_code column
   hmdb_in_peaklist[which(hmdb_in_peaklist == "")] <- ";"
   hmdb_in_peaklist_rownr <- c()
-  
+
   # create dataframe with for each HMDB id a row number
   hmdb_in_peaklist_rownr <- data.frame(
     row_id = rep(seq_along(hmdb_in_peaklist), lengths(hmdb_in_peaklist)),
     hmdb_id = unlist(hmdb_in_peaklist)
   )
   # remove empty rows and duplicates
-  hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr %>% 
-    filter(hmdb_id != "") %>% 
+  hmdb_in_peaklist_rownr <- hmdb_in_peaklist_rownr %>%
+    filter(hmdb_id != "") %>%
     distinct()
 
   # find intensity columns in peakgroup_list
@@ -47,7 +47,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     return(adductsum)
   }
 
-  for (hmdb_index in 1:nrow(hmdb_part_info)) {
+  for (hmdb_index in seq_len(nrow(hmdb_part_info))) {
     compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
     compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
@@ -71,11 +71,10 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     rownames(adductsum) <- names
     adductsum <- cbind(adductsum, "HMDB_name" = names_long)
     # Add HMDB info
-    cols_hmdb_info <- c("HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all")
+    cols_hmdb_info <- c("HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all, theormz_HMDB")
     hmdb_info <- hmdb_part[names, cols_hmdb_info, drop = FALSE]
     adductsum <- cbind(adductsum, hmdb_info)
   }
 
   return(adductsum)
 }
-

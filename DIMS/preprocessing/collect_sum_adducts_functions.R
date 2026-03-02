@@ -32,13 +32,16 @@ combine_scanmodes_intensities <- function(outlist_pos_adducts_hmdb, outlist_neg_
   index_pos <- which(rownames(outlist_pos_adducts_hmdb) %in% rownames(outlist_neg_adducts_hmdb))
 
   # Get intensities of metabs present in both modes from pos modus
-  outlist_combi_pos_ints <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
+  outlist_combi_pos_ints <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>%
+    select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, theormz_HMDB))
 
   # Get intensities of metabs present in both modes from neg modus
-  outlist_combi_neg_ints <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>% select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID))
+  outlist_combi_neg_ints <- outlist_neg_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ] %>%
+    select(-c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, theormz_HMDB))
 
   # HMDB info for metabs present in both modes
-  outlist_combi_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>% select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID)
+  outlist_combi_info <- outlist_pos_adducts_hmdb[rownames(outlist_pos_adducts_hmdb)[index_pos], ]  %>%
+    select(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, theormz_HMDB)
 
   # Combine positive and negative numbers and paste back HMDB column
   outlist_combi_ints <- apply(outlist_combi_pos_ints, 2, as.numeric) + apply(outlist_combi_neg_ints, 2, as.numeric)
