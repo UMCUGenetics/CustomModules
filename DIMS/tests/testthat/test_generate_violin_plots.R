@@ -11,8 +11,10 @@ source("../../export/generate_violin_plots_functions.R")
 
 testthat::test_that("get_intensities_fraction_side: Get intensities for calculating the ratios", {
   test_intensities_zscore_df <- read.delim(test_path("fixtures", "test_intensities_zscore_df.txt"))
-  test_intensity_cols <- c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
-                           "P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5")
+  test_intensity_cols <- c(
+    "C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
+    "P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5"
+  )
   test_ratios_metabs_df <- data.frame(
     HMDB.code = c("HMDBAA1", "HMDBAA2", "HMDBAB1"),
     Ratio_name = c("ratio1", "ratio2", "ratio3"),
@@ -370,7 +372,7 @@ testthat::test_that("transform_metab_df_to_helix_df: Make the output for Helix",
   )
 })
 
-testthat::test_that("get_top_metabolites_df: Create a dataframe with all metabolites that exceed the min and max Z-score cutoff", {
+testthat::test_that("get_top_metabolites_df: Create a dataframe with the top metabolites", {
   test_df_metabs_helix <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
   test_patient_id <- "P2025M1"
 
@@ -407,15 +409,15 @@ testthat::test_that("get_top_metabolites_df: Create a dataframe with all metabol
 testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest and top 10 lowest metabolites", {
   test_zscore_patient_df <- read.delim(test_path("fixtures/", "test_zscore_patient_df.txt"))
   test_patient_id <- "P2025M1"
-  test_num_of_highest_metabolites <- 20
-  test_num_of_lowest_metabolites <- 10
+  test_num_of_highest_metabs <- 20
+  test_num_of_lowest_metabs <- 10
 
   expect_equal(
     dim(prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )),
     c(32, 3)
   )
@@ -423,8 +425,8 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
     colnames(prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )),
     c("HMDB_ID", "Metabolite", "Z-score")
   )
@@ -432,8 +434,8 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
     prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )$HMDB_ID,
     c(
       "Increased", "HMDB030", "HMDB029", "HMDB028", "HMDB027", "HMDB026", "HMDB025", "HMDB024", "HMDB023",
@@ -446,8 +448,8 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
     prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )$`Z-score`,
     c(
       "", "30", "29", "28", "27", "26", "25", "24", "23", "22", "21", "20", "19", "18", "17", "16", "15",
@@ -461,8 +463,8 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
     prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )$Metabolite,
     c(
       "", "metab1", "metab2", "metab3", "metab4", "metab5", "metab6", "metab7", "metab8", "metab9", "metab10",
@@ -475,8 +477,8 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
     prepare_toplist(
       test_patient_id,
       test_zscore_patient_df,
-      test_num_of_highest_metabolites,
-      test_num_of_lowest_metabolites
+      test_num_of_highest_metabs,
+      test_num_of_lowest_metabs
     )$`Z-score`,
     c(
       "", "-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8", "-9", "-10", "-11", "-12", "-13", "-14", "-15",
@@ -712,50 +714,55 @@ testthat::test_that("calculate_zscore_ratios: Calculate Zscores for ratios", {
 })
 
 testthat::test_that("get_list_page_plot_data: Get a list of dataframes for each chunk", {
-  test_metabolite_class_patients_df <- read.delim(test_path("fixtures/GenerateViolinPlots",
-                                                            "test_metabolite_class_patients_df.txt"))
-  test_metabolite_class_controls_df <- read.delim(test_path("fixtures/GenerateViolinPlots",
-                                                            "test_metabolite_class_controls_df.txt"))
+  test_metab_class_patients_df <- read.delim(test_path(
+    "fixtures/GenerateViolinPlots",
+    "test_metabolite_class_patients_df.txt"
+  ))
+  test_metab_class_controls_df <- read.delim(test_path(
+    "fixtures/GenerateViolinPlots",
+    "test_metabolite_class_controls_df.txt"
+  ))
   test_nr_plots_perpage <- 2
   test_metabolite_in_chunks <- list(
     c("HMDB001", "HMDB002", "HMDB003"),
     c("HMDB004", "HMDB011", "HMDB012"),
     c("HMDB000TT1", "HMDB000TT2", "HMDB000TT3")
   )
-  
+
   t <- get_list_page_plot_data(
     test_metabolite_in_chunks,
-    test_metabolite_class_patients_df,
-    test_metabolite_class_controls_df,
+    test_metab_class_patients_df,
+    test_metab_class_controls_df,
     test_nr_plots_perpage
   )
-  
+
   expect_type(get_list_page_plot_data(
     test_metabolite_in_chunks,
-    test_metabolite_class_patients_df,
-    test_metabolite_class_controls_df,
+    test_metab_class_patients_df,
+    test_metab_class_controls_df,
     test_nr_plots_perpage
   ), "list")
-  
+
   expect_equal(length(get_list_page_plot_data(
     test_metabolite_in_chunks,
-    test_metabolite_class_patients_df,
-    test_metabolite_class_controls_df,
+    test_metab_class_patients_df,
+    test_metab_class_controls_df,
     test_nr_plots_perpage
   )), 3)
-  
+
   test_plot_data_list <- get_list_page_plot_data(
     test_metabolite_in_chunks,
-    test_metabolite_class_patients_df,
-    test_metabolite_class_controls_df,
+    test_metab_class_patients_df,
+    test_metab_class_controls_df,
     test_nr_plots_perpage
   )
   for (num_chunk in seq_along(test_metabolite_in_chunks)) {
     expect_equal(unique(test_plot_data_list[[num_chunk]]$HMDB_name), test_metabolite_in_chunks[[num_chunk]])
-    expect_equal(unique(test_plot_data_list[[num_chunk]]$Sample),
-                 c("P2025M1", "P2025M2", "P2025M3", "C101.1", "C102.1", "C103.1"))
+    expect_equal(
+      unique(test_plot_data_list[[num_chunk]]$Sample),
+      c("P2025M1", "P2025M2", "P2025M3", "C101.1", "C102.1", "C103.1")
+    )
   }
-  
 })
 
 testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots for each patient in a PDF", {
@@ -786,18 +793,18 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     test_explanation_violin_plot,
     test_number_of_metabolites
   ))
-  
+
   patient_ids <- c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5")
   for (patient_id in patient_ids) {
     pdf_file_name_diagnotics <- file.path(paste0("Diagnostics/MB", gsub("^P|M", "", patient_id), "_DIMS_PL_DIAG.pdf"))
     pdf_file_name_other <- file.path(paste0("Other/R_", patient_id, ".pdf"))
-    
+
     expect_true(file.exists(pdf_file_name_diagnotics))
     expect_true(file.exists(pdf_file_name_other))
   }
   expect_true(file.exists("output_Helix_unit_test.csv"))
-  
-  unlink(c("Diagnostics", 'Other'), recursive = TRUE)
+
+  unlink(c("Diagnostics", "Other"), recursive = TRUE)
   file.remove("output_Helix_unit_test.csv")
 })
 
@@ -808,25 +815,36 @@ testthat::test_that("get_probabilities_top_iems: Get the IEM probabilities for a
   )
   test_expected_biomarkers_df <- read.delim(test_path("fixtures", "test_expected_biomarkers_df.txt"))
   test_patient_id <- "P2025M1"
-  
 
-  expect_type(get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id),
-              "list")
-  
-  expect_equal(length(get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id)),
-               4)
-  expect_equal(names(get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id)),
-               c("Disease A, probability score 100", "Disease B, probability score 75", "Disease C, probability score 50",
-                 "Disease D, probability score 25"))
-  
-  expect_equal(get_probabilities_top_iems(test_patient_top_iems_probs,
-                                          test_expected_biomarkers_df,
-                                          test_patient_id)$"Disease A, probability score 100",
-               data.frame(
-                 HMDB_code = c("HMDB002", "HMDB012"),
-                 HMDB_name = c("metab2", "metab12")
-               ))
-  
+
+  expect_type(
+    get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id),
+    "list"
+  )
+
+  expect_equal(
+    length(get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id)),
+    4
+  )
+  expect_equal(
+    names(get_probabilities_top_iems(test_patient_top_iems_probs, test_expected_biomarkers_df, test_patient_id)),
+    c(
+      "Disease A, probability score 100", "Disease B, probability score 75", "Disease C, probability score 50",
+      "Disease D, probability score 25"
+    )
+  )
+
+  expect_equal(
+    get_probabilities_top_iems(
+      test_patient_top_iems_probs,
+      test_expected_biomarkers_df,
+      test_patient_id
+    )$"Disease A, probability score 100",
+    data.frame(
+      HMDB_code = c("HMDB002", "HMDB012"),
+      HMDB_name = c("metab2", "metab12")
+    )
+  )
 })
 
 testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
@@ -868,7 +886,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_explanation_violin_plot
   ))
   unlink("dIEM_plots/", recursive = TRUE)
-  
+
   expect_equal(make_and_save_diem_plots(
     test_diem_probability_score,
     test_patient_ids,
@@ -881,22 +899,24 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_iem_variables,
     test_explanation_violin_plot
   ), "P2025M3")
-  
+
   expect_true(file.exists("dIEM_plots/IEM_P2025M1.pdf"))
   expect_true(file.exists("dIEM_plots/IEM_P2025M2.pdf"))
-  
+
   unlink("dIEM_plots/", recursive = TRUE)
 })
 
 testthat::test_that("make_metabolite_order: Make the order of metabolites for the violin plots", {
   test_metabolites_vector <- c("metab1", "metab2", "metab3")
   test_num_plots_per_page <- 5
-  
+
   make_metabolite_order(test_num_plots_per_page, test_metabolites_vector)
-  
+
   expect_equal(length(make_metabolite_order(test_num_plots_per_page, test_metabolites_vector)), 5)
-  expect_equal(make_metabolite_order(test_num_plots_per_page, test_metabolites_vector),
-               c("metab1", "metab2", "metab3", "  ", "   "))
+  expect_equal(
+    make_metabolite_order(test_num_plots_per_page, test_metabolites_vector),
+    c("metab1", "metab2", "metab3", "  ", "   ")
+  )
 })
 
 testthat::test_that("pad_truncate_hmdb_names: Pad or truncate HMDB names to a fixed width", {
@@ -905,14 +925,18 @@ testthat::test_that("pad_truncate_hmdb_names: Pad or truncate HMDB names to a fi
   )
   test_width <- 10
   test_pad_character <- "+"
-  
-  expect_equal(nrow(pad_truncate_hmdb_names(test_dataframe, test_width, test_pad_character)),
-               3)
-  expect_equal(pad_truncate_hmdb_names(test_dataframe, test_width, test_pad_character)$HMDB_name,
-               c("metab1++++", "metabol...", "metabo3+++"))
-  
+
+  expect_equal(
+    nrow(pad_truncate_hmdb_names(test_dataframe, test_width, test_pad_character)),
+    3
+  )
+  expect_equal(
+    pad_truncate_hmdb_names(test_dataframe, test_width, test_pad_character)$HMDB_name,
+    c("metab1++++", "metabol...", "metabo3+++")
+  )
+
   test_df <- pad_truncate_hmdb_names(test_dataframe, test_width, test_pad_character)
-  for (row in seq(nrow(test_df))) {
+  for (row in seq_len(nrow(test_df))) {
     expect_equal(nchar(test_df[row, "HMDB_name"]), 10)
   }
 })
@@ -921,11 +945,11 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   local_edition(3)
   test_threshold_iem <- 5
   test_patient_no_iem <- c("Patient1", "Patient2")
-  
+
   expect_silent(save_patient_no_iem(test_threshold_iem, test_patient_no_iem))
-  
+
   expect_true(file.exists("missing_probability_scores.txt"))
-  
+
   expect_snapshot_file("missing_probability_scores.txt")
   file.remove("missing_probability_scores.txt")
 })

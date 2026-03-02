@@ -430,7 +430,7 @@ get_list_page_plot_data <- function(
 #' Create the order of metabolites and add empty strings if the number of metabolites is lower than
 #' the number of plots per page.
 #'
-#' @param number_of_plots_per_page: integer containing the number of metabolites per plot per page 
+#' @param number_of_plots_per_page: integer containing the number of metabolites per plot per page
 #' @param metabolite_names_chunk: list of vectors, each containing metabolites
 #'
 #' @returns metabolite_order: a vector containing all metabolites and possibly empty strings
@@ -963,7 +963,7 @@ get_probabilities_top_iems <- function(patient_top_iems_probs, expected_biomarke
 #' Save a list of patient IDs to a text file
 #'
 #' @param threshold_iem: integer containing the IEM threshold
-#' @param patient_no_iem: vector containing patient IDs 
+#' @param patient_no_iem: vector containing patient IDs
 save_patient_no_iem <- function(threshold_iem, patient_no_iem) {
   patient_no_iem <- c(
     paste0(

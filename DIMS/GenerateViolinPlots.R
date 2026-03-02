@@ -27,8 +27,10 @@ rm(outlist)
 metabolites_ratios_df <- read.csv(file_ratios_metabolites, sep = ";", stringsAsFactors = FALSE)
 expected_biomarkers_df <- read.csv(file_expected_biomarkers_iem, sep = ";", stringsAsFactors = FALSE)
 expected_biomarkers_df <- expected_biomarkers_df %>%
-  rename(HMDB_code = HMDB.code,
-         HMDB_name = Metabolite)
+  rename(
+    HMDB_code = HMDB.code,
+    HMDB_name = Metabolite
+  )
 explanation_violin_plot <- readLines(file_explanation)
 
 # Set global variables
