@@ -10,7 +10,7 @@
 prepare_intensities_zscore_df <- function(intensities_zscore_df) {
   intensities_zscore_df <- intensities_zscore_df %>%
     select(-c(
-      plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMDB_ID_rlvnc, name,
+      plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, theormz_HMDB, sec_HMDB_ID_rlvnc, name,
       relevance, descr, origin, fluids, tissue, disease, pathway, nr_ctrls
     )) %>%
     relocate(c(HMDB_code, HMDB_name)) %>%
