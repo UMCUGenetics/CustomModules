@@ -42,188 +42,45 @@ testthat::test_that("calculate_zscores: Calculating Z-scores using different met
   perc <- 5
   outlier_threshold <- 2
 
-  expect_type(
-    calculate_zscores(
-      test_outlist,
-      "_Zscore",
-      control_intensities,
-      NULL,
-      intensity_col_ids,
-      startcol
-    ),
-    "list"
-  )
+  expect_type(calculate_zscores(test_outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol), "list")
+  expect_identical(colnames(calculate_zscores(test_outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)),
+                   c("plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1", "C109.1", "C110.1",
+                     "C111.1", "C112.1", "P2.1", "P3.1", "HMDB_name", "HMDB_name_all", "HMDB_ID_all", "sec_HMDB_ID",
+                     "HMDB_key", "sec_HMDB_ID_rlvnc", "name", "relevance", "descr", "origin", "fluids", "tissue", "disease",
+                     "pathway", "HMDB_code", "avg_ctrls", "sd_ctrls", "nr_ctrls", "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore",
+                     "C104.1_Zscore", "C105.1_Zscore", "C106.1_Zscore", "C107.1_Zscore", "C108.1_Zscore", "C109.1_Zscore",
+                     "C110.1_Zscore", "C111.1_Zscore", "C112.1_Zscore", "P2.1_Zscore", "P3.1_Zscore"))
+  expect_equal(round(calculate_zscores(test_outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)$avg_ctrls, 3),
+               c(16129.167, 1150.0, 1231.250, 4015.833), tolerance = 0.001)
+  expect_equal(calculate_zscores(test_outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)$P2.1_Zscore,
+               c(-0.2544103, 32.4586955, 13.6066674,  0.4037668), tolerance = 0.001)
 
-  expect_identical(
-    colnames(
-      calculate_zscores(
-        test_outlist,
-        "_Zscore",
-        control_intensities,
-        NULL,
-        intensity_col_ids,
-        startcol
-      )
-    ),
-    c(
-      "plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1", "C109.1", "C110.1", "C111.1",
-      "C112.1", "P2.1", "P3.1", "HMDB_name", "HMDB_name_all", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_key", "sec_HMDB_ID_rlvc",
-      "name", "relevance", "descr", "origin", "fluids", "tissue", "disease", "pathway", "HMDB_code", "avg_ctrls", "sd_ctrls",
-      "nr_ctrls", "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore", "C104.1_Zscore", "C105.1_Zscore", "C106.1_Zscore",
-      "C107.1_Zscore", "C108.1_Zscore", "C109.1_Zscore", "C110.1_Zscore", "C111.1_Zscore", "C112.1_Zscore", "P2.1_Zscore",
-      "P3.1_Zscore"
-    )
-  )
-  expect_equal(
-    round(
-      calculate_zscores(
-        test_outlist,
-        "_Zscore",
-        control_intensities,
-        NULL,
-        intensity_col_ids,
-        startcol
-      )$avg_ctrls, 3
-    ),
-    c(16129.167, 1150.0, 1231.250, 4015.833),
-    tolerance = 0.001
-  )
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_Zscore",
-      control_intensities,
-      NULL,
-      intensity_col_ids,
-      startcol
-    )$P2.1_Zscore,
-    c(-0.2544103, 32.4586955, 13.6066674, 0.4037668),
-    tolerance = 0.001
-  )
+  expect_type(calculate_zscores(test_outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol), "list")
+  expect_identical(colnames(calculate_zscores(test_outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol))[34:47],
+                   c("C101.1_RobustZscore", "C102.1_RobustZscore",
+                     "C103.1_RobustZscore", "C104.1_RobustZscore", "C105.1_RobustZscore", "C106.1_RobustZscore",
+                     "C107.1_RobustZscore", "C108.1_RobustZscore", "C109.1_RobustZscore", "C110.1_RobustZscore",
+                     "C111.1_RobustZscore", "C112.1_RobustZscore", "P2.1_RobustZscore", "P3.1_RobustZscore"))
+  expect_equal(calculate_zscores(test_outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)$avg_ctrls,
+               c(1255.0, 1110.0, 1227.5, 2811.5), tolerance = 0.001)
+  expect_equal(calculate_zscores(test_outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)$P2.1_RobustZscore,
+               c(9.1511750, 46.9804468, 16.8039663, 0.8565111), tolerance = 0.001)
 
-  expect_type(
-    calculate_zscores(
-      test_outlist,
-      "_RobustZscore",
-      control_col_idx,
-      perc,
-      intensity_col_ids,
-      startcol
-    ),
-    "list"
-  )
-
-  expect_identical(
-    colnames(
-      calculate_zscores(
-        test_outlist,
-        "_RobustZscore",
-        control_col_idx,
-        perc,
-        intensity_col_ids,
-        startcol
-      )
-    )[34:47],
-    c(
-      "C101.1_RobustZscore", "C102.1_RobustZscore", "C103.1_RobustZscore", "C104.1_RobustZscore", "C105.1_RobustZscore",
-      "C106.1_RobustZscore", "C107.1_RobustZscore", "C108.1_RobustZscore", "C109.1_RobustZscore", "C110.1_RobustZscore",
-      "C111.1_RobustZscore", "C112.1_RobustZscore", "P2.1_RobustZscore", "P3.1_RobustZscore"
-    )
-  )
-
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_RobustZscore",
-      control_col_idx,
-      perc,
-      intensity_col_ids,
-      startcol
-    )$avg_ctrls,
-    c(1255.0, 1110.0, 1227.5, 2811.5),
-    tolerance = 0.001
-  )
-
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_RobustZscore",
-      control_col_idx,
-      perc,
-      intensity_col_ids,
-      startcol
-    )$P2.1_RobustZscore,
-    c(9.1511750, 46.9804468, 16.8039663, 0.8565111),
-    tolerance = 0.001
-  )
-
-  expect_type(
-    calculate_zscores(
-      test_outlist,
-      "_OutlierRemovedZscore",
-      control_col_idx,
-      outlier_threshold,
-      intensity_col_ids,
-      startcol
-    ),
-    "list"
-  )
-
-  expect_identical(
-    colnames(
-      calculate_zscores(
-        test_outlist,
-        "_OutlierRemovedZscore",
-        control_col_idx,
-        outlier_threshold,
-        intensity_col_ids,
-        startcol
-      )
-    )[34:47],
-    c(
-      "C101.1_OutlierRemovedZscore", "C102.1_OutlierRemovedZscore", "C103.1_OutlierRemovedZscore",
-      "C104.1_OutlierRemovedZscore", "C105.1_OutlierRemovedZscore", "C106.1_OutlierRemovedZscore",
-      "C107.1_OutlierRemovedZscore", "C108.1_OutlierRemovedZscore", "C109.1_OutlierRemovedZscore",
-      "C110.1_OutlierRemovedZscore", "C111.1_OutlierRemovedZscore", "C112.1_OutlierRemovedZscore",
-      "P2.1_OutlierRemovedZscore", "P3.1_OutlierRemovedZscore"
-    )
-  )
-
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_OutlierRemovedZscore",
-      control_col_idx,
-      outlier_threshold,
-      intensity_col_ids,
-      startcol
-    )$avg_ctrls,
-    c(1231.818, 1077.273, 1231.250, 2649.091),
-    tolerance = 0.001
-  )
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_OutlierRemovedZscore",
-      control_col_idx,
-      outlier_threshold,
-      intensity_col_ids,
-      startcol
-    )$nr_ctrls,
-    c(11, 11, 12, 11)
-  )
-  expect_equal(
-    calculate_zscores(
-      test_outlist,
-      "_OutlierRemovedZscore",
-      control_col_idx,
-      outlier_threshold,
-      intensity_col_ids,
-      startcol
-    )$P2.1_OutlierRemovedZscore,
-    c(8.9955723, 44.9136860, 13.6066674, 0.9345077),
-    tolerance = 0.001
-  )
+  expect_type(calculate_zscores(test_outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol), "list")
+  expect_identical(colnames(calculate_zscores(test_outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol))[34:47],
+                   c("C101.1_OutlierRemovedZscore",
+                     "C102.1_OutlierRemovedZscore", "C103.1_OutlierRemovedZscore", "C104.1_OutlierRemovedZscore",
+                     "C105.1_OutlierRemovedZscore", "C106.1_OutlierRemovedZscore", "C107.1_OutlierRemovedZscore",
+                     "C108.1_OutlierRemovedZscore", "C109.1_OutlierRemovedZscore", "C110.1_OutlierRemovedZscore",
+                     "C111.1_OutlierRemovedZscore", "C112.1_OutlierRemovedZscore", "P2.1_OutlierRemovedZscore",
+                     "P3.1_OutlierRemovedZscore")
+                    )
+  expect_equal(calculate_zscores(test_outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol)$avg_ctrls,
+               c(1231.818, 1077.273, 1231.250, 2649.091), tolerance = 0.001)
+  expect_equal(calculate_zscores(test_outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol)$nr_ctrls,
+                   c(11, 11, 12, 11))
+  expect_equal(calculate_zscores(test_outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids, startcol)$P2.1_OutlierRemovedZscore,
+               c(8.9955723, 44.9136860, 13.6066674, 0.9345077), tolerance = 0.001)
 })
 
 testthat::test_that("robust_scaler: Use robust scaler", {

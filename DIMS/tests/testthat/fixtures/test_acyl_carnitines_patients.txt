@@ -1,0 +1,11 @@
+HMDB_name	Sample	Z_score
+metab1                                       	P2025M1	0.31
+metab3                                       	P2025M1	2.34
+metab1                                       	P2025M2	2.45
+metab3                                       	P2025M2	1.45
+metab1                                       	P2025M3	2.14
+metab3                                       	P2025M3	-1.44
+metab1                                       	P2025M4	12.18
+metab3                                       	P2025M4	-0.18
+metab1                                       	P2025M5	3.22
+metab3                                       	P2025M5	-3.18

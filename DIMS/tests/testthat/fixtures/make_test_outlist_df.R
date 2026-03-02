@@ -24,7 +24,7 @@ make_test_outlist_df <- function() {
     HMDB_ID_all = c("HMDB001;HMDB011", "HMDB002", "HMDB003;HMDB013", "HMDB004"),
     sec_HMDB_ID = c("HMDB1;HMDB11", "", "HMDB3;HMDB13", "HMDB4"),
     HMDB_key = c("HMDB001", "HMDB002", "HMDB003", "HMDB004"),
-    sec_HMDB_ID_rlvc = c(c("HMDB1 | HMDB11", "HMDB2", "HMDB3", "HMDB4")),
+    sec_HMDB_ID_rlvnc = c(c("HMDB1 | HMDB11", "HMDB2", "HMDB3", "HMDB4")),
     name = c("metab_1 | metab_11", "metab_2", "metab_3", "metab_4"),
     relevance = c("Endogenous, relevant", "Endogenous, relevant | Exogenous", "Endogenous, relevant", "Endogenous, relevant"),
     descr = c("descr1", "descr2", "descr3", "descr4"),
