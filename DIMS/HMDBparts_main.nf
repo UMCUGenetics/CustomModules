@@ -14,8 +14,8 @@ process HMDBparts_main {
     script:
 
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts_main.R \\
-            --hmdb_db_file $hmdb_db_file \\
-            --breaks_file $breaks_file 
+        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts_main.R \
+                --hmdb_db_file $hmdb_db_file \
+                --breaks_file $breaks_file 
         """
 }

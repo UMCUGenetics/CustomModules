@@ -1,5 +1,5 @@
 # load package
-load("argparse")
+library("argparse")
 
 parser <- ArgumentParser(description = "HMDBparts_main")
 
@@ -10,7 +10,7 @@ parser$add_argument("--breaks_file", dest = "breaks_file",
 
 args <- parser$parse_args()
 
-load(args$db_file)
+load(args$hmdb_db_file)
 load(args$breaks_file)
 
 # Cut up HMDB minus adducts minus isotopes into small parts
