@@ -13,6 +13,10 @@ process HMDBparts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R $hmdb_db_file $breaks_file $params.hmdb_parts_files $params.standard_run $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts.R \
+                --hmdb_db_file $hmdb_db_file \
+                --breaks_file $breaks_file \
+                --standard_run $params.standard_run \
+                --hmdb_parts_path $params.hmdb_parts_files
         """
 }
