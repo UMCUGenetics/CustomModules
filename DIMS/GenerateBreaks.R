@@ -16,8 +16,6 @@ args <- parser$parse_args()
 
 trim <- as.numeric(args$trim_param)
 resol <- as.numeric(args$resolution)
-print(trim)
-print(resol)
 
 # initialize
 trim_left_pos <- NULL
@@ -29,13 +27,11 @@ breaks_fwhm_avg <- NULL
 bins <- NULL
 
 # read in mzML file
-print(args$mzML_filepath)
 raw_data <- suppressMessages(xcms::xcmsRaw(args$mzML_filepath))
 
 # Get time values for positive and negative scans
 pos_times <- raw_data@scantime[raw_data@polarity == "positive"]
 neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
-paint(pos_times)
 
 # trim (remove) scans at the start and end for positive
 trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)]) # 15% at the beginning
@@ -48,7 +44,6 @@ trim_right_neg <- round(neg_times[length(neg_times) * (1 - trim)])
 # Mass range m/z
 low_mz  <- raw_data@mzrange[1]
 high_mz <- raw_data@mzrange[2]
-print(high_mz)
 
 # determine number of segments (bins)
 nr_segments <- 2 * (high_mz - low_mz)
@@ -56,7 +51,6 @@ segment <- seq(from = low_mz, to = high_mz, length.out = nr_segments + 1)
 
 # determine start and end of each bin.
 for (i in 1:nr_segments) {
-	print(i)
   start_segment <- segment[i]
   end_segment <- segment[i+1]
   resol_mz <- resol * (1 / sqrt(2) ^ (log2(start_segment / 200)))
