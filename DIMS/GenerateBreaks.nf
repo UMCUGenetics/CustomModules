@@ -10,13 +10,14 @@ process GenerateBreaks {
 
     output:
        path('breaks.fwhm.RData'), emit: breaks
+       path('trim_params.RData'), emit: trim_params
        path('highest_mz.RData'), emit: highest_mz
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R \\
-            --raw_file $mzML_file \\
-            --trim $params.trim \\
-            --resolution $params.resolution 
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R \
+                --mzML_filepath $mzML_file \
+                --trim_param $params.trim \
+                --resolution $params.resolution 
         """
 }
