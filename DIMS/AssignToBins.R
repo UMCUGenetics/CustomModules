@@ -8,12 +8,15 @@ parser$add_argument("--mzML_filepath", dest = "mzml_filepath",
                     help = "File path for the mzML file", required = TRUE)
 parser$add_argument("--breaks_filepath", dest = "breaks_filepath",
                     help = "File path for the breaks RData file", required = TRUE)
+parser$add_argument("--trim_params_filepath", dest = "trim_params_filepath",
+                    help = "File path for the trim parameters", required = TRUE)
 
 args <- parser$parse_args()
 
-# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
-# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+# load breaks_file: contains breaks_fwhm and breaks_fwhm_avg
 load(args$breaks_filepath)
+# load trim parameters trim_left_neg, trim_left_pos, trim_right_neg and trim_right_pos
+load(args$trim_params_filepath)
 
 # get sample name
 techrep_name <- sub("\\..*$", "", basename(args$mzml_filepath))
