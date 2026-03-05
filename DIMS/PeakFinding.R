@@ -1,53 +1,69 @@
-## adapted from 4-peakFinding.R
+# load packages
+library(dplyr)
+library("argparse")
+
+parser <- ArgumentParser(description = "PeakFinding")
+
+parser$add_argument("--rdata_file", dest = "rdata_file",
+                    help = "RData file containing binned intenstity per technical replicate", required = TRUE)
+parser$add_argument("--samplesheet", dest = "techreps_scanmode",
+                    help = "Samplesheet containing information on technical replicates and biological samples", required = TRUE)
+parser$add_argument("--resolution", dest = "resol",
+                    help = "Value for resolution (typically 140000)", required = TRUE)
+parser$add_argument("--preprocessing_scripts_dir", dest = "preprocessing_scripts_dir",
+                    help = "File path to the directory containing functions used", required = TRUE)
+
+args <- parser$parse_args()
 
 # define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
+resol <- as.numeric(args$resolution)
+# use fixed theshold between noise and signal for peak
+peak_thresh <- 2000 
 
-sample_file <- cmd_args[1]
-breaks_file <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
-scripts_dir <- cmd_args[4]
-thresh <- 2000
-outdir <- "./"
+# source functions script
+source(paste0(args$preprocessing_scripts_dir, "peak_finding_functions.R"))
 
-# load in function scripts
-source(paste0(scripts_dir, "do_peakfinding.R"))
-source(paste0(scripts_dir, "check_overlap.R"))
-source(paste0(scripts_dir, "search_mzrange.R"))
-source(paste0(scripts_dir, "fit_optim.R"))
-source(paste0(scripts_dir, "fit_gaussian.R"))
-source(paste0(scripts_dir, "fit_init.R"))
-source(paste0(scripts_dir, "get_fwhm.R"))
-source(paste0(scripts_dir, "get_stdev.R"))
-source(paste0(scripts_dir, "optimize_gaussfit.R"))
-source(paste0(scripts_dir, "fit_peaks.R"))
-source(paste0(scripts_dir, "fit_gaussians.R"))
-source(paste0(scripts_dir, "estimate_area.R"))
-source(paste0(scripts_dir, "get_fit_quality.R"))
-source(paste0(scripts_dir, "check_overlap.R"))
-source(paste0(scripts_dir, "sum_curves.R"))
-source(paste0(scripts_dir, "within_ppm.R"))
+# Load output of AssignToBins (peak_list) for a technical replicate
+load(args$rdata_file)
+techrepl_name <- colnames(peak_list$pos)[1]
 
-load(breaks_file)
-
-# Load output of AverageTechReplicates for a sample
-sample_avgtechrepl <- get(load(sample_file))
-if (grepl("_pos", sample_file)) {
-  scanmode <- "positive"
-} else if (grepl("_neg", sample_file)) {
-  scanmode <- "negative"
-}
+# load list of technical replicates per sample that passed threshold filter
+techreps_passed <- read.table("replicates_per_sample.txt", sep = ",")
 
 # Initialize
 options(digits = 16)
-# Number used to calculate area under Gaussian curve
-int_factor <- 1 * 10^5 
-# Initial value used to estimate scaling parameter
-scale <- 2
-width <- 1024
-height <- 768
 
-# run the findPeaks function
+# do peak finding
+scanmodes <- c("positive", "negative")
+for (scanmode in scanmodes) {
+  # get intensities for scan mode
+  if (scanmode == "positive") {
+    ints_perscanmode <- peak_list$pos
+  } else if (scanmode == "negative") {
+    ints_perscanmode <- peak_list$neg
+  }
+ 
+  # check whether technical replicate has passed threshold filter for this scanmode
+  techreps_scanmode <- techreps_passed[grep(scanmode, techreps_passed[, 3]), ]
+  # if techrep is ok, it will be found. If not, skip this techrep.
+  if (length(grep(techrepl_name, techreps_scanmode)) == 0) {
+    break
+  }
 
-# do_peakfinding(sample_avgtechrepl, breaks_fwhm, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
-do_peakfinding(sample_avgtechrepl, int_factor, scale, resol, outdir, scanmode, FALSE, thresh, width, height)
+  # put mz and intensities into dataframe
+  ints_fullrange <- as.data.frame(cbind(mz = as.numeric(rownames(ints_perscanmode)), 
+                                        int = as.numeric(ints_perscanmode)))
+
+  # look for m/z range for all peaks
+  regions_of_interest <- search_regions_of_interest(ints_fullrange)
+ 
+  # fit Gaussian curve and calculate integrated area under curve
+  integrated_peak_df <- integrate_peaks(ints_fullrange, regions_of_interest, resol, peak_thresh)
+ 
+  # add sample name to dataframe
+  integrated_peak_df <- as.data.frame(cbind(samplenr = techrepl_name, integrated_peak_df))
+ 
+  # save output to file
+  save(integrated_peak_df, file = paste0(techrepl_name, "_", scanmode, ".RData"))
+  write.table(integrated_peak_df, file = paste0(techrepl_name, "_", scanmode, ".txt"), sep = "\t", row.names = FALSE)
+}
