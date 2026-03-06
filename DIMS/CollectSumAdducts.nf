@@ -13,7 +13,7 @@ process CollectSumAdducts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R \\
-        --preprocessing_scripts_dir $params.preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R \
+                --preprocessing_scripts_dir $params.preprocessing_scripts_dir
         """
 }

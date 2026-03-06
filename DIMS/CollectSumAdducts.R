@@ -1,12 +1,12 @@
-## Combining all AdductSums part files for each scanmode and
-# combine intensities if present in both scanmodes
-library("argparse")
+# load libraries
 suppressMessages(library("dplyr"))
+library("argparse")
 
-parser <- ArgumentParser(description = "GenerateExcel")
+# define parameters
+parser <- ArgumentParser(description = "CollectSumAdducts")
 
 parser$add_argument("--preprocessing_scripts_dir", dest = "preprocessing_scripts_dir",
-                    help = "File path to the directory containing functions used in this script", required = TRUE)
+                    help = "File path to the directory containing functions used", required = TRUE)
 
 args <- parser$parse_args()
 
@@ -18,6 +18,6 @@ save(outlist_tot_pos, file = "AdductSums_positive.RData")
 outlist_tot_neg <- combine_sum_adduct_parts("negative")
 save(outlist_tot_neg, file = "AdductSums_negative.RData")
 
-# combine intensities of both scanmodi
+# combine intensities of both scan modes
 outlist <- combine_scanmodes_intensities(outlist_tot_pos, outlist_tot_neg)
 save(outlist, file = "AdductSums_combined.RData")
