@@ -4,7 +4,7 @@ library("argparse")
 
 parser <- ArgumentParser(description = "AveragePeaks")
 
-parser$add_argument("--sample_id", dest = "sample_name",
+parser$add_argument("--sample_name", dest = "sample_name",
                     help = "Name of a biological sample", required = TRUE)
 parser$add_argument("--tech_reps", dest = "tech_reps",
                     help = "Names of the technical replicates belonging to the biological sample", required = TRUE)
@@ -16,7 +16,6 @@ parser$add_argument("--preprocessing_scripts_dir", dest = "preprocessing_scripts
 args <- parser$parse_args()
 
 # define parameters
-sample_name <- args$sample_id
 tech_reps <- strsplit(args$tech_reps, ";")[[1]]
 
 # load in function scripts
@@ -42,5 +41,5 @@ peaklist_allrepl_df$height.pkt <- as.numeric(peaklist_allrepl_df$height.pkt)
 peaklist_allrepl_sorted <- peaklist_allrepl_df %>% arrange(mzmed.pkt)
 
 # average over technical replicates
-averaged_peaks <- average_peaks_per_sample(peaklist_allrepl_sorted, sample_name)
-save(averaged_peaks, file = paste0("AvgPeaks_", sample_name, "_", args$scanmode, ".RData"))
+averaged_peaks <- average_peaks_per_sample(peaklist_allrepl_sorted, args$sample_name)
+save(averaged_peaks, file = paste0("AvgPeaks_", args$sample_name, "_", args$scanmode, ".RData"))
