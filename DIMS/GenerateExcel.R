@@ -13,7 +13,7 @@ parser$add_argument("--project", dest = "project",
                     help = "Project name", required = TRUE)
 parser$add_argument("--hmdb_rlvc_file", dest = "hmdb_rlvc_file",
                     help = "File path to the HMDB relevance file", required = TRUE)
-parser$add_argument("-z", "--z_score", dest = "z_score", type = "integer",
+parser$add_argument("--z_score", dest = "z_score", type = "integer",
                     help = "Numeric value, z-score = 1", required = TRUE)
 parser$add_argument("--export_scripts_dir", dest = "export_scripts_dir",
                     help = "File path to the directory containing functions used in this script", required = TRUE)
