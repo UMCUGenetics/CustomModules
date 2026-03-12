@@ -1,6 +1,6 @@
 # CollectFilled functions
 
-collapse <- function(column_label, peakgroup_list, index_dup) {
+collapse_information <- function(column_label, peakgroup_list, index_dup) {
   #' Collapse identification info for peak groups with the same mass
   #'
   #' @param column_label: Name of column in peakgroup_list (string)
@@ -37,12 +37,12 @@ merge_duplicate_rows <- function(peakgroup_list) {
     peaklist_index <- which(peakgroup_list[, "mzmed.pgrp"] == peakgroup_list[index_dup[1], "mzmed.pgrp"])
     single_peakgroup <- peakgroup_list[peaklist_index[1], , drop = FALSE]
     
-    # use function collapse to concatenate info
-    single_peakgroup[, "assi_HMDB"] <- collapse("assi_HMDB", peakgroup_list, peaklist_index)
-    single_peakgroup[, "iso_HMDB"] <- collapse("iso_HMDB", peakgroup_list, peaklist_index)
-    single_peakgroup[, "HMDB_code"] <- collapse("HMDB_code", peakgroup_list, peaklist_index)
-    single_peakgroup[, "all_hmdb_ids"] <- collapse("all_hmdb_ids", peakgroup_list, peaklist_index)
-    single_peakgroup[, "sec_hmdb_ids"] <- collapse("sec_hmdb_ids", peakgroup_list, peaklist_index)
+    # use function collapse_information to concatenate info
+    single_peakgroup[, "assi_HMDB"] <- collapse_information("assi_HMDB", peakgroup_list, peaklist_index)
+    single_peakgroup[, "iso_HMDB"] <- collapse_information("iso_HMDB", peakgroup_list, peaklist_index)
+    single_peakgroup[, "HMDB_code"] <- collapse_information("HMDB_code", peakgroup_list, peaklist_index)
+    single_peakgroup[, "all_hmdb_ids"] <- collapse_information("all_hmdb_ids", peakgroup_list, peaklist_index)
+    single_peakgroup[, "sec_hmdb_ids"] <- collapse_information("sec_hmdb_ids", peakgroup_list, peaklist_index)
     if (single_peakgroup[, "sec_hmdb_ids"] == ";") single_peakgroup[, "sec_hmdb_ids"] < NA
     
     # keep track of deduplicated entries
