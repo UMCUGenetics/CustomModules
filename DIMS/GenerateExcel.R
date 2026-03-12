@@ -45,7 +45,7 @@ peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
 outlist_subset <- outlist[peaks_in_list, ]
 outlist_subset$HMDB_key <- rownames(outlist_subset)
 outlist <- outlist_subset %>%
-  left_join(rlvnc %>% rename(sec_HMBD_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
+  left_join(rlvnc %>% rename(sec_HMDB_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
 rownames(outlist) <- outlist$HMDB_key
 
 # filter out all irrelevant HMDBs
@@ -140,7 +140,7 @@ if (z_score == 1) {
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
-      -c(HMDB_key, sec_HMBD_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
+      -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
       -all_of(control_col_idx), -all_of(patient_col_idx)
     ) %>%
     relocate(c(HMDB_code, H_Name, avg_ctrls, sd_ctrls), .after = plots) %>%

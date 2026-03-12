@@ -1,0 +1,16 @@
+HMDB_name	Sample	Z_score	Helix_naam	high_zscore	low_zscore
+metab1	P2025M1	0.31	Metab_1	2	-1.5
+metab1	P2025M2	2.45	Metab_1	2	-1.5
+metab1	P2025M3	2.14	Metab_1	2	-1.5
+metab1	P2025M4	12.18	Metab_1	2	-1.5
+metab1	P2025M5	3.22	Metab_1	2	-1.5
+metab4	P2025M1	0.84	Metab_4	2	-1.5
+metab11	P2025M1	-0.46	Metab_11	2	-1.5
+metab4	P2025M2	-0.15	Metab_4	2	-1.5
+metab11	P2025M2	-1.51	Metab_11	2	-1.5
+metab4	P2025M3	-0.78	Metab_4	2	-1.5
+metab11	P2025M3	1.68	Metab_11	2	-1.5
+metab4	P2025M4	0.84	Metab_4	2	-1.5
+metab11	P2025M4	1.48	Metab_11	2	-1.5
+metab4	P2025M5	0.47	Metab_4	2	-1.5
+metab11	P2025M5	1.18	Metab_11	2	-1.5

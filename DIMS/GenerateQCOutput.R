@@ -12,9 +12,8 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 init_file <- cmd_args[1]
 project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
-z_score <- cmd_args[4]
-sst_components_file <- cmd_args[5]
-export_scripts_dir <- cmd_args[6]
+sst_components_file <- cmd_args[4]
+export_scripts_dir <- cmd_args[5]
 
 outdir <- "./"
 
@@ -38,11 +37,9 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-if (z_score == 1) {
-  file_name <- "Check_number_of_controls.txt"
-  min_num_controls <- 25
-  check_number_of_controls(outlist, min_num_controls, file_name)
-}
+file_name <- "Check_number_of_controls.txt"
+min_num_controls <- 25
+check_number_of_controls(outlist, min_num_controls, file_name)
 
 #### INTERNAL STANDARDS ####
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
@@ -216,7 +213,7 @@ if (nrow(is_below_threshold) > 0) {
 	      row.names = FALSE, sep = "\t")
 } else { 
   write.table("no internal standards are below threshold",
-	      file = "internal_standards_below_threshold.txt"
+	      file = "internal_standards_below_threshold.txt",
 	      row.names = FALSE, col.names = FALSE
 	      )
 }
@@ -276,7 +273,7 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (z_score == 1) {
+if (positive_controls_index > 0) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
@@ -351,31 +348,38 @@ is_list_intensities <- get_is_intensities(is_list, int_cols = intensity_col_ids)
 is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
 is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
-# SST components.
-sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
-sst_list <- outlist %>% filter(HMDB_code %in% sst_comp$HMDB_ID)
-sst_colnrs <- grep("P1001", colnames(sst_list))
+# SST components
+sst_components <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_metabolites_df <- outlist %>% filter(HMDB_code %in% sst_components$HMDB_ID)
+sst_sample_column_index <- grep("P1001", colnames(sst_metabolites_df))
 
-if (length(sst_colnrs) > 0) {
-  sst_list_intensities <- sst_list[, sst_colnrs]
-  control_col_ids <- grep(control_label, colnames(sst_list), fixed = TRUE)
-  control_list_intensities <- sst_list[, control_col_ids]
-  control_list_cv <- calc_coefficient_of_variation(control_list_intensities)
-  sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[, "CV_perc"])
-  sst_list_intensities <- as.data.frame(sst_list_intensities)
+# Check if SST mix sample(s) are present
+if (length(sst_sample_column_index) > 0) {
+  # Get the SST intensities of the controls, calculate the coefficient of variation
+  # and add to SST mix intensities
+  sst_sample_intensities_df <- sst_metabolites_df[, sst_sample_column_index]
+  control_col_ids <- grep(control_label, colnames(sst_metabolites_df), fixed = TRUE)
+  control_sst_intensities_df <- sst_metabolites_df[, control_col_ids]
+  control_sst_metabolites_cv <- calc_coefficient_of_variation(control_sst_intensities_df)
+  sst_intensities_df <- cbind(sst_sample_intensities_df, CV_controls = control_sst_metabolites_cv[, "CV_perc"])
 } else {
-  sst_list_intensities <- sst_list[, intensity_col_ids]
+  # Use intensities when there is not SST mix sample added
+  sst_intensities_df <- sst_metabolites_df[, intensity_col_ids]
 }
-for (col_nr in seq_len(ncol(sst_list_intensities))) {
-  sst_list_intensities <- as.data.frame(sst_list_intensities)
-  sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
-  if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
-    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
+
+sst_intensities_df <- as.data.frame(sst_intensities_df)
+for (col_nr in seq_len(ncol(sst_intensities_df))) {
+  # Change column type to numeric
+  sst_intensities_df[, col_nr] <- as.numeric(sst_intensities_df[, col_nr])
+  if (grepl("Zscore", colnames(sst_intensities_df)[col_nr])) {
+    # Round numeric value of Z-score columns to 2 decimal places
+    sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr], 2)
   } else {
-    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr])
+    # Round numeric value of intensity columns to an intiger
+    sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr])
   }
 }
-sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_intensities)
+sst_intensities_df <- cbind(SST_comp_name = sst_metabolites_df$HMDB_name, sst_intensities_df)
 
 # Create Excel file
 wb <- createWorkbook("IS_SST")
@@ -389,7 +393,7 @@ addWorksheet(wb, "IS neg")
 openxlsx::writeData(wb, sheet = 3, is_neg_intensities)
 setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
-openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
+openxlsx::writeData(wb, sheet = 4, sst_intensities_df)
 setColWidths(wb, 4, cols = 1:3, widths = 24)
 xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
