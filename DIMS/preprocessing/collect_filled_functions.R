@@ -24,14 +24,14 @@ merge_duplicate_rows <- function(peakgroup_list) {
   #' @param peakgroup_list: Peak group list (matrix)
   #'
   #' @return peakgroup_list_dedup: de-duplicated peak group list (matrix)
-  
+
   options(digits = 16)
   collect <- NULL
   remove <- NULL
-  
+
   # check for peak groups with identical mass
   index_dup <- which(duplicated(peakgroup_list[, "mzmed.pgrp"]))
-  
+
   while (length(index_dup) > 0) {
     # get the index for the peak group which is double
     peaklist_index <- which(peakgroup_list[, "mzmed.pgrp"] == peakgroup_list[index_dup[1], "mzmed.pgrp"])
@@ -73,7 +73,6 @@ calculate_zscores_peakgrouplist <- function(peakgroup_list) {
   control_label <- "C"
   # get index for new column names
   startcol <- ncol(peakgroup_list) + 3
-  
   # calculate mean and standard deviation for Control group
   ctrl_cols <- grep(control_label, colnames(peakgroup_list), fixed = TRUE)
   case_cols <- grep(case_label, colnames(peakgroup_list), fixed = TRUE)
@@ -83,14 +82,14 @@ calculate_zscores_peakgrouplist <- function(peakgroup_list) {
   ctrl_ints <- peakgroup_list[, ctrl_cols, drop = FALSE]
   peakgroup_list$avg.ctrls <- apply(ctrl_ints, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
   peakgroup_list$sd.ctrls <- apply(ctrl_ints, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
-  
+
   # set new column names and calculate Z-scores
   colnames_zscores <- NULL
   for (col_index in int_cols) {
     col_name <- colnames(peakgroup_list)[col_index]
     colnames_zscores <- c(colnames_zscores, paste0(col_name, "_Zscore"))
     zscores_1col <- (as.numeric(as.vector(unlist(peakgroup_list[, col_index]))) -
-                       peakgroup_list$avg.ctrls) / peakgroup_list$sd.ctrls
+                     peakgroup_list$avg.ctrls) / peakgroup_list$sd.ctrls
     peakgroup_list <- cbind(peakgroup_list, zscores_1col)
   }
   
@@ -116,6 +115,7 @@ calculate_ppm_deviation <- function(peakgroup_list) {
     observed_mz <- peakgroup_list$mzmed.pgrp[row_index]
     theor_mz <- peakgroup_list$theormz_HMDB[row_index]
     peakgroup_list$ppmdev[row_index] <- 10^6 * (observed_mz - theor_mz) / theor_mz
+    peakgroup_list <- cbind(peakgroup_list, zscores_1col)
   }
 
   return(peakgroup_list)
