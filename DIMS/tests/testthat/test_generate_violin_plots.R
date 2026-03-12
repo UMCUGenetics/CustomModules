@@ -633,15 +633,22 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
   )
 })
 
-testthat::test_that("get_colnames_samples: Get all column names containing a specific prefix", {
-  test_colnames <- c(
-    "HMDB_name", "HMDB_code", "P1001", "P1001_Zscore", "P1002",
-    "P1003", "P1004", "C101_Zscore", "C102", "C103"
-  )
+testthat::test_that("get_colnames_by_prefix: Get all column names containing a specific prefix", {
   test_intensities_zscore_df <- read.delim(test_path("fixtures/", "test_intensities_zscore_df.txt"))
 
-  expect_equal(get_colnames_samples(test_intensities_zscore_df, "P"), c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5"))
-  expect_equal(get_colnames_samples(test_intensities_zscore_df, "C"), c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1"))
+  expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "P"),
+               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5",
+                 "P2025M1_Zscore", "P2025M2_Zscore", "P2025M3_Zscore", "P2025M4_Zscore", "P2025M5_Zscore"))
+  expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "C"),
+               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
+                 "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore", "C104.1_Zscore", "C105.1_Zscore"))
+})
+
+testthat::test_that("remove_suffix_from_items: Remove the suffix from a vector of names", {
+  test_colnames <- c("P1001", "P1001_Zscore", "P1002", "P1003", "P1004", "C101_Zscore", "C102", "C103")
+
+  expect_equal(remove_suffix_from_items(test_colnames, "_Zscore"),
+               c("P1001", "P1002", "P1003", "P1004", "C101", "C102", "C103"))
 })
 
 testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios to the dataframe", {

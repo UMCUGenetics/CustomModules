@@ -20,15 +20,25 @@ prepare_intensities_zscore_df <- function(intensities_zscore_df) {
 }
 
 #' Get all column names containing a specific prefix.
-#' Find all column names containing a specific prefix, e.g. "P", and remove the _Zscore suffix from the names
 #'
 #' @param dataframe: dataframe containing multiple columns with Z-scores
 #' @param sample_label: a string of a prefix to be searched in the column names, e.g. "P" or "C".
 #'
 #' @returns sample_colnames: a vector of column names all containing the prefix.
-get_colnames_samples <- function(dataframe, sample_label) {
-  sample_colnames <- unique(gsub("_Zscore", "", grep(paste0("^", sample_label), colnames(dataframe), value = TRUE)))
+get_colnames_by_prefix <- function(dataframe, prefix) {
+  sample_colnames <- grep(paste0("^", prefix), colnames(dataframe), value = TRUE)
   return(sample_colnames)
+}
+
+#' Remove the suffix from a vector of names
+#'
+#' @param vector_names: vector containing names with or without a suffix
+#' @param suffix: string containing the suffix to be removed
+#'
+#' @returns names_no_suffix: a vector of unique names without the suffix
+remove_suffix_from_items <- function(vector_names, suffix) {
+  names_no_suffix <- unique(gsub("_Zscore", "", vector_names))
+  return(names_no_suffix)
 }
 
 #' Add Zscores for multiple ratios to the dataframe
@@ -127,7 +137,7 @@ make_and_save_violin_plot_pdfs <- function(
     explanation_violin_plot,
     number_of_metabolites) {
   # Get all patient IDs
-  patient_col_names <- get_colnames_samples(zscore_patients_df, "P")
+  patient_col_names <- remove_suffix_from_items(get_colnames_by_prefix(zscore_patients_df, 'P'), "_Zscore")
   # get all files from metabolite_groups directory
   metabolite_dirs <- list.files(path = path_metabolite_groups, full.names = FALSE, recursive = FALSE)
   for (metabolite_dir in metabolite_dirs) {
