@@ -137,7 +137,7 @@ make_and_save_violin_plot_pdfs <- function(
     explanation_violin_plot,
     number_of_metabolites) {
   # Get all patient IDs
-  patient_col_names <- remove_suffix_from_items(get_colnames_by_prefix(zscore_patients_df, 'P'), "_Zscore")
+  patient_col_names <- remove_suffix_from_items(get_colnames_by_prefix(zscore_patients_df, "P"), "_Zscore")
   # get all files from metabolite_groups directory
   metabolite_dirs <- list.files(path = path_metabolite_groups, full.names = FALSE, recursive = FALSE)
   for (metabolite_dir in metabolite_dirs) {
@@ -199,10 +199,7 @@ get_list_dataframes_from_dir <- function(dir_with_subdirs) {
   # get a list of all metabolite files
   txt_files_paths <- list.files(dir_with_subdirs, pattern = "*.txt", recursive = FALSE, full.names = TRUE)
   # put all metabolites into one list
-  list_of_dataframes <- lapply(txt_files_paths,
-    read.table,
-    sep = "\t", header = TRUE, quote = ""
-  )
+  list_of_dataframes <- lapply(txt_files_paths, read.table, sep = "\t", header = TRUE, quote = "")
   names(list_of_dataframes) <- gsub(".txt", "", basename(txt_files_paths))
 
   return(list_of_dataframes)
