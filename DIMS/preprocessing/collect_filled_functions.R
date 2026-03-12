@@ -106,20 +106,18 @@ calculate_ppm_deviation <- function(peakgroup_list) {
   #' @param peakgroup_list: Peak group list (matrix)
   #'
   #' @return peakgroup_list_ppm: peak group list with ppm column (matrix)
-  
-  # calculate ppm deviation
+ 
+  # make sure values in columns mzmed.pgrp and theormz_HMDB are numeric
+  peakgroup_list$mzmed.pgrp <- as.numeric(peakgroup_list$mzmed.pgrp)
+  peakgroup_list$theormz_HMDB <- as.numeric(peakgroup_list$theormz_HMDB)
+ 
+  # calculate ppm deviation 
   for (row_index in seq_len(nrow(peakgroup_list))) {
-    if (!is.na(peakgroup_list$theormz_HMDB[row_index]) &&
-        !is.null(peakgroup_list$theormz_HMDB[row_index]) &&
-        (peakgroup_list$theormz_HMDB[row_index] != "")) {
-      peakgroup_list$ppmdev[row_index] <- 10^6 * (as.numeric(as.vector(peakgroup_list$mzmed.pgrp[row_index])) -
-                                                  as.numeric(as.vector(peakgroup_list$theormz_HMDB[row_index]))) /
-                                                  as.numeric(as.vector(peakgroup_list$theormz_HMDB[row_index]))
-    } else {
-      peakgroup_list$ppmdev[row_index] <- NA
-    }
+    observed_mz <- peakgroup_list$mzmed.pgrp[row_index]
+    theor_mz <- peakgroup_list$theormz_HMDB[row_index]
+    peakgroup_list$ppmdev[row_index] <- 10^6 * (observed_mz - theor_mz) / theor_mz
   }
-  
+
   return(peakgroup_list)
 }
 
