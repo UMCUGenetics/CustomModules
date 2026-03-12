@@ -38,6 +38,6 @@ for (scanmode in scanmodes) {
   remove_columns <- c("mzmin.pgrp", "mzmax.pgrp")
   outlist_ident <- outlist_ident[, -which(colnames(outlist_ident) %in% remove_columns)]
   write.table(outlist_ident, file = paste0("outlist_identified_", scanmode, ".txt"), sep = "\t", row.names = FALSE)
-  # generate output in RData format
+  # export output in RData format
   save(outlist_ident, file = paste0("outlist_identified_", scanmode, ".RData"))
 }
