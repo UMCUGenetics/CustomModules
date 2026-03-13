@@ -27,37 +27,17 @@ for (scanmode in scanmodes) {
   repl_pattern <- get(load(pattern_file))
   # calculate Z-scores
   if (z_score == 1) {
-    outlist_stats <- calculate_zscores(outlist_total)
-    nr_removed_samples <- length(which(repl_pattern[] == "character(0)"))
-    order_index_int <- order(colnames(outlist_stats)[8:(length(repl_pattern) - nr_removed_samples + 7)])
-    outlist_stats_more <- cbind(
-      outlist_stats[, 1:7],
-      outlist_stats[, (length(repl_pattern) - nr_removed_samples + 8):(length(repl_pattern) - nr_removed_samples + 8 + 6)],
-      outlist_stats[, 8:(length(repl_pattern) - nr_removed_samples + 7)][order_index_int],
-      outlist_stats[, (length(repl_pattern) - nr_removed_samples + 5 + 10):ncol(outlist_stats)]
-    )
-    # sort Z-score columns and append to peak group list
-    tmp_index <- grep("_Zscore", colnames(outlist_stats_more), fixed = TRUE)
-    tmp_index_order <- order(colnames(outlist_stats_more[, tmp_index]))
-    tmp <- outlist_stats_more[, tmp_index[tmp_index_order]]
-    outlist_stats_more <- outlist_stats_more[, -tmp_index]
-    outlist_stats_more <- cbind(outlist_stats_more, tmp)
-    outlist_total <- outlist_stats_more
+    outlist_stats <- calculate_zscores_peakgrouplist(outlist_total)
   }
+  # calculate ppm deviation
+  outlist_withppm <- calculate_ppm_deviation(outlist_stats)
+  #  put columns in correct order
+  outlist_ident <- order_columns_peakgrouplist(outlist_withppm)
 
-  # make a copy of the outlist
-  outlist_ident <- outlist_total
-  # select identified peak groups if ppm deviation is within limits
-  if (z_score == 1) {
-    outlist_ident$ppmdev <- as.numeric(outlist_ident$ppmdev)
-    outlist_ident <- outlist_ident[which(outlist_ident["ppmdev"] >= -ppm & outlist_ident["ppmdev"] <= ppm), ]
-  }
-
-  # Extra output in Excel-readable format:
-  remove_columns <- c("fq.best", "fq.worst", "mzmin.pgrp", "mzmax.pgrp")
-  remove_colindex <- which(colnames(outlist_ident) %in% remove_columns)
-  outlist_ident <- outlist_ident[, -remove_colindex]
+  # generate output in Excel-readable format:
+  remove_columns <- c("mzmin.pgrp", "mzmax.pgrp")
+  outlist_ident <- outlist_ident[, -which(colnames(outlist_ident) %in% remove_columns)]
   write.table(outlist_ident, file = paste0("outlist_identified_", scanmode, ".txt"), sep = "\t", row.names = FALSE)
-  # output in RData format
+  # export output in RData format
   save(outlist_ident, file = paste0("outlist_identified_", scanmode, ".RData"))
 }
