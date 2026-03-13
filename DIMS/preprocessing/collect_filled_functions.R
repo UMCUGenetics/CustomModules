@@ -115,7 +115,6 @@ calculate_ppm_deviation <- function(peakgroup_list) {
     observed_mz <- peakgroup_list$mzmed.pgrp[row_index]
     theor_mz <- peakgroup_list$theormz_HMDB[row_index]
     peakgroup_list$ppmdev[row_index] <- 10^6 * (observed_mz - theor_mz) / theor_mz
-    peakgroup_list <- cbind(peakgroup_list, zscores_1col)
   }
 
   return(peakgroup_list)
