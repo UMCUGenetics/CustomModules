@@ -1,5 +1,5 @@
 # unit tests for CollectFilled
-# functions: collapse, merge_duplicate_rows, calculate_zscores_peakgrouplist,
+# functions: collapse_information, merge_duplicate_rows, calculate_zscores_peakgrouplist,
 #            calculate_ppm_deviation, order_columns_peakgrouplist
 source("../../preprocessing/collect_filled_functions.R")
 
@@ -7,7 +7,7 @@ testthat::test_that("Values for duplicate rows are correctly collapsed", {
   test_matrix <- matrix(letters[1:8], nrow = 2, ncol = 4)
   colnames(test_matrix) <- paste0("column", 1:4)
 
-  expect_equal(collapse("column1", test_matrix, c(1,2)), "a;b", TRUE)
+  expect_equal(collapse_information("column1", test_matrix, c(1,2)), "a;b", TRUE)
 })
 
 testthat::test_that("Duplicate rows in a peak group list are correctly merged", {
