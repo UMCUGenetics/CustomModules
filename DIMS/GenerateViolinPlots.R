@@ -48,8 +48,8 @@ number_of_metabolites <- list(
   lowest = 10
 )
 
-control_ids <- get_colnames_samples(intensities_zscore_df, "C")
-patient_ids <- get_colnames_samples(intensities_zscore_df, "P")
+control_ids <- get_colnames_by_prefix(intensities_zscore_df, "C")
+patient_ids <- get_colnames_by_prefix(intensities_zscore_df, "P")
 all_sample_ids <- c(control_ids, patient_ids)
 number_of_samples <- list(
   controls = length(control_ids),
@@ -58,7 +58,7 @@ number_of_samples <- list(
 
 # Add Z-scores for ratios to intensities_zscore_df dataframe
 intensities_zscore_ratios_df <- add_zscores_ratios_to_df(intensities_zscore_df, metabolites_ratios_df, all_sample_ids)
-# for debugging:
+# Save ratios to file:
 save(intensities_zscore_ratios_df, file = "./outlist_with_ratios.RData")
 
 # Select only the cols with zscores of the patients
