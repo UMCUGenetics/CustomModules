@@ -22,7 +22,7 @@ prepare_intensities_zscore_df <- function(intensities_zscore_df) {
 #' Get all column names containing a specific prefix.
 #'
 #' @param dataframe: dataframe containing multiple columns with Z-scores
-#' @param sample_label: a string of a prefix to be searched in the column names, e.g. "P" or "C".
+#' @param prefix: a string of a prefix to be searched in the column names, e.g. "P" or "C".
 #'
 #' @returns sample_colnames: a vector of column names all containing the prefix.
 get_colnames_by_prefix <- function(dataframe, prefix) {
@@ -760,6 +760,7 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
 #'
 #' @param expected_biomarkers_df: dataframe with information for HMDB codes about IEMs (dataframe)
 #' @param zscore_patients: dataframe containing Z-scores for patient (dataframe)
+#' @param sample_cols: vector containing column names with intensities and Z-scores for patients (vector)
 #'
 #' @returns probability_score: a dataframe with probability scores for IEMs for each patient (dataframe)
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
@@ -776,6 +777,12 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
     x = expected_biomarkers_df, y = zscore_patients_df,
     by.x = c("HMDB_code"), by.y = c("HMDB_code")
   )
+
+  # Reduce sample_cols to contain only the patient names
+  if (sum(grepl("Zscore", sample_cols)) > 0) {
+    sample_cols <- sample_cols[-grep("Zscore", sample_cols)]
+  }
+  print(sample_cols)
 
   # Change Z-score to zero for specific cases
   zscore_expected_df <- zscore_expected_df %>% mutate(across(
@@ -888,6 +895,11 @@ make_and_save_diem_plots <- function(
     explanation_violin_plot) {
   diem_plot_dir <- paste("./dIEM_plots", sep = "/")
   dir.create(diem_plot_dir)
+
+  # reduce patient_col_names to contain only the patient names
+  if (sum(grepl("Zscore", patient_col_names)) > 0) {
+    patient_col_names <- patient_col_names[-grep("Zscore", patient_col_names)]
+  }
 
   patient_no_iem <- c()
 
