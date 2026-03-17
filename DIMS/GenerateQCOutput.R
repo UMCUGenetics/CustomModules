@@ -208,7 +208,7 @@ if (dims_matrix == "Plasma") {
 }
 
 if (nrow(is_below_threshold) > 0) {
-  write.table(is_below_threshold), 
+  write.table(is_below_threshold, 
 	      file = "internal_standards_below_threshold.txt", 
 	      row.names = FALSE, sep = "\t")
 } else { 
@@ -221,28 +221,28 @@ if (nrow(is_below_threshold) > 0) {
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
   save_internal_standard_plot(
-    is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir,
+    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)", outdir,
     "IS_bar_select_neg", plot_width, plot_height, hline_data_neg
   )
   save_internal_standard_plot(
-    is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir,
+    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)", outdir,
     "IS_bar_select_pos", plot_width, plot_height, hline_data_pos
   )
   save_internal_standard_plot(
-    is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir,
+    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)", outdir,
     "IS_bar_select_sum", plot_width, plot_height, hline_data_sum
   )
 } else {
   save_internal_standard_plot(
-    is_neg_selection, "barplot", "Interne Standaard (Neg)", outdir,
+    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)", outdir,
     "IS_bar_select_neg", plot_width, plot_height
   )
   save_internal_standard_plot(
-    is_pos_selection, "barplot", "Interne Standaard (Pos)", outdir,
+    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)", outdir,
     "IS_bar_select_pos", plot_width, plot_height
   )
   save_internal_standard_plot(
-    is_sum_selection, "barplot", "Interne Standaard (Sum)", outdir,
+    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)", outdir,
     "IS_bar_select_sum", plot_width, plot_height
   )
 }
@@ -252,15 +252,15 @@ plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.0
 
 save_internal_standard_plot(
-  is_neg_selection, "lineplot", "Interne Standaard (Neg)", outdir,
+  is_neg_selection_subset, "lineplot", "Interne Standaard (Neg)", outdir,
   "IS_line_select_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_pos_selection, "lineplot", "Interne Standaard (Pos)", outdir,
+  is_pos_selection_subset, "lineplot", "Interne Standaard (Pos)", outdir,
   "IS_line_select_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_sum_selection, "lineplot", "Interne Standaard (Sum)", outdir,
+  is_sum_selection_subset, "lineplot", "Interne Standaard (Sum)", outdir,
   "IS_line_select_sum", plot_width, plot_height
 )
 
@@ -400,11 +400,11 @@ openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
 # generate text file for workflow completed mail for components with Z-score < 2
-if (sum(grepl("P1001", colnames(sst_list_intensities))) > 0) {
-  zscore_column <- grep("_Zscore", colnames(sst_list_intensities))[1]
-  sst_list_intensities_qc <- sst_list_intensities[sst_list_intensities[, zscore_column] < 2, ]
-  sst_list_intensities_qc <- select(sst_list_intensities_qc, -c("CV_controls"))
-  write.table(sst_list_intensities_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
+if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
+  zscore_column <- grep("_Zscore", colnames(sst_intensities_df))[1]
+  sst_intensities_df_qc <- sst_intensities_df[sst_intensities_df[, zscore_column] < 2, ]
+  sst_intensities_df_qc <- select(sst_intensities_df_qc, -c("CV_controls"))
+  write.table(sst_intensities_df_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
 } else {
   write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
 }
