@@ -289,22 +289,23 @@ if (sum(positive_controls_index) > 0) {
     # make positive control excel with specific HMDB_codes in combination with specific control samples
     positive_control <- NULL
     for (pos_ctrl in positive_control_list) {
+      pos_ctrl_samplename <- gsub("_Zscore", "", pos_ctrl)
       if (any(grepl("^P1002", pos_ctrl))) {
-        pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
+        pa_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
         pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
         pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
         pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
         positive_control <- rbind(positive_control, pa_data)
       }
       if (any(grepl("^P1003", pos_ctrl))) {
-        pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
+        pku_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
         pku_codes <- c("HMDB0000159")
         pku_names <- c("L-Phenylalanine")
         pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
         positive_control <- rbind(positive_control, pku_data)
       }
       if (any(grepl("^P1005", pos_ctrl))) {
-        lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
+        lpi_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
         lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
         lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
         lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
