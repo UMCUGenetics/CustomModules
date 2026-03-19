@@ -273,16 +273,16 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (positive_controls_index > 0) {
+if (sum(positive_controls_index) > 0) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
                  function(x) any(grepl(x, positive_control_list))))) {
-    cat("All three positive controls are present")
+    pos_contr_warning <- "All three positive controls are present"
   } else {
     pos_contr_warning <- paste(
       "positive controls list is not complete. Only",
-      paste(positive_control_list, collapse = ", "), "is/are present"
+      paste(positive_control_list, collapse = ", "), " present"
     )
   }
   if (length(positive_control_list) > 0) {
@@ -326,13 +326,14 @@ if (positive_controls_index > 0) {
       file = paste0(outdir, "/", project, "_positive_control.xlsx"),
       sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
     )
+  } 
+  if (length(pos_contr_warning) == 0) {
+    pos_contr_warning <- "No positive controls found"
   }
-  if (length(pos_contr_warning) != 0) {
-    write.table(pos_contr_warning,
-      file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
-      row.names = FALSE, col.names = FALSE, quote = FALSE
-    )
-  }
+  write.table(pos_contr_warning,
+    file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
+    row.names = FALSE, col.names = FALSE, quote = FALSE
+  )
 }
 
 ### SST components output ####
