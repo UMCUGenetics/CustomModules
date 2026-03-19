@@ -406,6 +406,10 @@ if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
   sst_intensities_df_qc <- sst_intensities_df[sst_intensities_df[, zscore_column] < 2, ]
   sst_intensities_df_qc <- select(sst_intensities_df_qc, -c("CV_controls"))
   write.table(sst_intensities_df_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
+  # in case of an empty table, the column header doesn't need to appear in the mail
+  if (nrow(sst_intensities_df_qc) == 0) {
+    write.table("none", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
+  }
 } else {
   write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
 }
