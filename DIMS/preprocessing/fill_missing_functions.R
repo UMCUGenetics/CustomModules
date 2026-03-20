@@ -1,14 +1,15 @@
-fill_missing_intensities <- function(peakgroup_list, repl_pattern, thresh, not_random = FALSE) {
+fill_missing_intensities <- function(peakgroup_list, repl_pattern, thresh, disable_randomness = FALSE) {
   #' Replace intensities that are zero with random value
   #'
   #' @param peakgroup_list: Peak groups (matrix)
   #' @param repl_pattern: Replication pattern (list of strings)
   #' @param thresh: Value for threshold between noise and signal (integer)
+  #' @param thresh: Variable which indicates whether randomness should be disabled (boolean)
   #'
   #' @return final_outlist: peak groups with filled-in intensities (matrix)
 
   # for unit test, turn off randomness
-  if (not_random) {
+  if (disable_randomness) {
     set.seed(123)
   }
 
