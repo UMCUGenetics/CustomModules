@@ -12,9 +12,8 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 init_file <- cmd_args[1]
 project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
-z_score <- cmd_args[4]
-sst_components_file <- cmd_args[5]
-export_scripts_dir <- cmd_args[6]
+sst_components_file <- cmd_args[4]
+export_scripts_dir <- cmd_args[5]
 
 outdir <- "./"
 
@@ -38,24 +37,24 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-if (z_score == 1) {
-  file_name <- "Check_number_of_controls.txt"
-  min_num_controls <- 25
-  check_number_of_controls(outlist, min_num_controls, file_name)
-}
+file_name <- "Check_number_of_controls.txt"
+min_num_controls <- 25
+check_number_of_controls(outlist, min_num_controls, file_name)
 
 #### INTERNAL STANDARDS ####
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
 is_codes <- rownames(is_list)
 
-# check if there is data present for all the samples that the pipeline started with,
-# if not write sample name to a log file.
+# check if there is data present for all the samples that the pipeline started with
 sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
+if (length(sample_names_nodata) == 0) {
+  sample_names_nodata <- "none"
+}
+write.table(sample_names_nodata,
+  file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
+  row.names = FALSE, col.names = FALSE, quote = FALSE
+)
 if (!is.null(sample_names_nodata)) {
-  write.table(sample_names_nodata,
-    file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
-    row.names = FALSE, col.names = FALSE, quote = FALSE
-  )
   for (sample_name in sample_names_nodata) {
     repl_pattern[[sample_name]] <- NULL
   }
@@ -137,39 +136,47 @@ is_sum_selection <- c(
   "13C6-Tyrosine (IS)"
 )
 
+# define threshold for acceptance of selected internal standards
+threshold_is_dbs_neg <- c(15000, 200000, 130000, 18000, 50000)
+threshold_is_dbs_pos <- c(150000, 3300000, 1750000, 150000, 270000)
+threshold_is_dbs_sum <- c(1300000, 2500000, 500000, 1800000, 1400000)
+threshold_is_pl_neg  <- c(70000, 700000, 700000, 65000, 350000)
+threshold_is_pl_pos  <- c(1500000, 9000000, 3000000, 400000, 700000)
+threshold_is_pl_sum  <- c(8000000, 12500000, 2500000, 3000000, 4000000)
+
 # add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      int_line = c(15000, 200000, 130000, 18000, 50000),
+      int_line = threshold_is_dbs_neg,
       HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      int_line = c(150000, 3300000, 1750000, 150000, 270000),
+      int_line = threshold_is_dbs_pos,
       HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      int_line = c(1300000, 2500000, 500000, 1800000, 1400000),
+      int_line = threshold_is_dbs_sum,
       HMDB_name = is_sum_selection
     )
 } else if (dims_matrix == "Plasma") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
     data.frame(
-      int_line = c(70000, 700000, 700000, 65000, 350000),
+      int_line = threshold_is_pl_neg,
       HMDB_name = is_neg_selection
     )
   hline_data_pos <-
     data.frame(
-      int_line = c(1500000, 9000000, 3000000, 400000, 700000),
+      int_line = threshold_is_pl_pos,
       HMDB_name = is_pos_selection
     )
   hline_data_sum <-
     data.frame(
-      int_line = c(8000000, 12500000, 2500000, 3000000, 4000000),
+      int_line = threshold_is_pl_sum,
       HMDB_name = is_sum_selection
     )
 } else {
@@ -180,9 +187,36 @@ if (dims_matrix == "DBS") {
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
-is_neg_selection <- subset(is_neg, HMDB_name %in% is_neg_selection)
-is_pos_selection <- subset(is_pos, HMDB_name %in% is_pos_selection)
-is_sum_selection <- subset(is_summed, HMDB_name %in% is_sum_selection)
+is_neg_selection_subset <- subset(is_neg, HMDB_name %in% is_neg_selection)
+is_pos_selection_subset <- subset(is_pos, HMDB_name %in% is_pos_selection)
+is_sum_selection_subset <- subset(is_summed, HMDB_name %in% is_sum_selection)
+
+# export txt file with samples with internal standard level below threshold
+if (dims_matrix == "Plasma") {
+  is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_pl_neg, is_neg_selection, "neg")
+  is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_pl_pos, is_pos_selection, "pos")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_pl_sum, is_sum_selection, "sum")
+  is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
+} else if (dims_matrix == "DBS") {
+  is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_dbs_neg, is_neg_selection, "neg")
+  is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_dbs_pos, is_pos_selection, "pos")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_neg_selection, "sum")
+  is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
+} else {
+  # generate empty table
+  is_below_threshold <- is_neg_selection_subset[0, ]
+}
+
+if (nrow(is_below_threshold) > 0) {
+  write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
+	      file = "internal_standards_below_threshold.txt", 
+	      row.names = FALSE, sep = "\t")
+} else { 
+  write.table("no internal standards are below threshold",
+	      file = "internal_standards_below_threshold.txt",
+	      row.names = FALSE, col.names = FALSE
+	      )
+}
 
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
@@ -239,7 +273,7 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (z_score == 1) {
+if (positive_controls_index > 0) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
@@ -314,29 +348,38 @@ is_list_intensities <- get_is_intensities(is_list, int_cols = intensity_col_ids)
 is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
 is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
-# SST components.
-sst_comp <- read.csv(sst_components_file, header = TRUE, sep = "\t")
-sst_list <- outlist %>% filter(HMDB_code %in% sst_comp$HMDB_ID)
-sst_colnrs <- grep("P1001", colnames(sst_list))
+# SST components
+sst_components <- read.csv(sst_components_file, header = TRUE, sep = "\t")
+sst_metabolites_df <- outlist %>% filter(HMDB_code %in% sst_components$HMDB_ID)
+sst_sample_column_index <- grep("P1001", colnames(sst_metabolites_df))
 
-if (length(sst_colnrs) > 0) {
-  sst_list_intensities <- sst_list[, sst_colnrs]
-  control_col_ids <- grep(control_label, colnames(sst_list), fixed = TRUE)
-  control_list_intensities <- sst_list[, control_col_ids]
-  control_list_cv <- calc_coefficient_of_variation(control_list_intensities)
-  sst_list_intensities <- cbind(sst_list_intensities, CV_controls = control_list_cv[, "CV_perc"])
+# Check if SST mix sample(s) are present
+if (length(sst_sample_column_index) > 0) {
+  # Get the SST intensities of the controls, calculate the coefficient of variation
+  # and add to SST mix intensities
+  sst_sample_intensities_df <- sst_metabolites_df[, sst_sample_column_index]
+  control_col_ids <- grep(control_label, colnames(sst_metabolites_df), fixed = TRUE)
+  control_sst_intensities_df <- sst_metabolites_df[, control_col_ids]
+  control_sst_metabolites_cv <- calc_coefficient_of_variation(control_sst_intensities_df)
+  sst_intensities_df <- cbind(sst_sample_intensities_df, CV_controls = control_sst_metabolites_cv[, "CV_perc"])
 } else {
-  sst_list_intensities <- sst_list[, intensity_col_ids]
+  # Use intensities when there is not SST mix sample added
+  sst_intensities_df <- sst_metabolites_df[, intensity_col_ids]
 }
-for (col_nr in seq_len(ncol(sst_list_intensities))) {
-  sst_list_intensities[, col_nr] <- as.numeric(sst_list_intensities[, col_nr])
-  if (grepl("Zscore", colnames(sst_list_intensities)[col_nr])) {
-    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr], 2)
+
+sst_intensities_df <- as.data.frame(sst_intensities_df)
+for (col_nr in seq_len(ncol(sst_intensities_df))) {
+  # Change column type to numeric
+  sst_intensities_df[, col_nr] <- as.numeric(sst_intensities_df[, col_nr])
+  if (grepl("Zscore", colnames(sst_intensities_df)[col_nr])) {
+    # Round numeric value of Z-score columns to 2 decimal places
+    sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr], 2)
   } else {
-    sst_list_intensities[, col_nr] <- round(sst_list_intensities[, col_nr])
+    # Round numeric value of intensity columns to an intiger
+    sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr])
   }
 }
-sst_list_intensities <- cbind(SST_comp_name = sst_list$HMDB_name, sst_list_intensities)
+sst_intensities_df <- cbind(SST_comp_name = sst_metabolites_df$HMDB_name, sst_intensities_df)
 
 # Create Excel file
 wb <- createWorkbook("IS_SST")
@@ -350,12 +393,21 @@ addWorksheet(wb, "IS neg")
 openxlsx::writeData(wb, sheet = 3, is_neg_intensities)
 setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
-openxlsx::writeData(wb, sheet = 4, sst_list_intensities)
+openxlsx::writeData(wb, sheet = 4, sst_intensities_df)
 setColWidths(wb, 4, cols = 1:3, widths = 24)
 xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
+# generate text file for workflow completed mail for components with Z-score < 2
+if (sum(grepl("P1001", colnames(sst_list_intensities))) > 0) {
+  zscore_column <- grep("_Zscore", colnames(sst_list_intensities))[1]
+  sst_list_intensities_qc <- sst_list_intensities[sst_list_intensities[, zscore_column] < 2, ]
+  sst_list_intensities_qc <- select(sst_list_intensities_qc, -c("CV_controls"))
+  write.table(sst_list_intensities_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
+} else {
+  write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
+}
 
 ### MISSING M/Z CHECK
 # check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file

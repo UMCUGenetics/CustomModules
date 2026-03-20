@@ -10,6 +10,7 @@ process GenerateBreaks {
 
     output:
        path('breaks.fwhm.RData'), emit: breaks
+       path('trim_params.RData'), emit: trim_params
        path('highest_mz.RData'), emit: highest_mz
 
     script:
