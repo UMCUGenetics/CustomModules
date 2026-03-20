@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "custommodules"
+version = "0.1.0"
+description = "custom nextflow processes and their linked files"
+authors = ["Bioinformatica Genetica <bioinformatica-genetica@umcutrecht.nl>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11.4"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+pytest = "^8.3.3"
+
+[tool.ruff]
+line-length = 127
+indent-width = 4
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
