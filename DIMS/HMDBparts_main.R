@@ -1,5 +1,3 @@
-## adapted from hmdb_part_adductSums.R
-
 # define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
@@ -9,7 +7,11 @@ breaks_file <- cmd_args[2]
 load(db_file)
 load(breaks_file)
 
-# Cut up HMDB minus adducts minus isotopes into small parts 
+# get minimum and maximum m/z in dataset
+min_mz <- round(breaks_fwhm[1])
+max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
+
+# Select HMDB plus adducts and isotopes for each scan mode 
 scanmodes <- c("positive", "negative")
 for (scanmode in scanmodes) {
   if (scanmode == "negative") {
@@ -20,37 +22,21 @@ for (scanmode in scanmodes) {
     HMDB_add_iso <- HMDB_add_iso.Pos
   }
 
-  # filter mass range measured
-  outlist <- HMDB_add_iso[which(HMDB_add_iso[ , column_label] >= breaks_fwhm[1] & 
-             HMDB_add_iso[ ,column_label] <= breaks_fwhm[length(breaks_fwhm)]), ]
-
+  # filter on mass range in dataset
+  HMDB_mzrange <- HMDB_add_iso[(HMDB_add_iso[, column_label] >= min_mz & HMDB_add_iso[, column_label] <= max_mz), ]
   # remove adducts and isotopes, put internal standard at the beginning
-  outlist <- outlist[grep("HMDB", rownames(outlist), fixed = TRUE), ]
-  outlist <- outlist[-grep("_", rownames(outlist), fixed = TRUE), ]
+  HMDB_add <- HMDB_mzrange[grep("HMDB", rownames(HMDB_mzrange), fixed = TRUE), ]
+  HMDB_main <- HMDB_add[-grep("_", rownames(HMDB_add), fixed = TRUE), ]
   # sort on m/z value
-  outlist <- outlist[order(outlist[ , column_label]), ]
-  nr_rows <- dim(outlist)[1]
-
-  # size of hmdb parts in lines:
-  sub <- 1000
-  end <- 0
-  check <- 0
-
-  # generate hmdb parts
-  if (nr_rows >= sub & (floor(nr_rows / sub)) >= 2) {
-    for (i in 1:floor(nr_rows / sub)) {
-      start <- -(sub - 1) + i * sub
-      end <- i * sub
-      outlist_part <- outlist[c(start:end), ]
-      save(outlist_part, file=paste0(scanmode, "_hmdb_main.", i, ".RData"))
-    }
+  HMDB_main <- HMDB_main[order(HMDB_main[, column_label]), ]
+  
+  # generate hmdb parts of 1000 lines each
+  nr_parts <- ceiling(nrow(HMDB_main) / 1000)
+  start_index <- 1
+  for (part_index in 1:nr_parts) {
+    end_index <- min((start_index + 999), nrow(HMDB_main))
+    outlist_part <- HMDB_main[start_index:end_index, ]
+    save(outlist_part, file = paste0(scanmode, "_hmdb_main.", part_index, ".RData"))
+    start_index = start_index + 1000
   }
-
-  # finish last hmdb part
-  start <- end + 1
-  end <- nr_rows
-
-  outlist_part <- outlist[c(start:end), ]
-  save(outlist_part, file = paste0(scanmode, "_hmdb_main.", i + 1, ".RData"))
-
 }
