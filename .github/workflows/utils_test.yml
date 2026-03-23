@@ -10,11 +10,9 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-      env:
-        working-directory: Utils/
     defaults:
       run:
-        working-directory: ${{ env.working-directory }}
+        working-directory: Utils/
     steps:
       #----------------------------------------------
       # check-out repo and set-up python
@@ -43,7 +41,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.working-directory }}/.venv
+          path: .venv
           key: venv_utils-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
@@ -61,4 +59,5 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
-          poetry run pytest .
+          source .venv/bin/activate
+          pytest .
