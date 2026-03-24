@@ -208,7 +208,7 @@ if (dims_matrix == "Plasma") {
 }
 
 if (nrow(is_below_threshold) > 0) {
-  write.table(is_below_threshold, 
+  write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
 	      file = "internal_standards_below_threshold.txt", 
 	      row.names = FALSE, sep = "\t")
 } else { 
@@ -273,39 +273,38 @@ patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
 
-if (sum(positive_controls_index) > 0) {
+if (positive_controls_index > 0) {
   # find if one or more positive control samples are missing
   pos_contr_warning <- c()
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
                  function(x) any(grepl(x, positive_control_list))))) {
-    pos_contr_warning <- "All three positive controls are present"
+    cat("All three positive controls are present")
   } else {
     pos_contr_warning <- paste(
       "positive controls list is not complete. Only",
-      paste(positive_control_list, collapse = ", "), " present"
+      paste(positive_control_list, collapse = ", "), "is/are present"
     )
   }
   if (length(positive_control_list) > 0) {
     # make positive control excel with specific HMDB_codes in combination with specific control samples
     positive_control <- NULL
     for (pos_ctrl in positive_control_list) {
-      pos_ctrl_samplename <- gsub("_Zscore", "", pos_ctrl)
       if (any(grepl("^P1002", pos_ctrl))) {
-        pa_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+        pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
         pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
         pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
         pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
         positive_control <- rbind(positive_control, pa_data)
       }
       if (any(grepl("^P1003", pos_ctrl))) {
-        pku_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+        pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
         pku_codes <- c("HMDB0000159")
         pku_names <- c("L-Phenylalanine")
         pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
         positive_control <- rbind(positive_control, pku_data)
       }
       if (any(grepl("^P1005", pos_ctrl))) {
-        lpi_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+        lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
         lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
         lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
         lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
@@ -327,14 +326,13 @@ if (sum(positive_controls_index) > 0) {
       file = paste0(outdir, "/", project, "_positive_control.xlsx"),
       sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
     )
-  } 
-  if (length(pos_contr_warning) == 0) {
-    pos_contr_warning <- "No positive controls found"
   }
-  write.table(pos_contr_warning,
-    file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
-    row.names = FALSE, col.names = FALSE, quote = FALSE
-  )
+  if (length(pos_contr_warning) != 0) {
+    write.table(pos_contr_warning,
+      file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
+      row.names = FALSE, col.names = FALSE, quote = FALSE
+    )
+  }
 }
 
 ### SST components output ####
@@ -377,7 +375,7 @@ for (col_nr in seq_len(ncol(sst_intensities_df))) {
     # Round numeric value of Z-score columns to 2 decimal places
     sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr], 2)
   } else {
-    # Round numeric value of intensity columns to an intiger
+    # Round numeric value of intensity columns to an integer
     sst_intensities_df[, col_nr] <- round(sst_intensities_df[, col_nr])
   }
 }
@@ -407,10 +405,6 @@ if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
   sst_intensities_df_qc <- sst_intensities_df[sst_intensities_df[, zscore_column] < 2, ]
   sst_intensities_df_qc <- select(sst_intensities_df_qc, -c("CV_controls"))
   write.table(sst_intensities_df_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
-  # in case of an empty table, the column header doesn't need to appear in the mail
-  if (nrow(sst_intensities_df_qc) == 0) {
-    write.table("none", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
-  }
 } else {
   write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
 }
