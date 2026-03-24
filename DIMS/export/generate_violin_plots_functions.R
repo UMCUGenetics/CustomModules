@@ -782,7 +782,6 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
   if (sum(grepl("Zscore", sample_cols)) > 0) {
     sample_cols <- sample_cols[-grep("Zscore", sample_cols)]
   }
-  print(sample_cols)
 
   # Change Z-score to zero for specific cases
   zscore_expected_df <- zscore_expected_df %>% mutate(across(
