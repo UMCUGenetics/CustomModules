@@ -272,67 +272,71 @@ column_list <- colnames(outlist)
 patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\.)[[:digit:]]+_")
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
+pos_contr_warning <- c()
 
-if (positive_controls_index > 0) {
-  # find if one or more positive control samples are missing
-  pos_contr_warning <- c()
+# find if one or more positive control samples are missing
+if (sum(positive_controls_index) > 0) {
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
                  function(x) any(grepl(x, positive_control_list))))) {
-    cat("All three positive controls are present")
+    pos_contr_warning <- "All three positive controls are present"
   } else {
     pos_contr_warning <- paste(
       "positive controls list is not complete. Only",
       paste(positive_control_list, collapse = ", "), "is/are present"
     )
   }
-  if (length(positive_control_list) > 0) {
-    # make positive control excel with specific HMDB_codes in combination with specific control samples
-    positive_control <- NULL
-    for (pos_ctrl in positive_control_list) {
-      if (any(grepl("^P1002", pos_ctrl))) {
-        pa_sample_name <- positive_control_list[grepl("P1002", positive_control_list)]
-        pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
-        pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
-        pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
-        positive_control <- rbind(positive_control, pa_data)
-      }
-      if (any(grepl("^P1003", pos_ctrl))) {
-        pku_sample_name <- positive_control_list[grepl("P1003", positive_control_list)]
-        pku_codes <- c("HMDB0000159")
-        pku_names <- c("L-Phenylalanine")
-        pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
-        positive_control <- rbind(positive_control, pku_data)
-      }
-      if (any(grepl("^P1005", pos_ctrl))) {
-        lpi_sample_name <- positive_control_list[grepl("P1005", positive_control_list)]
-        lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
-        lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
-        lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
-        positive_control <- rbind(positive_control, lpi_data)
-      }
+}
+# if there are no positive controls, generate a warning
+if (length(pos_contr_warning) == 0) {
+  pos_contr_warning <- "No positive controls found"
+} 
+write.table(pos_contr_warning,
+  file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
+  row.names = FALSE, col.names = FALSE, quote = FALSE
+)
+
+# make positive control excel with specific HMDB_codes in combination with specific control samples
+if (length(positive_control_list) > 0) {
+  positive_control <- NULL
+  for (pos_ctrl in positive_control_list) {
+    pos_ctrl_samplename <- gsub("_Zscore", "", pos_ctrl)
+    if (any(grepl("^P1002", pos_ctrl))) {
+      pa_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+      pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
+      pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
+      pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
+      positive_control <- rbind(positive_control, pa_data)
     }
-
-    positive_control$Zscore <- as.numeric(positive_control$Zscore)
-    # extra information added to excel for future reference. made in beginning of this script
-    positive_control$Matrix <- dims_matrix
-    positive_control$Rundate <- rundate
-    positive_control$Project <- project
-
-    # Save results
-    save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
-    # round the Z-scores to 2 digits
-    positive_control$Zscore <- round_df(positive_control$Zscore, 2)
-    write.xlsx(positive_control,
-      file = paste0(outdir, "/", project, "_positive_control.xlsx"),
-      sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
-    )
+    if (any(grepl("^P1003", pos_ctrl))) {
+      pku_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+      pku_codes <- c("HMDB0000159")
+      pku_names <- c("L-Phenylalanine")
+      pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
+      positive_control <- rbind(positive_control, pku_data)
+    }
+    if (any(grepl("^P1005", pos_ctrl))) {
+      lpi_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
+      lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
+      lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
+      lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
+      positive_control <- rbind(positive_control, lpi_data)
+    }
   }
-  if (length(pos_contr_warning) != 0) {
-    write.table(pos_contr_warning,
-      file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
-      row.names = FALSE, col.names = FALSE, quote = FALSE
-    )
-  }
+
+  positive_control$Zscore <- as.numeric(positive_control$Zscore)
+  # extra information added to excel for future reference. made in beginning of this script
+  positive_control$Matrix <- dims_matrix
+  positive_control$Rundate <- rundate
+  positive_control$Project <- project
+
+  # Save results
+  save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
+  # round the Z-scores to 2 digits
+  positive_control$Zscore <- round_df(positive_control$Zscore, 2)
+  write.xlsx(positive_control,
+    file = paste0(outdir, "/", project, "_positive_control.xlsx"),
+    sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
+  )
 }
 
 ### SST components output ####
