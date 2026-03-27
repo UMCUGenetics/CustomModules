@@ -13,6 +13,6 @@ process SumAdducts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/SumAdducts.R $hmdbpart_main_file $params.preprocessing_scripts_dir $params.zscore
+        Rscript ${baseDir}/CustomModules/DIMS/SumAdducts.R $hmdbpart_main_file $params.preprocessing_scripts_dir $params.zscore $params.adducts_pos $params.adducts_neg
         """
 }

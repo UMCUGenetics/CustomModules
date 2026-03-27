@@ -1,21 +1,24 @@
-# load in function scripts
-source(paste0(scripts_dir, "sum_intensities_adducts.R"))
-
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 hmdbpart_main_file <- cmd_args[1]
 scripts_dir <- cmd_args[2]
 z_score <- as.numeric(cmd_args[3])
+adducts_pos <- cmd_args[4]
+adducts_neg <- cmd_args[5]
+# convert string to numbers
+adducts_pos <- as.numeric(strsplit(adducts_pos, ",")[[1]])
+adducts_neg <- as.numeric(strsplit(adducts_neg, ",")[[1]])
+
+# load in function scripts
+source(paste0(scripts_dir, "sum_intensities_adducts.R"))
 
 if (grepl("positive_hmdb", hmdbpart_main_file)) {
   scanmode <- "positive"
-  # for the adduct sum: include adducts M+Na (1) and M+K (2)
-  adducts <- c(1, 2)
+  adducts <- adducts_pos
 } else if (grepl("negative_hmdb", hmdbpart_main_file)) {
   scanmode <- "negative"
-  # for the adduct sum: include adduct M+Cl (1)
-  adducts <- c(1)
+  adducts <- adducts_neg
 }
 
 # load input files

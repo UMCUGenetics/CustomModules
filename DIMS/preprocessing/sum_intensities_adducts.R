@@ -47,7 +47,6 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   }
 
   for (hmdb_index in 1:nrow(hmdb_part_info)) {
-    print(hmdb_index)
     compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
     compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
@@ -64,7 +63,6 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
       names <- c(names, compound)
       adductsum <- rbind(adductsum, total)
       names_long <- c(names_long, hmdb_part_info[hmdb_index, "all_HMDB_ids"])
-      print(dim(adductsum))
     }
   }
 
