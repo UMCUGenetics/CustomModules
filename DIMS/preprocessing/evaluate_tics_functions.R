@@ -30,6 +30,12 @@ find_bad_replicates <- function(repl_pattern, thresh2remove) {
     }
   }
   cat("\n")
+  if (length(remove_pos) == 0) {
+    remove_pos <- "none"
+  }
+  if (length(remove_neg) == 0) {
+    remove_neg <- "none"
+  }
   # write information on miss_infusions for both scan modes
   write.table(remove_pos,
               file = paste0("miss_infusions_positive.txt"),
