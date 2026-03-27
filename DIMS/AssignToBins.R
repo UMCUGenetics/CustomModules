@@ -6,11 +6,13 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 
 mzml_filepath <- cmd_args[1]
 breaks_filepath <- cmd_args[2]
-resol <- as.numeric(cmd_args[3])
+trim_parameters_filepath <- cmd_args[3]
+resol <- as.numeric(cmd_args[4])
 
 # load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
-# trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(breaks_filepath)
+# load trim parameters file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+load(trim_parameters_filepath)
 
 # get sample name
 techrep_name <- sub("\\..*$", "", basename(mzml_filepath))
