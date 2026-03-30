@@ -1,7 +1,7 @@
 # unit tests for ParseSamplesheet
 # function: generate_repl_pattern
 
-# source all functions for PeakGrouping
+# source all functions for ParseSamplesheet
 source("../../preprocessing/parse_samplesheet_functions.R")
 
 # test generate_repl_pattern
