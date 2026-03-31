@@ -2,13 +2,12 @@ process ParseSamplesheet {
     tag "DIMS ParseSamplesheet"
     label 'ParseSamplesheet'
     container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(samplesheet) 
 
     output:
-       path('init.RData')
+       path('init.RData'), emit: rdata_file
        path('replication_pattern.txt')
 
     script:
