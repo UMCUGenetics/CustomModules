@@ -4,16 +4,17 @@ get_trim_parameters <- function(scantimes, polarities, trim = 0.1) {
   #'
   #' @param scantimes: vector of scan times in seconds 
   #' @param polarities: vector of polarities (positive or negative)
+  #' @param trim: value for fraction of scans which are to be discarded (float)
   
   # Get time values for positive and negative scans
   pos_times <- scantimes[polarities == "positive"]
   neg_times <- scantimes[polarities == "negative"]
   
-  # trim (remove) scans at the start (15%) and end (5%) for positive
+  # trim: remove scans at the start and end for positive
   trim_left_pos  <- round(pos_times[length(pos_times) * (trim * 1.5)])
   trim_right_pos <- round(pos_times[length(pos_times) * (1 - (trim * 0.5))])
   
-  # trim (remove) scans at the start and end (10%) for negative
+  # trim: remove scans at the start and end for negative
   trim_left_neg  <- round(neg_times[length(neg_times) * trim])
   trim_right_neg <- round(neg_times[length(neg_times) * (1 - trim)])
   
