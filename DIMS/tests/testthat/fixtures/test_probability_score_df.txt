@@ -1,0 +1,8 @@
+Disease	P2025M1	P2025M2	P2025M3	P2025M4
+Disease A	10.9	-10.9	49.9	-49.9
+Disease B	0.953	0	2.29	0
+Disease C	12.1	0	0	12.1
+Disease D	0	-12.5	0	18.2
+Disease E	44.3	0	0	28.1
+Disease F	0	-77.4	-77.4	0
+Disease G	-38.7	38.7	38.7	-38.7
