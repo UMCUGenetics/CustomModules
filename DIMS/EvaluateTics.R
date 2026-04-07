@@ -44,15 +44,17 @@ print(remove_tech_reps)
 remove_neg <- remove_tech_reps$neg
 repl_pattern_filtered <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
+# get an overview of suitable technical replicates for both negative mode
+allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
 
 # positive scan mode
 remove_pos <- remove_tech_reps$pos
 repl_pattern_filtered <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
-
-# get an overview of suitable technical replicates for both scan modes
-allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
+# get an overview of suitable technical replicates for positive scan mode
 allsamples_techreps_pos <- get_overview_tech_reps(repl_pattern_filtered, "positive")
+
+# get an overview of suitable technical replicates for both scan modes and save to file
 allsamples_techreps_both_scanmodes <- rbind(allsamples_techreps_pos, allsamples_techreps_neg)
 write.table(allsamples_techreps_both_scanmodes,
             file = "replicates_per_sample.txt",
