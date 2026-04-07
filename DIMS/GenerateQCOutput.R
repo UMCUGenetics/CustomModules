@@ -208,7 +208,7 @@ if (dims_matrix == "Plasma") {
 }
 
 if (nrow(is_below_threshold) > 0) {
-  write.table(cbind(is_below_threshold, scanmode = scanmode_is), 
+  write.table(is_below_threshold,
 	      file = "internal_standards_below_threshold.txt", 
 	      row.names = FALSE, sep = "\t")
 } else { 
