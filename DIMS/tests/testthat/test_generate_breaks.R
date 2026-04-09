@@ -48,7 +48,7 @@ testthat::test_that("breaks are correctly calculated", {
   rm(breaks_fwhm, breaks_fwhm_avg)
 
   # load breaks from fixtures and compare vectors
-  load("fixtures/breaks.fwhm.RData")
+  load("fixtures/test_breaks.fwhm.RData")
   expect_equal(test_breaks_fwhm, breaks_fwhm)
   expect_equal(test_breaks_fwhm_avg, breaks_fwhm_avg)
 })
