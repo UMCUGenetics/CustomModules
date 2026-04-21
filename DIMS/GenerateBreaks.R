@@ -7,6 +7,10 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 filepath <- cmd_args[1]
 trim <- as.numeric(cmd_args[2])
 resol <- as.numeric(cmd_args[3])
+preprocessing_scripts_dir <- cmd_args[4]
+
+# load in function script
+source(paste0(preprocessing_scripts_dir, "generate_breaks_functions.R"))
 
 # read in mzML file
 raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
@@ -15,7 +19,7 @@ raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 get_trim_parameters(raw_data@scantime, raw_data@polarity, trim)
 
 # create breaks of bins for intensities. Bin size is a function of fwhm which is a function of m/z
-get_breaks_for_bins(raw_data$mzrange, resol)
+get_breaks_for_bins(raw_data@mzrange, resol)
 
 # Determine maximum m/z and save to file
 high_mz <- raw_data@mzrange[2]
