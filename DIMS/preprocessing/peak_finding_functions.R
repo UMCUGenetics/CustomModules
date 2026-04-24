@@ -24,30 +24,21 @@ search_regions_of_interest <- function(ints_fullrange) {
   # test for length of roi (region of interest). If length is greater than 11, break up into separate rois
   remove_roi_index <- c()
   new_rois_all <- regions_of_interest_gte3[0, ]
-  for (roi_nr in 1:nrow(regions_of_interest_gte3)) {
+    for (roi_nr in 1:nrow(regions_of_interest_gte3)) {
     if (regions_of_interest_gte3[roi_nr, "length"] > 11) {
       roi <- ints_fullrange[(regions_of_interest_gte3[roi_nr, "from"]:regions_of_interest_gte3[roi_nr, "to"]), ]
       roi_intrange <- as.numeric(roi$int)
+      roi_firstindex <- as.numeric(rownames(roi)[1])
       # look for local minima that separate the peaks
       local_min_positions <- which(diff(sign(diff(roi_intrange))) == 2) + 1
       if (length(local_min_positions) > 0) {
         remove_roi_index <- c(remove_roi_index, roi_nr)
         # find new indices for rois after splitting
-        start_pos <- regions_of_interest_gte3[roi_nr, "from"]
-        new_rois <- data.frame(from = 0, to = 0, length = 0)
-        new_rois_splitroi <- regions_of_interest_gte3[0, ]
-        for (local_min_index in 1:length(local_min_positions)) {
-          new_rois[, 1] <- start_pos
-          new_rois[, 2] <- start_pos + local_min_positions[local_min_index]
-          new_rois[, 3] <- new_rois[, 2] - new_rois[, 1] + 1
-          new_rois_splitroi <- rbind(new_rois_splitroi, new_rois)
-          start_pos <- new_rois[, 2]
-        }
-        # intensities after last local minimum
-        new_rois[, 1] <- start_pos
-        new_rois[, 2] <- regions_of_interest_gte3[roi_nr, "to"]
-        new_rois[, 3] <- new_rois[, 2] - new_rois[, 1] + 1
-        new_rois_splitroi <- rbind(new_rois_splitroi, new_rois)
+        new_rois_splitroi <- as.data.frame(matrix(0, ncol = 3, nrow = (length(local_min_positions) + 1)))
+        colnames(new_rois_splitroi) <- colnames(regions_of_interest_gte3)
+        new_rois_splitroi[, 1] <- c(roi_firstindex, roi_firstindex + local_min_positions)
+        new_rois_splitroi[, 2] <- c(roi_firstindex + local_min_positions, roi_firstindex + length(roi_intrange))
+        new_rois_splitroi[, 3] <- new_rois_splitroi[, 2] - new_rois_splitroi[, 1]
         # append
         new_rois_all <- rbind(new_rois_all, new_rois_splitroi)
       } else {
