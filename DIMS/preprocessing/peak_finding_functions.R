@@ -24,7 +24,7 @@ search_regions_of_interest <- function(ints_fullrange) {
   # test for length of roi (region of interest). If length is greater than 11, break up into separate rois
   remove_roi_index <- c()
   new_rois_all <- regions_of_interest_gte3[0, ]
-    for (roi_nr in 1:nrow(regions_of_interest_gte3)) {
+  for (roi_nr in 1:nrow(regions_of_interest_gte3)) {
     if (regions_of_interest_gte3[roi_nr, "length"] > 11) {
       roi <- ints_fullrange[(regions_of_interest_gte3[roi_nr, "from"]:regions_of_interest_gte3[roi_nr, "to"]), ]
       roi_intrange <- as.numeric(roi$int)
