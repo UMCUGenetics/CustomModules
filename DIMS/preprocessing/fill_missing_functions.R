@@ -24,7 +24,7 @@ fill_missing_intensities <- function(peakgroup_list, repl_pattern, thresh, disab
       for (zero_index in seq_along(zero_intensity)) {
         peakgroup_list[zero_intensity[zero_index], names(repl_pattern)[sample_index]] <- rnorm(n = 1,
                                                                                                mean = thresh,
-                                                                                               sd = 80)
+                                                                                               sd = 100)
       }
     }
 

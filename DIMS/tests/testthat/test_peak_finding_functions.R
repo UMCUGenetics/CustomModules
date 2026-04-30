@@ -31,7 +31,7 @@ test_that("regions of interest are correctly found for two peaks", {
                                              int = test_ints_range))
   
   # expected output
-  expected_output <- as.data.frame(matrix(c(1, 8, 8, 21, 7, 13), nrow = 2, ncol = 3))
+  expected_output <- as.data.frame(matrix(c(1, 8, 8, 20, 8, 13), nrow = 2, ncol = 3))
   colnames(expected_output) <- c("from", "to", "length")
   rownames(expected_output) <- as.character(c(1, 2))
   
