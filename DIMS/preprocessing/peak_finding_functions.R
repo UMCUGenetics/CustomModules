@@ -36,6 +36,7 @@ search_regions_of_interest <- function(ints_fullrange) {
         # find new indices for rois after splitting
         new_rois_splitroi <- as.data.frame(matrix(0, ncol = 3, nrow = (length(local_min_positions) + 1)))
         colnames(new_rois_splitroi) <- colnames(regions_of_interest_gte3)
+	# fill new rois matrix; from in column 1, to in column 2 and length in column 3
         new_rois_splitroi[, 1] <- c(roi_firstindex, roi_firstindex + local_min_positions)
         new_rois_splitroi[, 2] <- c(roi_firstindex + local_min_positions, roi_firstindex + length(roi_intrange))
         new_rois_splitroi[, 3] <- new_rois_splitroi[, 2] - new_rois_splitroi[, 1]
