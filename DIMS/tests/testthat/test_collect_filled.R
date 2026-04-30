@@ -65,7 +65,7 @@ testthat::test_that("columns in peak group list are corretly sorted", {
   # original order of columns
   original_column_order <- colnames(test_peakgroup_list)
   # after ordering, column names should be re-ordered
-  test_column_order <- original_column_order[c(1, 2, 7:14, 21, 3:6, 15:20)]
+  test_column_order <- original_column_order[c(1, 2, 7:15, 3:6, 16:21)]
  
   expect_identical(colnames(order_columns_peakgrouplist(test_peakgroup_list)), test_column_order)
 
