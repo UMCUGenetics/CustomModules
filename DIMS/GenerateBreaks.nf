@@ -7,6 +7,7 @@ process GenerateBreaks {
     input:
        tuple(val(file_id), path(mzML_file))
 
+
     output:
        path('breaks.fwhm.RData'), emit: breaks
        path('trim_params.RData'), emit: trim_params
@@ -14,6 +15,6 @@ process GenerateBreaks {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R $mzML_file $params.trim $params.resolution 
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R $mzML_file ./ $params.trim $params.resolution 
         """
 }
