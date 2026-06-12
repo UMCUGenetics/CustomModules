@@ -713,9 +713,15 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
   colors_plot <- c("#22E4AC", "#00B0F0", "#504FFF", "#A704FD", "#F36265", "#DA0641")
 
   y_order <- attr(metab_zscores_df, "y_order")
-  metab_zscores_df$HMDB_name <- rev(factor(metab_zscores_df$HMDB_name, levels = rev(y_order)))
-  patient_zscore_df$HMDB_name <- rev(factor(patient_zscore_df$HMDB_name, levels = rev(y_order)))
-
+  
+  metab_zscores_df <- metab_zscores_df %>%
+    mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
+    arrange(HMDB_name)
+  
+  patient_zscore_df <- patient_zscore_df %>%
+    mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
+    arrange(HMDB_name)
+  
   ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score, y = HMDB_name)) +
     # Make violin plots
     geom_violin(scale = "width", na.rm = TRUE) +
