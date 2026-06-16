@@ -37,7 +37,7 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-if (z_score == 1) {
+if (any(grepl("nr_ctrls", colnames(outlist)))) {
   file_name <- "Check_number_of_controls.txt"
   min_num_controls <- 25
   check_number_of_controls(outlist, min_num_controls, file_name)
