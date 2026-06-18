@@ -67,6 +67,12 @@ add_zscores_ratios_to_df <- function(outlist, metabolites_ratios_df, all_sample_
 #'
 #' @returns zscore_ratios_df: dataframe containing Z-scores for all ratios for all samples
 calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_df, intensity_col_names) {
+  # remove Z-score columns from intensity_col_names
+  if (any(grepl("_Zscore", intensity_col_names))) {
+    intensity_col_names <- intensity_col_names[-grep("_Zscore", intensity_col_names)]
+  }
+
+  # create empty data frame for results
   zscore_ratios_df <- data.frame(matrix(
     ncol = ncol(intensities_zscores_df),
     nrow = nrow(metabolites_ratios_df)
