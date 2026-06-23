@@ -32,8 +32,8 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     int_cols_pats <- grep("P", colnames(peakgroup_list)[1:which(colnames(peakgroup_list) == "avg.ctrls")])
     int_cols <- c(int_cols_ctrls, int_cols_pats)
   } else {
-    int_cols_start <- which(colnames(peakgroup_list) == "nrsamples") + 1
-    int_cols_end <- which(colnames(peakgroup_list) == "assi_HMDB") - 1
+    int_cols_start <- which(colnames(peakgroup_list) == "ppmdev") + 1
+    int_cols_end <- ncol(peakgroup_list)
     int_cols <- c(int_cols_start:int_cols_end)
   }
 
