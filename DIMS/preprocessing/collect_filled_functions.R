@@ -129,9 +129,13 @@ order_columns_peakgrouplist <- function(peakgroup_list) {
   
   original_colnames <- colnames(peakgroup_list)
   mass_columns <- c(grep("mzm", original_colnames), grep("nrsamples", original_colnames))
-  descriptive_columns <- grep("assi_HMDB", original_colnames):grep("avg.int", original_colnames)
+  if (any(grepl("avg.int", original_colnames))) {
+    descriptive_columns <- grep("assi_HMDB", original_colnames):grep("avg.int", original_colnames)
+  } else {
+    descriptive_columns <- grep("assi_HMDB", original_colnames):grep("ppmdev", original_colnames)
+  }
   intensity_columns <- c((grep("nrsamples", original_colnames) + 1):(grep("assi_HMDB", original_colnames) - 1))
-  # if no Z-scores have been calculated, the following two variables will be empty without consequences for outlist_total
+  # if no Z-scores have been calculated, the following two variables will be empty without consequences for peakgroup_list
   control_columns <- grep ("ctrls", original_colnames)
   zscore_columns <- grep("_Zscore", original_colnames)
   # create peak group list with columns in correct order
