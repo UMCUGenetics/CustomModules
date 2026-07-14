@@ -1,13 +1,15 @@
+# function for averaging peak intensities for different technical replicates
+
+#' Average the intensity of peaks that occur in different technical replicates of a biological sample
+#'
+#' @param peaklist_allrepl_sorted: Dataframe with peaks sorted on median m/z (float)
+#' @param sample_name: String with sample name (string)
+#'
+#' @return averaged_peaks: matrix of averaged peaks (float)
 average_peaks_per_sample <- function(peaklist_allrepl_sorted, sample_name) {
-  #' Average the intensity of peaks that occur in different technical replicates of a biological sample
-  #'
-  #' @param peaklist_allrepl_sorted: Dataframe with peaks sorted on median m/z (float)
-  #'
-  #' @return averaged_peaks: matrix of averaged peaks (float)
-  
   # initialize
   averaged_peaks <- peaklist_allrepl_sorted[0, ]
-  # set ppm as fixed value, not the same ppm as in peak grouping
+  # set ppm as fixed value, not the same ppm as in peak group annotation
   ppm_peak <- 2
 
   while (nrow(peaklist_allrepl_sorted) > 1) {
