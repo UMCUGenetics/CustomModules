@@ -27,8 +27,6 @@ export <- TRUE
 control_label <- "C"
 case_label <- "P"
 
-# setting outdir to export files to the working directory
-outdir <- "./"
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 # Z-score for removing outliers with grubbs test
@@ -39,6 +37,77 @@ load(hmdb_rlvc_file)
 
 # load outlist object
 load("AdductSums_combined.RData")
+# Get columns with control intensities
+control_intensity_cols <- get_intensities_cols(outlist, control_label)
+control_col_idx <- control_intensity_cols$col_idx
+control_intensities <- control_intensity_cols$df_intensities
+
+# Get columns with patient intensities
+patient_intensity_cols <- get_intensities_cols(outlist, case_label)
+patient_col_idx <- patient_intensity_cols$col_idx
+patient_columns <- colnames(patient_intensity_cols$df_intensities)
+
+intensity_col_ids <- c(control_col_idx, patient_col_idx)
+
+# Filter out drugs and other metabolites with CHEMBL annotation
+outlist_drugdb <- outlist[grep("CHEMBL", outlist$HMDB_ID_all), ]
+# Add CHEMBL_code column with all the CHEMBL ID and sort on it
+outlist_drugdb <- cbind(outlist_drugdb, "CHEMBL_code" = rownames(outlist_drugdb))
+outlist_drugdb <- outlist_drugdb[order(outlist_drugdb[, "CHEMBL_code"]), ]
+
+# Create excel for drugs
+sheetname <- "Drugs"
+wb_intensities_drugs <- openxlsx::createWorkbook("AdductSums")
+openxlsx::addWorksheet(wb_intensities_drugs, sheetname)
+
+dir.create("plots_drugs", showWarnings = FALSE)
+# add a column for plots
+outlist_drugdb <- cbind(plots = NA, outlist_drugdb)
+# if there are any intensities of 0 left, set them to NA for stats
+outlist_drugdb[, intensity_col_ids][outlist_drugdb[, intensity_col_ids] == 0] <- NA
+outlist_drugdb$HMDB_key <- rownames(outlist_drugdb)
+# get intensity columns
+intensities_df <- outlist_drugdb[, c(ncol(outlist_drugdb), intensity_col_ids)]
+
+for (row_index in seq_len(nrow(intensities_df))) {
+  # get CHEMBL ID
+  chembl_id <- intensities_df %>%
+    slice(row_index) %>%
+    pull(HMDB_key)
+
+  # Transform dataframe to long format
+  intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
+
+  # set plot width to 40 times the number of samples
+  plot_width <- length(unique(intensities_df_long$Samples)) * 40
+  col_width <- plot_width * 2
+
+  start_row_index <- row_index + 1
+  save_plot_to_excel_workbook(
+    wb_intensities_drugs,
+    sheetname,
+    intensities_df_long,
+    "plots_drugs/plot_",
+    chembl_id,
+    plot_width,
+    col_width,
+    start_row_index
+  )
+}
+wb_intensities <- set_row_height_col_width_wb(
+  wb_intensities_drugs,
+  sheetname,
+  nrow(outlist),
+  ncol(outlist),
+  col_width,
+  plots_present = TRUE
+)
+
+# write Excel file
+openxlsx::writeData(wb_intensities_drugs, sheet = 1, outlist, startCol = 1)
+openxlsx::saveWorkbook(wb_intensities_drugs, paste0("Drugs_", project, ".xlsx"), overwrite = TRUE)
+rm(wb_intensities_drugs)
+unlink("plots", recursive = TRUE)
 
 # Filter for biological relevance
 peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
@@ -65,26 +134,17 @@ openxlsx::addWorksheet(wb_intensities_zscores, sheetname)
 
 # Add Z-scores and create plots
 if (z_score == 1) {
-  dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
+  dir.create("plots", showWarnings = FALSE)
   wb_helix_zscores <- openxlsx::createWorkbook("SinglePatient")
   openxlsx::addWorksheet(wb_helix_zscores, sheetname)
   row_helix <- 2 # start on row 2 because of header
   # add a column for plots
   outlist <- cbind(plots = NA, outlist)
+  control_col_idx <- control_col_idx + 1
+  intensity_col_ids <- intensity_col_ids + 1
+
   # three columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
   startcol <- ncol(outlist) + 4
-
-  # Get columns with control intensities
-  control_intensity_cols <- get_intensities_cols(outlist, control_label)
-  control_col_idx <- control_intensity_cols$col_idx
-  control_intensities <- control_intensity_cols$df_intensities
-
-  # Get columns with patient intensities
-  patient_intensity_cols <- get_intensities_cols(outlist, case_label)
-  patient_col_idx <- patient_intensity_cols$col_idx
-  patient_columns <- colnames(patient_intensity_cols$df_intensities)
-
-  intensity_col_ids <- c(control_col_idx, patient_col_idx)
 
   # if there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
@@ -99,7 +159,7 @@ if (z_score == 1) {
   )
 
   # calculate Z-scores
-  outlist <- calculate_zscores(outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)
+  outlist <- calculate_zscores(outlist, "_Zscore", control_col_idx, NULL, intensity_col_ids, startcol)
 
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
@@ -213,7 +273,7 @@ if (z_score == 1) {
     plots_present = TRUE
   )
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
-  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
+  openxlsx::saveWorkbook(wb_helix_intensities, paste0("/Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
 
   # reorder outlist for Excel file
@@ -237,6 +297,6 @@ if (z_score == 1) {
 
 # write Excel file
 openxlsx::writeData(wb_intensities_zscores, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities_zscores, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
+openxlsx::saveWorkbook(wb_intensities_zscores, paste0(project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities_zscores)
 unlink("plots", recursive = TRUE)

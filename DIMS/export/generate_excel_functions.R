@@ -9,6 +9,8 @@ get_intensities_cols <- function(outlist, label) {
   #'                  col_idx: vector with indices of the control columns
   #'                  df_intensities: dataframe with the intensities of the controls
   col_idx <- grep(label, colnames(outlist), fixed = TRUE)
+  # remove Z-score columns
+  col_idx <- col_idx[!grepl("_Zscore", colnames(outlist)[col_idx], fixed = TRUE)]
   df_intensities <- as.data.frame(outlist[, col_idx])
   colnames(df_intensities) <- colnames(outlist)[col_idx]
   return(list(col_idx = col_idx, df_intensities = df_intensities))
@@ -33,8 +35,8 @@ calculate_zscores <- function(outlist, zscore_type, control_cols, stat_filter, i
 
   if (zscore_type == "_Zscore") {
     # Calculate mean and sd with all controls
-    outlist$avg_ctrls <- apply(control_cols, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
-    outlist$sd_ctrls <- apply(control_cols, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
+    outlist$avg_ctrls <- apply(outlist[, control_cols], 1, function(x) mean(as.numeric(x), na.rm = TRUE))
+    outlist$sd_ctrls <- apply(outlist[, control_cols], 1, function(x) sd(as.numeric(x), na.rm = TRUE))
   } else {
     if (length(control_cols) > 3) {
       for (metabolite_index in seq_len(nrow(outlist))) {
