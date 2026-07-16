@@ -1,12 +1,13 @@
 # EvaluateTics functions
+
+#' Find technical replicates with a total intensity below a threshold
+#'
+#' @param repl_pattern: List of samples with corresponding technical replicates (strings)
+#' @param thresh2remove: Threshold value for acceptance or rejection of total intensity (integer)
+#'
+#' @return remove_tech_reps: Array of rejected technical replicates (strings)
 find_bad_replicates <- function(repl_pattern, thresh2remove) {
-  #' Find technical replicates with a total intensity below a threshold
-  #'
-  #' @param repl_pattern: List of samples with corresponding technical replicates (strings)
-  #' @param thresh2remove: Threshold value for acceptance or rejection of total intensity (integer)
-  #'
-  #' @return remove_tech_reps: Array of rejected technical replicates (strings)
-  
+  # initialize
   remove_pos <- NULL
   remove_neg <- NULL
   cat("Pklist sum threshold to remove technical replicate:", thresh2remove, "\n")
@@ -49,21 +50,20 @@ find_bad_replicates <- function(repl_pattern, thresh2remove) {
               col.names = FALSE,
               sep = "\t"
   )
-  
+ 
   # combine removed technical replicates from pos and neg
   remove_tech_reps <- list(pos = remove_pos, neg = remove_neg)
   return(remove_tech_reps)
 }
 
+#' Remove technical replicates with insufficient quality from a biological sample
+#'
+#' @param bad_samples: Array of technical replicates of insufficient quality (strings)
+#' @param repl_pattern: List of samples with corresponding technical replicates (strings)
+#' @param nr_replicates: Number of technical replicates per biological sample (integer)
+#'
+#' @return repl_pattern_filtered: list of technical replicates of sufficient quality (strings)
 remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
-  #' Remove technical replicates with insufficient quality from a biological sample
-  #'
-  #' @param bad_samples: Array of technical replicates of insufficient quality (strings)
-  #' @param repl_pattern: List of samples with corresponding technical replicates (strings)
-  #' @param nr_replicates: Number of technical replicates per biological sample (integer)
-  #'
-  #' @return repl_pattern_filtered: list of technical replicates of sufficient quality (strings)
-  
   # collect list of samples to remove from replication pattern
   remove_from_group <- NULL
   for (sample_nr in 1:length(repl_pattern)){
@@ -89,14 +89,13 @@ remove_from_repl_pattern <- function(bad_samples, repl_pattern, nr_replicates) {
   return(repl_pattern_filtered)
 }
 
+#' Create an overview of technical replicates with sufficient quality from a biological sample
+#'
+#' @param repl_pattern_filtered: List of samples with corresponding technical replicates (strings)
+#' @param scanmode: Scan mode "positive" or "negative" (string)
+#'
+#' @return allsamples_techreps_scanmode: Matrix of technical replicates of sufficient quality (strings)
 get_overview_tech_reps <- function(repl_pattern_filtered, scanmode) {
-  #' Create an overview of technical replicates with sufficient quality from a biological sample
-  #'
-  #' @param repl_pattern_filtered: List of samples with corresponding technical replicates (strings)
-  #' @param scanmode: Scan mode "positive" or "negative" (string)
-  #'
-  #' @return allsamples_techreps_scanmode: Matrix of technical replicates of sufficient quality (strings)
-  
   allsamples_techreps_scanmode <- matrix("", ncol = 3, nrow = length(repl_pattern_filtered))
   for (sample_nr in 1:length(repl_pattern_filtered)) {
     allsamples_techreps_scanmode[sample_nr, 1] <- names(repl_pattern_filtered)[sample_nr]
@@ -105,4 +104,3 @@ get_overview_tech_reps <- function(repl_pattern_filtered, scanmode) {
   allsamples_techreps_scanmode[, 3] <- scanmode
   return(allsamples_techreps_scanmode)
 }
-
