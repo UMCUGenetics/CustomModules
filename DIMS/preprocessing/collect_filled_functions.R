@@ -88,7 +88,7 @@ calculate_zscores_peakgrouplist <- function(peakgroup_list) {
 
   # set new column names and calculate Z-scores
   peakgroup_list_zscores <-peakgroup_list
-  colnames_zscores <- paste0(colnames(peakgroup_list[int_cols], "_Zscore")
+  colnames_zscores <- paste0(colnames(peakgroup_list)[int_cols], "_Zscore")
   for (col_index in int_cols) {
     zscores_1col <- (as.numeric(as.vector(unlist(peakgroup_list[, col_index]))) -
                      peakgroup_list$avg.ctrls) / peakgroup_list$sd.ctrls
