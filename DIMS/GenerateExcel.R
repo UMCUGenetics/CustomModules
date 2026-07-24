@@ -26,7 +26,6 @@ plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
-
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 # Z-score for removing outliers with grubbs test
@@ -35,268 +34,120 @@ outlier_threshold <- 2
 # load HMDB rlvnc table
 load(hmdb_rlvc_file)
 
-# load outlist object
+# load adduct sums object (outlist)
 load("AdductSums_combined.RData")
-# Get columns with control intensities
-control_intensity_cols <- get_intensities_cols(outlist, control_label)
-control_col_idx <- control_intensity_cols$col_idx
-control_intensities <- control_intensity_cols$df_intensities
 
-# Get columns with patient intensities
-patient_intensity_cols <- get_intensities_cols(outlist, case_label)
-patient_col_idx <- patient_intensity_cols$col_idx
-patient_columns <- colnames(patient_intensity_cols$df_intensities)
-
-intensity_col_ids <- c(control_col_idx, patient_col_idx)
-
+## DrugDB output
 # Filter out drugs and other metabolites with CHEMBL annotation
 outlist_drugdb <- outlist[grep("CHEMBL", outlist$HMDB_ID_all), ]
-# Add CHEMBL_code column with all the CHEMBL ID and sort on it
-outlist_drugdb <- cbind(outlist_drugdb, "CHEMBL_code" = rownames(outlist_drugdb))
-outlist_drugdb <- outlist_drugdb[order(outlist_drugdb[, "CHEMBL_code"]), ]
-
-# Create excel for drugs
-sheetname <- "Drugs"
-wb_intensities_drugs <- openxlsx::createWorkbook("AdductSums")
-openxlsx::addWorksheet(wb_intensities_drugs, sheetname)
-
-dir.create("plots_drugs", showWarnings = FALSE)
-# add a column for plots
-outlist_drugdb <- cbind(plots = NA, outlist_drugdb)
-# if there are any intensities of 0 left, set them to NA for stats
-outlist_drugdb[, intensity_col_ids][outlist_drugdb[, intensity_col_ids] == 0] <- NA
-outlist_drugdb$HMDB_key <- rownames(outlist_drugdb)
-# get intensity columns
-intensities_df <- outlist_drugdb[, c(ncol(outlist_drugdb), intensity_col_ids)]
-
-for (row_index in seq_len(nrow(intensities_df))) {
-  # get CHEMBL ID
-  chembl_id <- intensities_df %>%
-    slice(row_index) %>%
-    pull(HMDB_key)
-
-  # Transform dataframe to long format
-  intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
-
-  # set plot width to 40 times the number of samples
-  plot_width <- length(unique(intensities_df_long$Samples)) * 40
-  col_width <- plot_width * 2
-
-  start_row_index <- row_index + 1
-  save_plot_to_excel_workbook(
-    wb_intensities_drugs,
-    sheetname,
-    intensities_df_long,
-    "plots_drugs/plot_",
-    chembl_id,
-    plot_width,
-    col_width,
-    start_row_index
-  )
+if (nrow(outlist_drugdb) > 0) {
+  # Add HMDB_code column with all the CHEMBL ID and an empty description column
+  outlist_drugdb <- cbind(outlist_drugdb, HMDB_code = rownames(outlist_drugdb), descr = NA)
+  # sort on CHEMBL ID
+  outlist_drugdb <- outlist_drugdb[order(outlist_drugdb[, "HMDB_code"]), ]
+  
+  if (z_score == 1) {
+    # calculate Z-scores with outliers removed
+    outlist_drugdb_zscores <- calculate_zscores(
+      outlist_drugdb, "_OutlierRemovedZscore", outlier_threshold,
+      control_label, case_label
+    )
+    # get indices for intensity columns based on control_label and case_label
+    intensity_col_ids <- get_intensity_col_index(outlist_drugdb_zscores, control_label, case_label)
+    # Create Excel for drugs
+    create_excel_output(outlist_drugdb_zscores, intensity_col_ids, "Drugs_", z_score, project)
+  } else if (z_score == 0) {
+    # get indices for intensity columns; all columns except those containing HMDB in the name
+    intensity_col_ids <- 1:ncol(outlist_drugdb)
+    intensity_col_ids <- intensity_col_ids[-grep("HMDB", colnames(outlist_drugdb))]
+    # Create Excel for drugs
+    create_excel_output(outlist_drugdb, intensity_col_ids, "Drugs_", z_score, project)
+  }
 }
-wb_intensities <- set_row_height_col_width_wb(
-  wb_intensities_drugs,
-  sheetname,
-  nrow(outlist),
-  ncol(outlist),
-  col_width,
-  plots_present = TRUE
-)
 
-# write Excel file
-openxlsx::writeData(wb_intensities_drugs, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities_drugs, paste0("Drugs_", project, ".xlsx"), overwrite = TRUE)
-rm(wb_intensities_drugs)
-unlink("plots", recursive = TRUE)
-
+## Filtered metabolite output
 # Filter for biological relevance
 peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
 outlist_subset <- outlist[peaks_in_list, ]
+outlist_subset$HMDB_code <- rownames(outlist_subset)
 outlist_subset$HMDB_key <- rownames(outlist_subset)
-outlist <- outlist_subset %>%
+outlist_filtered <- outlist_subset %>%
   left_join(rlvnc %>% rename(sec_HMDB_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
-rownames(outlist) <- outlist$HMDB_key
-
+rownames(outlist_filtered) <- outlist_filtered$HMDB_key
 # filter out all irrelevant HMDBs
-outlist <- outlist %>%
+outlist_filtered <- outlist_filtered %>%
   tibble::rownames_to_column("rowname") %>%
   filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
   tibble::column_to_rownames("rowname")
+# sort on HMDB_key
+outlist_filtered <- peakgroup_list[order(outlist_filtered[, "HMDB_key"]), ]
 
-# Add HMDB_code column with all the HMDB ID and sort on it
-outlist <- cbind(outlist, "HMDB_code" = rownames(outlist))
-outlist <- outlist[order(outlist[, "HMDB_code"]), ]
-
-# Create excel
-sheetname <- "AllPeakGroups"
-wb_intensities_zscores <- openxlsx::createWorkbook("SinglePatient")
-openxlsx::addWorksheet(wb_intensities_zscores, sheetname)
-
-# Add Z-scores and create plots
 if (z_score == 1) {
-  dir.create("plots", showWarnings = FALSE)
-  wb_helix_zscores <- openxlsx::createWorkbook("SinglePatient")
-  openxlsx::addWorksheet(wb_helix_zscores, sheetname)
-  row_helix <- 2 # start on row 2 because of header
-  # add a column for plots
-  outlist <- cbind(plots = NA, outlist)
-  control_col_idx <- control_col_idx + 1
-  intensity_col_ids <- intensity_col_ids + 1
-
-  # three columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
-  startcol <- ncol(outlist) + 4
-
-  # if there are any intensities of 0 left, set them to NA for stats
-  outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
-
-  # calculate robust Z-scores
-  outlist_robust_zscore <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
-
-  # calculate Z-scores after removal of outliers in Control samples with grubbs test
-  outlist_nooutliers <- calculate_zscores(
-    outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
-    intensity_col_ids, startcol
+  # calculate Z-scores with outliers removed
+  outlist_filtered_zscores <- calculate_zscores(
+    outlist_filtered, "_OutlierRemovedZscore", outlier_threshold,
+    control_label, case_label
   )
-
-  # calculate Z-scores
-  outlist <- calculate_zscores(outlist, "_Zscore", control_col_idx, NULL, intensity_col_ids, startcol)
-
-  # output metabolites filtered on relevance
-  save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
+  colnames(outlist_filtered_zscores) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist_filtered_zscores))
+  # get indices for intensity columns
+  intensity_col_ids <- get_intensity_col_index(outlist_filtered_zscores, control_label, case_label)
+  # Create Excel for biologically relevant metabolites
+  create_excel_output(outlist_filtered_zscores, intensity_col_ids, "", z_score, project)
+  # save outlist for GenerateQC step
+  save(outlist_filtered_zscores, file = "outlist.RData")
+  # output filtered metabolites after removal of outliers
+  save_to_rdata_and_txt(outlist_filtered_zscores, "AdductSums_filtered_outliersremovedZ")
+  # calculate robust Z-scores
+  outlist_robust_zscore <- calculate_zscores(peakgroup_list, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
   # output filtered metabolites with robust scaled Zscores
   save_to_rdata_and_txt(outlist_robust_zscore, "AdductSums_filtered_robustZ")
-  # output filtered metabolites after removal of outliers
-  save_to_rdata_and_txt(outlist_nooutliers, "AdductSums_filtered_outliersremovedZ")
+  # calculate Z-scores without outlier removal
+  outlist <- calculate_zscores(peakgroup_list, "_Zscore", control_col_idx, NULL, intensity_col_ids, startcol)
+  # output metabolites filtered on relevance
+  save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
+} else if (z_score == 0) {
+  create_excel_output(outlist_filtered, intensity_col_ids, "", z_score, project)
+}
 
-  # use outlier-removed outlist for generating Excel file
-  outlist <- outlist_nooutliers
-  colnames(outlist) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist))
-
-  # save outlist for GenerateQC step
-  save(outlist, file = "outlist.RData")
-
-  # get Helix IDs for extra Excel file
-  metabolite_files <- list.files(
-    path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
-    pattern = "*.txt", full.names = FALSE, recursive = FALSE
+## Helix output
+# get Helix IDs for extra Excel file
+metabolite_files <- list.files(
+  path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
+  pattern = "*.txt", full.names = FALSE, recursive = FALSE
+)
+metab_df_helix <- NULL
+for (file_index in seq_along(metabolite_files)) {
+  infile <- metabolite_files[file_index]
+  metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
+                           sep = "\t", header = TRUE, quote = ""
   )
-  metab_df_helix <- NULL
-  for (file_index in seq_along(metabolite_files)) {
-    infile <- metabolite_files[file_index]
-    metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
-      sep = "\t", header = TRUE, quote = ""
-    )
-    metab_df_helix <- rbind(metab_df_helix, metab_list)
-  }
-  # get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
-  metab_df_helix <- metab_df_helix %>%
-    filter(Helix == "ja") %>%
-    select(c(HMDB_code, HMDB_name)) %>%
-    rename(H_Name = HMDB_name)
-  metab_list_helix <- unique(metab_df_helix$HMDB_code)
-  metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
+  metab_df_helix <- rbind(metab_df_helix, metab_list)
+}
+# get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
+metab_df_helix <- metab_df_helix %>%
+  filter(Helix == "ja") %>%
+  select(c(HMDB_code, HMDB_name)) %>%
+  rename(H_Name = HMDB_name)
+metab_list_helix <- unique(metab_df_helix$HMDB_code)
+metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
 
-  outlist_helix <- outlist %>%
+if (z_score == 1) {
+  # get intensities for Helix metabolites from dataset
+  outlist_helix <- outlist_filtered_zscores %>%
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
-      -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
-      -all_of(control_col_idx), -all_of(patient_col_idx)
-    ) %>%
-    relocate(c(HMDB_code, H_Name, avg_ctrls, sd_ctrls), .after = plots) %>%
-    relocate(c(HMDB_name, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID), .after = last_col()) %>%
-    rename(Name = H_Name)
-
-  # Get intensity columns for controls and patients
-  intensities_df <- outlist %>% select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"))
-
-  for (row_index in seq_len(nrow(intensities_df))) {
-    # get HMDB ID
-    hmdb_id <- intensities_df %>%
-      slice(row_index) %>%
-      pull(HMDB_key)
-
-    # Transform dataframe to long format
-    intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
-
-    # set plot width to 40 times the number of samples
-    plot_width <- length(unique(intensities_df_long$Samples)) * 40
-    col_width <- plot_width * 2
-
-    if (hmdb_id %in% metab_list_helix) {
-      # Make separate plot for Helix Excel containing all samples
-
-      start_row_index <- row_index + 1
-      save_plot_to_excel_workbook(
-        wb_helix_zscores,
-        sheetname,
-        intensities_df_long,
-        "plots/plot_helix_",
-        hmdb_id,
-        plot_width,
-        col_width,
-        row_helix
-      )
-      row_helix <- row_helix + 1
-    }
-
-    # Remove postive controls and SST mix samples, (e.g. P1001, P1002, P1003, P1005)
-    intensities_df_long <- intensities_df_long %>% filter(!grepl("^P[0-9]{4}$", Samples))
-
-    start_row_index <- row_index + 1
-    save_plot_to_excel_workbook(
-      wb_intensities_zscores,
-      sheetname,
-      intensities_df_long,
-      "plots/plot_",
-      hmdb_id,
-      plot_width,
-      col_width,
-      start_row_index
-    )
-  }
-  wb_intensities <- set_row_height_col_width_wb(
-    wb_intensities_zscores,
-    sheetname,
-    nrow(outlist),
-    ncol(outlist),
-    col_width,
-    plots_present = TRUE
-  )
-
-  wb_helix_intensities <- set_row_height_col_width_wb(
-    wb_helix_zscores,
-    sheetname,
-    nrow(outlist_helix),
-    ncol(outlist_helix),
-    col_width,
-    plots_present = TRUE
-  )
-  openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
-  openxlsx::saveWorkbook(wb_helix_intensities, paste0("/Helix_", project, ".xlsx"), overwrite = TRUE)
-  rm(wb_helix_intensities)
-
-  # reorder outlist for Excel file
-  outlist <- outlist %>%
-    relocate(c(HMDB_code, HMDB_name_all, descr, avg_ctrls, sd_ctrls), .after = plots) %>%
-    relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd_ctrls) %>%
-    relocate(all_of(c(colnames(control_intensities), patient_columns)), .after = last_col())
-} else {
-  save(outlist, file = "outlist.RData")
-  wb_intensities <- set_row_height_col_width_wb(
-    wb_intensities_zscores,
-    sheetname,
-    nrow(outlist),
-    ncol(outlist),
-    plot_width = NULL,
-    plots_present = FALSE
-  )
-  outlist <- outlist %>%
-    relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
+      -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway, monositopic_mass, molecular_formula) #,
+    ) 
+} else if (z_score == 0) {
+  # get intensities for Helix metabolites from dataset
+  outlist_helix <- outlist_filtered %>%
+    filter(HMDB_key %in% metab_list_helix) %>%
+    left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
+    select(
+      -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway, monositopic_mass, molecular_formula) #,
+    ) 
 }
+# Create Excel for Helix
+create_excel_output(outlist_helix, intensity_col_ids, "Helix_", z_score, project)
 
-# write Excel file
-openxlsx::writeData(wb_intensities_zscores, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities_zscores, paste0(project, ".xlsx"), overwrite = TRUE)
-rm(wb_intensities_zscores)
-unlink("plots", recursive = TRUE)
