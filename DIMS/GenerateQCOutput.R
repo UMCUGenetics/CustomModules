@@ -22,7 +22,7 @@ source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
 
 # load init files
 load(init_file)
-# load outlist from GenerateExcel
+# load outlist_filtered_zscores from GenerateExcel
 load("outlist.RData")
 # load combined adducts for each scanmodus
 load("AdductSums_positive.RData")
@@ -39,10 +39,10 @@ control_label <- "C"
 #### CHECK NUMBER OF CONTROLS ####
 file_name <- "Check_number_of_controls.txt"
 min_num_controls <- 25
-check_number_of_controls(outlist, min_num_controls, file_name)
+check_number_of_controls(outlist_filtered_zscores, min_num_controls, file_name)
 
 #### INTERNAL STANDARDS ####
-is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
+is_list <- outlist_filtered_zscores[grep("Internal standard", outlist_filtered_zscores[, "relevance"], fixed = TRUE), ]
 is_codes <- rownames(is_list)
 
 # check if there is data present for all the samples that the pipeline started with
@@ -268,7 +268,7 @@ save_internal_standard_plot(
 # these positive controls need to be in the samplesheet, in order to make the positive_control.RData file
 # Positive control samples all have the format P1002.x, P1003.x and P1005.x (where x is a number)
 
-column_list <- colnames(outlist)
+column_list <- colnames(outlist_filtered_zscores)
 patterns <- c("^(P1002\\.)[[:digit:]]+_", "^(P1003\\.)[[:digit:]]+_", "^(P1005\\.)[[:digit:]]+_")
 positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), column_list)
 positive_control_list <- column_list[positive_controls_index]
@@ -304,21 +304,21 @@ if (length(positive_control_list) > 0) {
       pa_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
       pa_codes <- c("HMDB0000824", "HMDB0000725", "HMDB0000123")
       pa_names <- c("Propionylcarnitine", "Propionylglycine", "Glycine")
-      pa_data <- get_pos_ctrl_data(outlist, pa_sample_name, pa_codes, pa_names)
+      pa_data <- get_pos_ctrl_data(outlist_filtered_zscores, pa_sample_name, pa_codes, pa_names)
       positive_control <- rbind(positive_control, pa_data)
     }
     if (any(grepl("^P1003", pos_ctrl))) {
       pku_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
       pku_codes <- c("HMDB0000159")
       pku_names <- c("L-Phenylalanine")
-      pku_data <- get_pos_ctrl_data(outlist, pku_sample_name, pku_codes, pku_names)
+      pku_data <- get_pos_ctrl_data(outlist_filtered_zscores, pku_sample_name, pku_codes, pku_names)
       positive_control <- rbind(positive_control, pku_data)
     }
     if (any(grepl("^P1005", pos_ctrl))) {
       lpi_sample_name <- positive_control_list[grepl(pos_ctrl_samplename, positive_control_list)]
       lpi_codes <- c("HMDB0000904", "HMDB0000641", "HMDB0000182")
       lpi_names <- c("Citrulline", "L-Glutamine", "L-Lysine")
-      lpi_data <- get_pos_ctrl_data(outlist, lpi_sample_name, lpi_codes, lpi_names)
+      lpi_data <- get_pos_ctrl_data(outlist_filtered_zscores, lpi_sample_name, lpi_codes, lpi_names)
       positive_control <- rbind(positive_control, lpi_data)
     }
   }
@@ -354,7 +354,7 @@ is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
 # SST components
 sst_components <- read.csv(sst_components_file, header = TRUE, sep = "\t")
-sst_metabolites_df <- outlist %>% filter(HMDB_code %in% sst_components$HMDB_ID)
+sst_metabolites_df <- outlist_filtered_zscores %>% filter(HMDB_code %in% sst_components$HMDB_ID)
 sst_sample_column_index <- grep("P1001", colnames(sst_metabolites_df))
 
 # Check if SST mix sample(s) are present
