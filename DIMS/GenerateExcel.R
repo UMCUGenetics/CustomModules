@@ -80,7 +80,7 @@ outlist_filtered <- outlist_filtered %>%
   filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
   tibble::column_to_rownames("rowname")
 # sort on HMDB_key
-outlist_filtered <- peakgroup_list[order(outlist_filtered[, "HMDB_key"]), ]
+outlist_filtered <- outlist_filtered[order(outlist_filtered[, "HMDB_key"]), ]
 
 if (z_score == 1) {
   # calculate Z-scores with outliers removed
@@ -91,6 +91,7 @@ if (z_score == 1) {
   colnames(outlist_filtered_zscores) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist_filtered_zscores))
   # get indices for intensity columns
   intensity_col_ids <- get_intensity_col_index(outlist_filtered_zscores, control_label, case_label)
+  control_col_idx <- get_intensity_col_index(outlist_filtered_zscores, control_label, "none")
   # Create Excel for biologically relevant metabolites
   create_excel_output(outlist_filtered_zscores, intensity_col_ids, "", z_score, project)
   # save outlist for GenerateQC step
@@ -98,11 +99,11 @@ if (z_score == 1) {
   # output filtered metabolites after removal of outliers
   save_to_rdata_and_txt(outlist_filtered_zscores, "AdductSums_filtered_outliersremovedZ")
   # calculate robust Z-scores
-  outlist_robust_zscore <- calculate_zscores(peakgroup_list, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
+  outlist_robust_zscore <- calculate_zscores(outlist_filtered, "_RobustZscore", perc, control_label, case_label)
   # output filtered metabolites with robust scaled Zscores
   save_to_rdata_and_txt(outlist_robust_zscore, "AdductSums_filtered_robustZ")
   # calculate Z-scores without outlier removal
-  outlist <- calculate_zscores(peakgroup_list, "_Zscore", control_col_idx, NULL, intensity_col_ids, startcol)
+  outlist <- calculate_zscores(outlist_filtered, "_Zscore", NULL, control_label, case_label)
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
 } else if (z_score == 0) {
