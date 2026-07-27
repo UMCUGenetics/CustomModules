@@ -27,14 +27,12 @@ calculate_zscores <- function(peakgroup_list, zscore_type, stat_filter, control_
   # Initialize
   peakgroup_list$avg_ctrls <- 0
   peakgroup_list$sd_ctrls <- 0
-  peakgroup_list$nr_ctrls <- length(control_col_idx)
   
-  # Get columns with intensities
+  # Get columns indices with intensities
   control_col_idx <- grep(control_label, colnames(peakgroup_list), fixed = TRUE)
-  control_column_names <- colnames(peakgroup_list)[control_col_idx]
   patient_col_idx <-  grep(case_label, colnames(peakgroup_list), fixed = TRUE)
-  patient_column_names <- colnames(peakgroup_list)[patient_col_idx]
   intensity_col_ids <- c(control_col_idx, patient_col_idx)
+  peakgroup_list$nr_ctrls <- length(control_col_idx)
   
   # calculate mean and standard deviation of controls
   if (zscore_type == "_Zscore") {
