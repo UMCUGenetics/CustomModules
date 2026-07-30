@@ -36,8 +36,8 @@ calculate_zscores <- function(peakgroup_list, zscore_type, control_cols, stat_fi
 
   if (zscore_type == "_Zscore") {
     # Calculate mean and sd with all controls
-    peakgroup_list$avg_ctrls <- apply(control_cols, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
-    peakgroup_list$sd_ctrls <- apply(control_cols, 1, function(x) sd(as.numeric(x), na.rm = TRUE))
+    peakgroup_list$avg_ctrls <- apply(peakgroup_list[, control_cols], 1, function(x) mean(as.numeric(x), na.rm = TRUE))
+    peakgroup_list$sd_ctrls <- apply(peakgroup_list[, control_cols], 1, function(x) sd(as.numeric(x), na.rm = TRUE))
   } else {
     if (length(control_cols) > 3) {
       for (metabolite_index in seq_len(nrow(peakgroup_list))) {
@@ -69,7 +69,7 @@ calculate_zscores <- function(peakgroup_list, zscore_type, control_cols, stat_fi
   outlist_zscores <- apply(peakgroup_list[, intensity_col_ids, drop = FALSE], 2, function(col) {
     (as.numeric(col) - peakgroup_list$avg_ctrls) / peakgroup_list$sd_ctrls
   })
-  colnames(peakgroup_list) <- paste0(colnames(peakgroup_list)[intensity_col_ids], zscore_type)
+  colnames(outlist_zscores) <- paste0(colnames(peakgroup_list)[intensity_col_ids], zscore_type)
   peakgroup_list <- cbind(peakgroup_list, outlist_zscores)
 
   return(peakgroup_list)
