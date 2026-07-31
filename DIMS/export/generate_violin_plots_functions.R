@@ -10,7 +10,7 @@
 prepare_intensities_zscore_df <- function(intensities_zscore_df) {
   intensities_zscore_df <- intensities_zscore_df %>%
     select(-c(
-      plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMDB_ID_rlvnc, name,
+      HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMDB_ID_rlvnc, name,
       relevance, descr, origin, fluids, tissue, disease, pathway, nr_ctrls
     )) %>%
     relocate(c(HMDB_code, HMDB_name)) %>%
@@ -707,7 +707,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
   }
 
     # put table of drugs into PDF file, if not empty
-  if (!is.null(dim(top_drugs_patient))) {
+  if (!is.null(top_drugs_patient) && nrow(top_drugs_patient) > 0) {
     max_rows_per_page <- 35
     total_rows <- nrow(top_drugs_patient)
     number_of_pages <- ceiling(total_rows / max_rows_per_page)
@@ -989,6 +989,7 @@ make_and_save_diem_plots <- function(
         patient_id,
         diem_metabolites_perpage,
         top_metabolites_patient,
+	NULL,
         explanation_violin_plot
       )
     } else {
