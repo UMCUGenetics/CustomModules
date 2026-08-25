@@ -976,7 +976,7 @@ make_and_save_diem_plots <- function(
         patient_id,
         diem_metabolites_perpage,
         top_metabolites_patient,
-	NULL,
+        NULL,
         explanation_violin_plot
       )
     } else {
