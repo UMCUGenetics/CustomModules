@@ -88,7 +88,6 @@ if (z_score == 1) {
     outlist_filtered, "_OutlierRemovedZscore", outlier_threshold,
     control_label, case_label
   )
-  colnames(outlist_filtered_zscores) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist_filtered_zscores))
   # get indices for intensity columns
   intensity_col_ids <- get_intensity_col_index(outlist_filtered_zscores, control_label, case_label)
   control_col_idx <- get_intensity_col_index(outlist_filtered_zscores, control_label, "none")
