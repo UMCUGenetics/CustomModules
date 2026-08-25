@@ -580,7 +580,7 @@ get_top_metabolites_df <- function(patient_name, dims_helix_table) {
 
 #' Create a dataframe with the top 20 highest and top 10 lowest metabolites per patient
 #'
-#' @param pt_name: patient code (string)
+#' @param patient_id: patient code (string)
 #' @param zscore_patients: dataframe with metabolite Z-scores per patient (dataframe)
 #' @param top_highest: the number of metabolites with the highest Z-score to display in the table (numeric)
 #' @param top_lowest: the number of metabolites with the lowest Z-score to display in the table (numeric)
@@ -610,6 +610,35 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
   colnames(top_metab_pt) <- c("HMDB_ID", "Metabolite", "Z-score")
 
   return(top_metab_pt)
+}
+
+#' Add a table with top deviating metabolites for a patient to pdf
+#'
+#' @param top_metab_pt: dataframe with metabolites and Z-scores for a patient (dataframe)
+#' @param patient_id: patient code (string)
+#' @param list_type: label indicating whether the table lists metabolites or drugs (string)
+add_table_to_pdf <- function(top_metab_pt, patient_id, list_type = "metab") {
+  max_rows_per_page <- 35
+  total_rows <- nrow(top_metab_pt)
+  number_of_pages <- ceiling(total_rows / max_rows_per_page)
+  
+  for (page in seq(number_of_pages)) {
+    start_row <- (page - 1) * max_rows_per_page + 1
+    end_row <- min(page * max_rows_per_page, total_rows)
+    page_data <- top_metab_pt[start_row:end_row, ]
+    
+    table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
+    if (list_type == "drug") {
+      table_title <- paste0("Top deviating drug metabolites for patient: ", patient_id)
+    } else {
+      table_title <- paste0("Top deviating metabolites for patient: ", patient_id)
+    }
+      
+    grid.arrange(
+      table_grob,
+      top = table_title
+    )
+  }
 }
 
 #' Create a pdf with table with metabolites and violin plots
@@ -659,29 +688,14 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # put table into PDF file, if not empty
   if (!is.null(dim(top_metab_pt))) {
-    max_rows_per_page <- 35
-    total_rows <- nrow(top_metab_pt)
-    number_of_pages <- ceiling(total_rows / max_rows_per_page)
-
-    for (page in seq(number_of_pages)) {
-      start_row <- (page - 1) * max_rows_per_page + 1
-      end_row <- min(page * max_rows_per_page, total_rows)
-      page_data <- top_metab_pt[start_row:end_row, ]
-
-      table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
-
-      grid.arrange(
-        table_grob,
-        top = paste0("Top deviating metabolites for patient: ", patient_id)
-      )
-    }
+    add_table_to_pdf(top_metab_pt, patient_id_sub)
   }
 
   # violin plots
   for (metab_class in names(metab_perpage)) {
     # extract list of metabolites to plot on a page
     metab_zscores_df <- metab_perpage[[metab_class]]
-    # extract original data for patient of interest (pt_name) before cut-offs
+    # extract original data for patient of interest (patient_id) before cut-offs
     patient_zscore_df <- metab_zscores_df %>% filter(Sample == patient_id)
 
     # Remove patient column and change Z-score. If under -5 to -5 and if above 20 to 20.
@@ -700,24 +714,9 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     suppressWarnings(print(ggplot_object))
   }
 
-    # put table of drugs into PDF file, if not empty
+  # put table of drugs into PDF file, if not empty
   if (!is.null(top_drugs_patient) && nrow(top_drugs_patient) > 0) {
-    max_rows_per_page <- 35
-    total_rows <- nrow(top_drugs_patient)
-    number_of_pages <- ceiling(total_rows / max_rows_per_page)
-
-    for (page in seq(number_of_pages)) {
-      start_row <- (page - 1) * max_rows_per_page + 1
-      end_row <- min(page * max_rows_per_page, total_rows)
-      page_data <- top_drugs_patient[start_row:end_row, ]
-
-      table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
-
-      grid.arrange(
-        table_grob,
-        top = paste0("Top deviating drug metabolites for patient: ", patient_id)
-      )
-    }
+    add_table_to_pdf(top_drugs_patient, patient_id_sub, "drug")
   }
 
   # add explanation of violin plots, version number etc.
