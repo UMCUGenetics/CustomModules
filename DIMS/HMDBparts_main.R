@@ -4,7 +4,12 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 db_file <- cmd_args[1]
 breaks_file <- cmd_args[2]
 
+# Initialize
+options(digits = 16)
+
+# load HMDB database file
 load(db_file)
+# load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_file)
 
 # get minimum and maximum m/z in dataset
