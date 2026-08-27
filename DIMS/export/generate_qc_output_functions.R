@@ -55,7 +55,6 @@ get_internal_standards <- function(internal_stand_df, scanmode, is_subset_filter
 #' @param plot_data: Dataframe with the data to be plotted (matrix)
 #' @param plot_type: Type of plot (string)
 #' @param plot_title: Title for the plot (string)
-#' @param outdir: Directory where the plot needs to be saved (string)
 #' @param file_name: Name of the file (string)
 #' @param plot_width: Width of the plot (int)
 #' @param plot_height: Height of the plot (int)
@@ -64,7 +63,6 @@ save_internal_standard_plot <- function(
     plot_data,
     plot_type,
     plot_title,
-    outdir,
     file_name,
     plot_width,
     plot_height,
@@ -116,7 +114,7 @@ save_internal_standard_plot <- function(
       )
   }
 
-  ggplot2::ggsave(paste0(outdir, "/plots/", file_name, ".png"),
+  ggplot2::ggsave(paste0("./plots/", file_name, ".png"),
     plot = plot, height = plot_height, width = plot_width, units = "in"
   )
 }
