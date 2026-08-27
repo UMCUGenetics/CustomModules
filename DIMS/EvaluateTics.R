@@ -1,4 +1,4 @@
-# load packages
+# load required packages
 library("ggplot2")
 library("gridExtra")
 
@@ -17,6 +17,9 @@ preprocessing_scripts_dir <- cmd_args[7]
 
 # load functions
 source(paste0(preprocessing_scripts_dir, "evaluate_tics_functions.R"))
+
+# Initialize
+options(digits = 16)
 
 # load init_file: contains repl_pattern
 load(init_file)
@@ -44,7 +47,7 @@ print(remove_tech_reps)
 remove_neg <- remove_tech_reps$neg
 repl_pattern_filtered <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
-# get an overview of suitable technical replicates for both negative mode
+# get an overview of suitable technical replicates for negative scan mode
 allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
 
 # positive scan mode
@@ -63,9 +66,7 @@ write.table(allsamples_techreps_both_scanmodes,
             sep = ","
 )
 
-
-## generate TIC plots
-# get all txt files
+# generate TIC plots using all tic files
 tic_files <- list.files("./", full.names = TRUE, pattern = "*TIC.txt")
 all_samps <- sub("_TIC\\..*$", "", basename(tic_files))
 
@@ -140,5 +141,4 @@ tic_plot_pdf <- marrangeGrob(
 # save to file
 ggsave(filename = paste0(run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")
-
 
