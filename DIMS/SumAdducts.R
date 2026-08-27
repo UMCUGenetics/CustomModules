@@ -1,4 +1,6 @@
+# load required libraries
 library("dplyr")
+
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
