@@ -1,7 +1,5 @@
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
-
-scripts_dir <- cmd_args[1]
+# Initialize
+options(digits = 16)
 
 # for each scan mode, collect all averaged peak lists per biological sample
 scanmodes <- c("positive", "negative")
