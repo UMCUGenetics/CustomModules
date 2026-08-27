@@ -1,8 +1,8 @@
-# define parameters
-cmd_args <- commandArgs(trailingOnly = TRUE)
-
 # load required packages
 library("dplyr")
+
+# define parameters
+cmd_args <- commandArgs(trailingOnly = TRUE)
 
 hmdb_part_file <- cmd_args[1]
 preprocessing_scripts_dir <- cmd_args[2]
@@ -11,6 +11,7 @@ ppm <- as.numeric(cmd_args[3])
 # load in function scripts
 source(paste0(preprocessing_scripts_dir, "peak_grouping_functions.R"))
 
+# Initialize
 options(digits = 16)
 
 # load part of the HMDB
@@ -42,8 +43,6 @@ outlist_df$height.pkt <- as.numeric(outlist_df$height.pkt)
 rm(outlist_total)
 sample_names <- unique(outlist_df$samplenr)
 
-## peak grouping
-peakgrouplist <- NULL
 # limit the peaklist to the m/z range in the HMDB part, with ppm tolerance
 minmz_hmdbpart <- min(hmdb_add_iso[, column_label])
 maxmz_hmdbpart <- max(hmdb_add_iso[, column_label])
@@ -54,10 +53,10 @@ outlist_mzrange <- outlist_df[outlist_df$mzmed.pkt > (minmz_hmdbpart - mz_tolera
 outlist_sorted <- outlist_mzrange %>% dplyr::arrange(desc(height.pkt))
 
 # find peak groups
-ints_sorted <- find_peak_groups(outlist_sorted, mz_tolerance, sample_names)
+peakgrouplist <- find_peak_groups(outlist_sorted, mz_tolerance, sample_names)
 
 # do annotation
-peakgrouplist_identified <- annotate_peak_groups(ints_sorted, hmdb_add_iso, column_label, mz_tolerance)
+peakgrouplist_identified <- annotate_peak_groups(peakgrouplist, hmdb_add_iso, column_label, mz_tolerance)
 
 # write output to file
 save(peakgrouplist_identified, file = paste0(batch_number, "_", scanmode, "_identified.RData"))
