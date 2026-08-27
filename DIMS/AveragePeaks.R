@@ -1,3 +1,4 @@
+# load required packages
 library(dplyr)
 
 # define parameters
@@ -12,9 +13,9 @@ tech_reps <- strsplit(techreps, ";")[[1]]
 # load in function scripts
 source(paste0(preprocessing_scripts_dir, "average_peaks_functions.R"))
 
-# Initialize per sample
+# Initialize
+options(digits = 16)
 peaklist_allrepl <- NULL
-nr_repl_persample <- 0
 averaged_peaks <- matrix(0, nrow = 0, ncol = 6) 
 colnames(averaged_peaks) <- c("samplenr", "mzmed.pkt", "fq", "mzmin.pkt", "mzmax.pkt", "height.pkt")
 
@@ -25,13 +26,15 @@ for (file_nr in 1:length(tech_reps)) {
   # combine data for all technical replicates
   peaklist_allrepl <- rbind(peaklist_allrepl, tech_repl)
 }
-# sort on mass
+# make sure mass and intensity columns are numeric
 peaklist_allrepl_df <- as.data.frame(peaklist_allrepl)
 peaklist_allrepl_df$mzmed.pkt <- as.numeric(peaklist_allrepl_df$mzmed.pkt) 
 peaklist_allrepl_df$height.pkt <- as.numeric(peaklist_allrepl_df$height.pkt) 
+# sort on mass
 peaklist_allrepl_sorted <- peaklist_allrepl_df %>% arrange(mzmed.pkt)
 
 # average over technical replicates
 averaged_peaks <- average_peaks_per_sample(peaklist_allrepl_sorted, sample_name)
+
 save(averaged_peaks, file = paste0("AvgPeaks_", sample_name, "_", scanmode, ".RData"))
 
