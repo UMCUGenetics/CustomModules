@@ -1,3 +1,4 @@
+# loead required packages
 library(dplyr)
 
 # define parameters
@@ -6,11 +7,14 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 replicate_rdatafile <- cmd_args[1]
 resol <- as.numeric(cmd_args[2])
 preprocessing_scripts_dir <- cmd_args[3]
-# use fixed theshold between noise and signal for peak
-peak_thresh <- 2000 
 
 # source functions script
 source(paste0(preprocessing_scripts_dir, "peak_finding_functions.R"))
+
+# Initialize
+options(digits = 16)
+# theshold between noise and signal for peak
+peak_thresh <- 2000 
 
 # Load output of AssignToBins (peak_list) for a technical replicate
 load(replicate_rdatafile)
@@ -18,9 +22,6 @@ techrepl_name <- colnames(peak_list$pos)[1]
 
 # load list of technical replicates per sample that passed threshold filter
 techreps_passed <- read.table("replicates_per_sample.txt", sep=",")
-
-# Initialize
-options(digits = 16)
 
 # do peak finding
 scanmodes <- c("positive", "negative")
