@@ -1,7 +1,7 @@
 process SumAdducts {
     tag "DIMS SumAdducts ${hmdbpart_main_file}"
     label 'SumAdducts'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
