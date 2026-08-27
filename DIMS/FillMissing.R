@@ -8,6 +8,9 @@ thresh <- as.numeric(cmd_args[3])
 # load in function scripts
 source(paste0(preprocessing_scripts_dir, "fill_missing_functions.R"))
 
+# Initialize
+options(digits = 16)
+
 # determine scan mode
 if (grepl("_pos", peakgrouplist_file)) {
   scanmode <- "positive"
@@ -30,3 +33,4 @@ outputfile_name <- gsub(".RData", "_filled.RData", peakgrouplist_file)
 
 # save output
 save(peakgrouplist_filled, file = outputfile_name)
+
