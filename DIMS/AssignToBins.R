@@ -9,15 +9,16 @@ breaks_filepath <- cmd_args[2]
 trim_parameters_filepath <- cmd_args[3]
 resol <- as.numeric(cmd_args[4])
 
-options(digits = 16)
-
 # Initialize
-pos_bins <- rep(0, length(breaks_fwhm) - 1)
-neg_bins <- pos_bins
+options(digits = 16)
 dims_thresh <- 100
+pos_results <- NULL
+neg_results <- NULL
 
 # load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_filepath)
+pos_bins <- rep(0, length(breaks_fwhm) - 1)
+neg_bins <- pos_bins
 # load trim parameters file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(trim_parameters_filepath)
 
