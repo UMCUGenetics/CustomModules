@@ -2,6 +2,8 @@
 # function: sum_intensities_adducts_perclass
 source("../../preprocessing/sum_intensities_adducts.R")
 
+suppressPackageStartupMessages(library("dplyr"))
+
 # test sum_intensities_adducts_perclass
 testthat::test_that("adduct sums per class are correctly calculated", {
   # create peakgroup_list to test on in diagnostics setting
@@ -22,7 +24,7 @@ testthat::test_that("adduct sums per class are correctly calculated", {
   test_peakgroup_list[ , grep("P", colnames(test_peakgroup_list))] <- 10000*(1:16)
  
   # create HMDB part object 
-  test_hmdb_main_part <- matrix(NA, nrow = 3, ncol = 9)
+  test_hmdb_main_part <- matrix(NA, nrow = 2, ncol = 9)
   colnames(test_hmdb_main_part) <- c("HMDB_ID_all", "sec_HMDB_ID", "CompoundName", "HMDB_name_all",
                                      "Composition", "MNeutral", "MNeg", "Mpos", "adducts")
   rownames(test_hmdb_main_part) <- c("HMDB1234567", "HMDB7654321")
@@ -31,10 +33,10 @@ testthat::test_that("adduct sums per class are correctly calculated", {
   test_hmdb_main_part[, "adducts"] <- c("1,2", "1,7")
  
   expect_type(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1), "character")
-  expect_equal(rownames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1))[1], "HMDB1234567", TRUE)
+  expect_equal(rownames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1))[1], "HMDB1234567")
   expect_equal(colnames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1)), 
-               c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"), TRUE)
+               c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"))
   expect_equal(as.vector(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1)[1, c(1:4)]), 
-               c("6000", "18000", "60000", "180000"), TRUE)
+               c("6000", "18000", "60000", "180000"))
 })
 
