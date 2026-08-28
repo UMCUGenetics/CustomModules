@@ -96,7 +96,7 @@ calculate_zscores_peakgrouplist <- function(peakgroup_list) {
   }
   
   # apply new column names to columns at end plus avg and sd columns
-  colnames(peakgroup_list_zscores)[startcol:ncol(peakgroup_list)] <- colnames_zscores
+  colnames(peakgroup_list_zscores)[startcol:ncol(peakgroup_list_zscores)] <- colnames_zscores
   
   return(peakgroup_list_zscores)
 }
