@@ -18,17 +18,12 @@ path_metabolite_groups <- cmd_args[5]
 # load in function scripts
 source(paste0(export_scripts_dir, "generate_excel_functions.R"))
 
-# set the number of digits for floats
+# Initialize
 options(digits = 16)
-
-# Initialise
 plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
-
-# setting outdir to export files to the working directory
-outdir <- "./"
 # percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 # Z-score for removing outliers with grubbs test
@@ -65,7 +60,7 @@ openxlsx::addWorksheet(wb_intensities_zscores, sheetname)
 
 # Add Z-scores and create plots
 if (z_score == 1) {
-  dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
+  dir.create("./plots", showWarnings = FALSE)
   wb_helix_zscores <- openxlsx::createWorkbook("SinglePatient")
   openxlsx::addWorksheet(wb_helix_zscores, sheetname)
   row_helix <- 2 # start on row 2 because of header
@@ -90,16 +85,15 @@ if (z_score == 1) {
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
   # calculate robust Z-scores
-  outlist_robust_zscore <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids, startcol)
+  outlist_robust_zscore <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids)
 
   # calculate Z-scores after removal of outliers in Control samples with grubbs test
   outlist_nooutliers <- calculate_zscores(
-    outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold,
-    intensity_col_ids, startcol
+    outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids
   )
 
   # calculate Z-scores
-  outlist <- calculate_zscores(outlist, "_Zscore", control_intensities, NULL, intensity_col_ids, startcol)
+  outlist <- calculate_zscores(outlist, "_Zscore", control_col_idx, NULL, intensity_col_ids)
 
   # output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
@@ -213,7 +207,7 @@ if (z_score == 1) {
     plots_present = TRUE
   )
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
-  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
+  openxlsx::saveWorkbook(wb_helix_intensities, paste0("Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
 
   # reorder outlist for Excel file
@@ -237,6 +231,6 @@ if (z_score == 1) {
 
 # write Excel file
 openxlsx::writeData(wb_intensities_zscores, sheet = 1, outlist, startCol = 1)
-openxlsx::saveWorkbook(wb_intensities_zscores, paste0(outdir, "/", project, ".xlsx"), overwrite = TRUE)
+openxlsx::saveWorkbook(wb_intensities_zscores, paste0(project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities_zscores)
 unlink("plots", recursive = TRUE)
