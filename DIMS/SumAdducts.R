@@ -22,7 +22,7 @@ if (grepl("positive_hmdb", hmdbpart_main_file)) {
 }
 
 # load input files
-collect_file <- paste0("outlist_identified_", scanmode, ".RData")
+collect_file <- paste0("peakgroup_list_identified_", scanmode, ".RData")
 peakgroup_list <- get(load(collect_file))
 hmdb_main_part <- get(load(hmdbpart_main_file))
 
