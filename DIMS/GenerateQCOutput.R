@@ -87,15 +87,15 @@ plot_width <- 9 + 0.35 * sample_count
 plot_height <- plot_width / 2.5
 
 save_internal_standard_plot(
-  is_neg, "barplot", "Interne Standaard (Neg)", "./",
+  is_neg, "barplot", "Interne Standaard (Neg)",
   "IS_bar_all_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_pos, "barplot", "Interne Standaard (Pos)", "./",
+  is_pos, "barplot", "Interne Standaard (Pos)",
   "IS_bar_all_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_summed, "barplot", "Interne Standaard (Summed)", "./",
+  is_summed, "barplot", "Interne Standaard (Summed)",
   "IS_bar_all_sum", plot_width, plot_height
 )
 
@@ -197,7 +197,7 @@ if (dims_matrix == "Plasma") {
 } else if (dims_matrix == "DBS") {
   is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_dbs_neg, is_neg_selection, "neg")
   is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_dbs_pos, is_pos_selection, "pos")
-  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_neg_selection, "sum")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_sum_selection, "sum")
   is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
 } else {
   # generate empty table
@@ -409,13 +409,13 @@ if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
 }
 
 # MISSING M/Z CHECK
-# check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file
-# Load the outlist_identified files + remove the loaded files
-load("./outlist_identified_negative.RData")
-mzmed_pgrp_ident_neg <- outlist_ident$mzmed.pgrp
-load("./outlist_identified_positive.RData")
-mzmed_pgrp_ident_pos <- outlist_ident$mzmed.pgrp
-rm(outlist_ident)
+# check the peakgroup_list_identified_(negative/positive).RData files for missing m/z values and save to file
+# Load the peakgroup_list_identified files + remove the loaded files
+load("./peakgroup_list_identified_negative.RData")
+mzmed_pgrp_ident_neg <- peakgroup_list_ident$mzmed.pgrp
+load("./peakgroup_list_identified_positive.RData")
+mzmed_pgrp_ident_pos <- peakgroup_list_ident$mzmed.pgrp
+rm(peakgroup_list_ident)
 
 # Check for missing mz values, if present returned with vector of missing mz values
 mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative")
