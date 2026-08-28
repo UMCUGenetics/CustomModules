@@ -9,8 +9,8 @@ process CollectFilled {
        each path(replication_pattern)
 
     output:
-       path('outlist*.txt')
-       path('outlist*.RData'), emit: filled_pgrlist
+       path('peakgroup_list*.txt')
+       path('peakgroup_list*.RData'), emit: filled_pgrlist
 
     script:
         """
