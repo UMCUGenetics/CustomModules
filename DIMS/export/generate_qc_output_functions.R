@@ -237,7 +237,11 @@ find_is_below_threshold <- function(is_selection_subset, thresholds, is_names, s
   }
   is_below_threshold <- is_selection_subset[below_threshold_index, ]
   # add information on scan mode
-  is_below_threshold <- cbind(is_below_threshold, scanmode = scanmode)
+    if (nrow(is_below_threshold) > 0) {
+    is_below_threshold <- cbind(is_below_threshold, scanmode = scanmode)
+  } else {
+    is_below_threshold$scanmode_char <- character(0)
+  }
  
   return(is_below_threshold)
 }
