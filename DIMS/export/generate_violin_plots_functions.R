@@ -96,7 +96,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
       intensity_col_names
     )
     # calculate the intensity ratio for each sample
-    zscore_ratios_df[row_index, intensity_cols_index] <- log2(numerator_intensities / denominator_intensities)
+    zscore_ratios_df[row_index, intensity_cols_index] <- numerator_intensities / denominator_intensities
   }
 
   control_intensities_cols_index <- grep("^C[^_]*$", colnames(intensities_zscores_df), perl = TRUE)
@@ -600,7 +600,6 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
     patient_zscore_df$HMDB_name,
     levels = rev(patient_zscore_df$HMDB_name)
   )
-
   # add class for legend
   patient_zscore_df$class <- "amino_acids"
   patient_zscore_df$class[grep("nitine", patient_zscore_df$HMDB_name)] <- "acyl_carnitines"
@@ -615,14 +614,13 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
       linewidth = 1
     ) +
     # points
-    geom_point(size = 3) +
+    geom_point(size = 2) +
     # label extreme values
     geom_text(
-      data = subset(patient_zscore_df, abs(Z_score) > 20 | abs(Z_score) > 5 & Z_score_original > 10),
+      data = subset(patient_zscore_df, Z_score == 20 | Z_score == -5),
       aes(label = round(Z_score_original, 2)),
-      hjust = ifelse(subset(patient_zscore_df, abs(Z_score) > 20 | abs(Z_score) > 5 & Z_score_original > 10)$Z_score > 0,
-                     -0.1, 1.1),
-      size = 3.5,
+      vjust = ifelse(subset(patient_zscore_df, Z_score == 20 | Z_score == -5)$Z_score > 0, -0.5, -0.5),
+      size = 3,
       show.legend = FALSE
     ) +
     scale_color_manual(
@@ -645,8 +643,10 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
       axis.text.y = element_text(size = 6, hjust = 1, family = "Courier"),
       plot.title = element_text(size = 12),
       legend.position = "none"
-    )
-  
+    ) +
+    # Limit the x-axis to between -5 and 20
+    xlim(-5, 20)
+
   return(gglolli)
 }
 
@@ -750,7 +750,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
       # store violin plot in a list
       ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
-      violinplot_list <- c(violinplot_list, ggplot_object)
+      violinplot_list <- append(violinplot_list, list(ggplot_object))
     }
   
     # put plots into PDF
@@ -758,9 +758,9 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     print(lollipop_plot)
     # add violin plots
     for (plot_index in 1:length(violinplot_list)) {
-      suppressWarnings(print(violinplot_list[[plot_index]]))
+      print(violinplot_list[[plot_index]])
     }
-  
+ 
     # add explanation of violin plots, version number etc.
     plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
     if (length(explanation) > 0) {
