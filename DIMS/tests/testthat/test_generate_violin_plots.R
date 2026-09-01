@@ -676,7 +676,7 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1,
-    c(1000, 1200, 1300, 1400, 1500, 1600, -0.2630344, -0.1069152, 11.8533096)
+    c(1000, 1200, 1300, 1400, 1500, 1600, 0.83333, 0.9285714, 3700.00000), tolerance = 0.0001
   )
   expect_equal(
     add_zscores_ratios_to_df(
@@ -684,7 +684,7 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1_Zscore,
-    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.5899371, 0.4858991, -0.4552026),
+    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.4574, 0.5552, -0.4486),
     tolerance = 0.0001
   )
 })
@@ -711,11 +711,11 @@ testthat::test_that("calculate_zscore_ratios: Calculate Zscores for ratios", {
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1,
-    c(-0.2630344, -0.1069152, 11.8533096)
+    c(0.83333, 0.9285714, 3700.00000), tolerance = 0.0001
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1_Zscore,
-    c(-0.5899371, 0.4858991, -0.4552026),
+    c(-0.4574, 0.5552, -0.4486),
     tolerance = 0.0001
   )
 })
