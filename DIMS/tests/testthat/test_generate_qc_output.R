@@ -60,7 +60,7 @@ testthat::test_that("Save internal standard plots", {
 
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "barplot", "Test barplot", temp_dir,
+      test_plot_data, "barplot", "Test barplot",
       file_name_barplot, 6, 4, test_hline_data
     )
   )
@@ -71,7 +71,7 @@ testthat::test_that("Save internal standard plots", {
   out_file_lineplot <- file.path(temp_dir, "plots", paste0(file_name_lineplot, ".png"))
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "lineplot", "Test lineplot", temp_dir,
+      test_plot_data, "lineplot", "Test lineplot",
       file_name_lineplot, 6, 4
     )
   )
@@ -80,7 +80,7 @@ testthat::test_that("Save internal standard plots", {
   test_plot_data <- test_plot_data[-c(1, 2, 3, 4, 5, 6), ]
 
   expect_identical(save_internal_standard_plot(
-    test_plot_data, "barplot", "Test barplot", temp_dir,
+    test_plot_data, "barplot", "Test barplot",
     file_name_barplot, 6, 4, test_hline_data
   ), NULL)
 
@@ -88,7 +88,7 @@ testthat::test_that("Save internal standard plots", {
 
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "barplot", "Test barplot", temp_dir,
+      test_plot_data, "barplot", "Test barplot",
       file_name_barplot_select, 6, 4, test_hline_data
     )
   )
