@@ -9,23 +9,21 @@ breaks_filepath <- cmd_args[2]
 trim_parameters_filepath <- cmd_args[3]
 resol <- as.numeric(cmd_args[4])
 
-# load breaks_file: contains breaks_fwhm, breaks_fwhm_avg,
+# Initialize
+options(digits = 16)
+dims_thresh <- 100
+pos_results <- NULL
+neg_results <- NULL
+
+# load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_filepath)
+pos_bins <- rep(0, length(breaks_fwhm) - 1)
+neg_bins <- pos_bins
 # load trim parameters file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(trim_parameters_filepath)
 
-# get sample name
+# get name of the technical replicate
 techrep_name <- sub("\\..*$", "", basename(mzml_filepath))
-
-options(digits = 16)
-
-# Initialize
-pos_results <- NULL
-neg_results <- NULL
-bins <- rep(0, length(breaks_fwhm) - 1)
-pos_bins <- bins
-neg_bins <- bins
-dims_thresh <- 100
 
 # read in the data for 1 sample
 raw_data <- suppressMessages(xcms::xcmsRaw(mzml_filepath))
@@ -47,6 +45,7 @@ tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[ , "retenti
                                              tic_intensity_persample[ , "retention_time"] < max(pos_times_trimmed), ]
 tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(neg_times_trimmed) &
                                              tic_intensity_persample[ , "retention_time"] < max(neg_times_trimmed), ]
+
 # calculate weighted mean of intensities for pos and neg separately
 mean_pos <- weighted.mean(tic_intensity_pos[ , "tic_intensity"], tic_intensity_pos[ , "tic_intensity"])
 mean_neg <- weighted.mean(tic_intensity_neg[ , "tic_intensity"], tic_intensity_neg[ , "tic_intensity"])
@@ -54,18 +53,12 @@ mean_neg <- weighted.mean(tic_intensity_neg[ , "tic_intensity"], tic_intensity_n
 dims_thresh_pos <- 0.8 * mean_pos
 dims_thresh_neg <- 0.8 * mean_neg
 
-# Generate an index with which to select values for each mode
-#pos_index <- which(raw_data_matrix[, "time"] %in% pos_times)
-#neg_index <- which(raw_data_matrix[, "time"] %in% neg_times)
 # select only data from scans which pass the dims_thresh_pos and *_neg filter
 pos_times_pass <- tic_intensity_pos[which(tic_intensity_pos[ , "tic_intensity"] > dims_thresh_pos), "retention_time"]
 neg_times_pass <- tic_intensity_neg[which(tic_intensity_neg[ , "tic_intensity"] > dims_thresh_neg), "retention_time"]
-# Generate an index with which to select values for each mode
-pos_index <- which(raw_data_matrix[, "time"] %in% pos_times_pass)
-neg_index <- which(raw_data_matrix[, "time"] %in% neg_times_pass)
 # Separate each mode into its own matrix
-pos_raw_data_matrix <- raw_data_matrix[pos_index, ]
-neg_raw_data_matrix <- raw_data_matrix[neg_index, ]
+pos_raw_data_matrix <- raw_data_matrix[which(raw_data_matrix[, "time"] %in% pos_times_pass), ]
+neg_raw_data_matrix <- raw_data_matrix[which(raw_data_matrix[, "time"] %in% neg_times_pass), ]
 
 # Get index for binning intensity values
 bin_indices_pos <- cut(
@@ -83,8 +76,7 @@ bin_indices_neg <- cut(
   labels = FALSE
 )
 
-# Get the list of intensity values for each bin, and add the
-# intensity values which are in the same bin
+# Get the list of intensity values for each bin and sum the intensities
 if (nrow(pos_raw_data_matrix) > 0) {
   # set NA in intensities to zero
   pos_raw_data_matrix[is.na(pos_raw_data_matrix[, "intensity"]), "intensity"] <- 0

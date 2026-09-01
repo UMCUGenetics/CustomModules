@@ -1,13 +1,13 @@
-# functions for PeakGrouping
-find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
-  #' find peaks in all samples with query m/z values and form peak groups
-  #'
-  #' @param outlist_sorted: matrix of peaks (mzmed, intensity) in all samples
-  #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
-  #' @param sample_names: vector of sample names (vector of strings)
-  #'
-  #' @return ints_sorted: matrix of peak groups
+# functions for generating peak groups and annotating them
 
+#' find peaks in all samples with query m/z values and form peak groups
+#'
+#' @param outlist_sorted: matrix of peaks (mzmed, intensity) in all samples
+#' @param mz_tolerance: Value for mass tolerance around query m/z (float)
+#' @param sample_names: vector of sample names (vector of strings)
+#'
+#' @return ints_sorted: matrix of peak groups
+find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   # set up object for intensities for all samples
   ints_allsamps <- matrix(0, nrow = nrow(outlist_sorted), ncol = 3 + (length(sample_names)))
   colnames(ints_allsamps) <- c("mzmed.pgrp", "mzmin.pgrp", "mzmax.pgrp", sample_names)
@@ -63,16 +63,15 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
   return(ints_sorted)
 }
 
+#' annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
+#'
+#' @param ints_sorted: matrix of peak groups
+#' @param hmdb_add_iso: subset of HMDB (matrix)
+#' @param column_label: column name with appropriate m/z values for scan mode (string)
+#' @param mz_tolerance: Value for mass tolerance around query m/z (float)
+#'
+#' @return peakgrouplist_identified: matrix of peak groups with annotation
 annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tolerance) {
-  #' annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
-  #'
-  #' @param ints_sorted: matrix of peak groups
-  #' @param hmdb_add_iso: subset of HMDB (matrix)
-  #' @param column_label: column name with appropriate m/z values for scan mode (string)
-  #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
-  #'
-  #' @return peakgrouplist_identified: matrix of peak groups with annotation
-
   # Initialize matrix for annotation
   assigned_hmdb <- matrix("", nrow = nrow(ints_sorted), ncol = 7)
   colnames(assigned_hmdb) <- c("assi_HMDB", "all_hmdb_names", "iso_HMDB", "HMDB_code",
@@ -80,7 +79,7 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
 
   # make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
   hmdb_add_iso[grep("iso", rownames(hmdb_add_iso)), "HMDB_ID_all"] <- ""
-  
+ 
   # for each peak group, find all entries in HMDB part with mass within ppm range
   for (row_number in 1:nrow(ints_sorted)) {
     # initialize to make sure there's no information from the previous peak group
@@ -99,14 +98,12 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
     reference_mass <- ints_sorted[row_number, "mzmed.pgrp"]
     # select indices for all HMDB entries with mass between +/- ppm tolerance
     select_from_hmdb <- which(hmdb_add_iso[, column_label] > (reference_mass - mz_tolerance) &
-                                hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
+                              hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
     if (length(select_from_hmdb) > 0) {
       # get dataframe of all entries which are selected
       select_hmdb_df <- hmdb_add_iso[select_from_hmdb, ]
       # separate into main metabolites, metabolites with adducts and isotopes
       # main metabolites have no "_" in their name
-      # if there are rownames with "_", choose only those without "_"
-      # check if any rownames contain a hmdb code without "_"
       if (any(!grepl("_", rownames(select_hmdb_df)))) {
         grep_noiso_noadduct <- which(!grepl("_", rownames(select_hmdb_df)))
       } else {
@@ -161,8 +158,8 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   peakgrouplist_identified[, "theormz_HMDB"] <- as.numeric(peakgrouplist_identified[, "theormz_HMDB"])
   peakgrouplist_identified[, "mzmed.pgrp"] <- as.numeric(peakgrouplist_identified[, "mzmed.pgrp"])
   peakgrouplist_identified[, "ppmdev"] <- 1000000 * (peakgrouplist_identified[, "mzmed.pgrp"] -
-                                                       peakgrouplist_identified[, "theormz_HMDB"]) /
-                                                         peakgrouplist_identified[, "theormz_HMDB"]
+                                                     peakgrouplist_identified[, "theormz_HMDB"]) /
+                                                     peakgrouplist_identified[, "theormz_HMDB"]
 
   return(peakgrouplist_identified)
 }

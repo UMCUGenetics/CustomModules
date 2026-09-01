@@ -1,5 +1,4 @@
-## Combining all AdductSums part files for each scanmode and
-# combine intensities if present in both scanmodes
+# load required packages
 suppressMessages(library("dplyr"))
 
 # define parameters

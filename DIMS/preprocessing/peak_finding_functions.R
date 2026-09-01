@@ -1,15 +1,15 @@
 # functions for peak finding
+# NB: add package R.utils to docker image, remove seqToIntervals function from this file
+# replace seqToIntervals to R.utils::seqToIntervals in function search_regions_of_interest
 
+#' Divide the full m/z range into regions of interest with indices
+#'
+#' @param ints_fullrange: Matrix with m/z values and intensities (float)
+#'
+#' @return regions_of_interest: matrix of m/z regions of interest (integer)
 search_regions_of_interest <- function(ints_fullrange) {
-  #' Divide the full m/z range into regions of interest with indices
-  #'
-  #' @param ints_fullrange: Matrix with m/z values and intensities (float)
-  #'
-  #' @return regions_of_interest: matrix of m/z regions of interest (integer)
-
   # find indices where intensity is not equal to zero
   nonzero_positions <- as.vector(which(ints_fullrange$int != 0))
-
   # find regions of interest (look for consecutive numbers)
   regions_of_interest_consec <- seqToIntervals(nonzero_positions)
   # add length of regions of interest
@@ -75,24 +75,23 @@ search_regions_of_interest <- function(ints_fullrange) {
 
   # sort on first index
   if (nrow(regions_of_interest_final) > 1){
-    regions_of_interest_sorted <- regions_of_interest_final %>% as.data.frame %>% dplyr::arrange(from)
+    regions_of_interest <- regions_of_interest_final %>% as.data.frame %>% dplyr::arrange(from)
   } else {
-    regions_of_interest_sorted <- regions_of_interest_final
+    regions_of_interest <- regions_of_interest_final
   }
 
-  return(regions_of_interest_sorted)
+  return(regions_of_interest)
 }
 
+#' Fit Gaussian peak for each region of interest and integrate area under the curve
+#'
+#' @param ints_fullrange: Named list of intensities (float)
+#' @param regions_of_interest: Named list of intensities (float)
+#' @param resol: Value for resolution (integer)
+#' @param peak_thresh: Value for noise level threshold (integer) # NOT USED YET
+#'
+#' @return allpeaks_values: matrix of integrated peaks
 integrate_peaks <- function(ints_fullrange, regions_of_interest, resol, peak_thresh) {
-  #' Fit Gaussian peak for each region of interest and integrate area under the curve
-  #'
-  #' @param ints_fullrange: Named list of intensities (float)
-  #' @param regions_of_interest: Named list of intensities (float)
-  #' @param resol: Value for resolution (integer)
-  #' @param peak_thresh: Value for noise level threshold (integer) # NOT USED YET
-  #'
-  #' @return allpeaks_values: matrix of integrated peaks
-
   # initialize dataframe to store results for all peaks
   allpeaks_values <- matrix(0, nrow = nrow(regions_of_interest), ncol = 5)
   colnames(allpeaks_values) <- c("mzmed.pkt", "fq", "mzmin.pkt", "mzmax.pkt", "height.pkt")
@@ -191,14 +190,13 @@ seqToIntervals <- function(idx) {
   return(res)
 }
 
+#' Calculate fwhm (full width at half maximum intensity) for a peak
+#'
+#' @param query_mass: Value for mass (float)
+#' @param resol: Value for resolution (integer)
+#'
+#' @return fwhm: Value for full width at half maximum (float)
 get_fwhm <- function(query_mass, resol) {
-  #' Calculate fwhm (full width at half maximum intensity) for a peak
-  #'
-  #' @param query_mass: Value for mass (float)
-  #' @param resol: Value for resolution (integer)
-  #'
-  #' @return fwhm: Value for full width at half maximum (float)
-
   # set aberrant values of query_mass to default value of 200
   if (is.na(query_mass)) {
     query_mass <- 200
@@ -214,25 +212,16 @@ get_fwhm <- function(query_mass, resol) {
   return(fwhm)
 }
 
+#' Gaussian function based on stats::dnorm
+#' Calculate area under the Gaussian curve
+#' 
+#' @param mz_range: Vector of values at which to evaluate the Gaussian (vector)
+#' @param mu: center of the Gaussian peak (float)
+#' @param sigma: Spread of the Gaussian peak (float)
+#'
+#' @return calc_area: integrated area under the Gaussian curve (float)
+gaussfunc <- function(mz_range, mu, sigma) {
+  calc_area <- stats::dnorm(mz_range, mu, sigma) / stats::dnorm(mu, mu, sigma)
 
-# from https://rdrr.io/cran/rvmethod/src/R/gaussfit.R
-#' Gaussian Function from package rvmethod
-#'
-#' This function returns the unnormalized (height of 1.0) Gaussian curve with a
-#' given center and spread.
-#'
-#' @param x the vector of values at which to evaluate the Gaussian
-#' @param mu the center of the Gaussian
-#' @param sigma the spread of the Gaussian (must be greater than 0)
-#' @return vector of values of the Gaussian
-#' @examples x = seq(-4, 4, length.out = 100)
-#' y = gaussfunc(x, 0, 1)
-#' plot(x, y)
-#'
-#' @import stats
-#'
-#' @export
-gaussfunc <- function(x, mu, sigma) {
-  return(exp(-((x - mu) ^ 2) / (2 * (sigma ^ 2))))
+  return(calc_area)
 }
-

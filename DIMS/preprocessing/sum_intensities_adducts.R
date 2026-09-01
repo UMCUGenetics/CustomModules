@@ -1,12 +1,14 @@
+# functions for summing intensities from different adducts of the same metabolite
+
+#' Sum intensities for different adducts of the same metabolite
+#'
+#' @param peakgroup_list: Peak group list (matrix)
+#' @param hmdb_part: Matrix of metabolites , part of the HMDB (matrix)
+#' @param adducts: Vector of adducts (vector of integers)
+#' @param z_score: Value indicating whether Z-scores have been calculated (integer)
+#'
+#' @return adductsum: peak group list with summed intensities (matrix)
 sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score) {
-  #' Sum intensities for different adducts of the same metabolite
-  #'
-  #' @param peakgroup_list: Peak group list (matrix)
-  #' @param hmdb_part: Matrix of metabolites , part of the HMDB (matrix)
-  #' @param adducts: Vector of adducts (vector of integers)
-  #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
-  #'
-  #' @return adductsum: peak group list with summed intensities (matrix)
   hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), CompoundName = hmdb_part[, "CompoundName"])
 
   # create overview of row indices for each metabolite_adduct combination in peaklist
@@ -15,7 +17,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
   # avoid rows with only "" in HMDB_code column
   hmdb_in_peaklist[which(hmdb_in_peaklist == "")] <- ";"
   hmdb_in_peaklist_rownr <- c()
-  
+
   # create dataframe with for each HMDB id a row number
   hmdb_in_peaklist_rownr <- data.frame(
     row_id = rep(seq_along(hmdb_in_peaklist), lengths(hmdb_in_peaklist)),
@@ -78,4 +80,3 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
 
   return(adductsum)
 }
-

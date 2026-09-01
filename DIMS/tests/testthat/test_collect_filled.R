@@ -20,10 +20,9 @@ testthat::test_that("Duplicate rows in a peak group list are correctly merged", 
   test_peakgroup_list_dup <- test_peakgroup_list[c(1, 2, 2, 3), ]
 
   # after merging duplicate rows, the test peak group list should have 3 rows
-  expect_equal(nrow(merge_duplicate_rows(test_peakgroup_list_dup)), 3, TRUE, tolerance = 0.001)
+  expect_equal(nrow(merge_duplicate_rows(test_peakgroup_list_dup)), 3, tolerance = 0.001)
   expect_equal(merge_duplicate_rows(test_peakgroup_list_dup)[3, "all_hmdb_ids"], 
-               paste(test_peakgroup_list_dup[2, "all_hmdb_ids"], test_peakgroup_list_dup[3, "all_hmdb_ids"], sep = ";"), 
-               TRUE)
+               paste(test_peakgroup_list_dup[2, "all_hmdb_ids"], test_peakgroup_list_dup[3, "all_hmdb_ids"], sep = ";"))
 })
 
 testthat::test_that("Z-scores are correctly calculated in CollectFilled", {
@@ -35,11 +34,11 @@ testthat::test_that("Z-scores are correctly calculated in CollectFilled", {
   test_peakgroup_list_noz <- test_peakgroup_list_noz[ , -grep("_Zscore", colnames(test_peakgroup_list_noz))]
  
   # after calculate_zscores_peakgrouplist, there should be 4 columns with _Zscore in the name
-  expect_equal(length(grep("_Zscore", colnames(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)))), 4, TRUE, tolerance = 0.001)
+  expect_equal(length(grep("_Zscore", colnames(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)))), 4, tolerance = 0.001)
 
   # after calculate_zscores_peakgrouplist, the 4 columns with _Zscore in the name should be filled non-zero
-  expect_equal(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)$C101.1_Zscore[1], -0.7071, TRUE, tolerance = 0.00001)
-  expect_equal(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)$P2.1_Zscore[4], 12.0208, TRUE, tolerance = 0.00001)
+  expect_equal(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)$C101.1_Zscore[1], -0.7071, tolerance = 0.00001)
+  expect_equal(calculate_zscores_peakgrouplist(test_peakgroup_list_noz)$P2.1_Zscore[4], 12.0208, tolerance = 0.00001)
  
 })
 

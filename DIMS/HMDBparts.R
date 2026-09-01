@@ -5,8 +5,9 @@ db_file <- cmd_args[1]
 breaks_file <- cmd_args[2] 
 standard_run <- cmd_args[3] 
 
-# load file with binning breaks 
+# load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_file)
+# determine minimum and maximum m/z values
 min_mz <- round(breaks_fwhm[1])
 max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
 

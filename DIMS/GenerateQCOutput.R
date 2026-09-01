@@ -3,9 +3,6 @@ library("reshape2")
 library("openxlsx")
 suppressMessages(library("dplyr"))
 
-# set the number of digits for floats
-options(digits = 16)
-
 # define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
@@ -15,10 +12,16 @@ dims_matrix <- cmd_args[3]
 sst_components_file <- cmd_args[4]
 export_scripts_dir <- cmd_args[5]
 
-outdir <- "./"
-
 # load in function scripts
 source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
+
+# Initialize
+options(digits = 16)
+control_label <- "C"
+# get current date
+rundate <- Sys.Date()
+# create a directory for plots
+dir.create("plots", showWarnings = FALSE)
 
 # load init files
 load(init_file)
@@ -28,22 +31,14 @@ load("outlist.RData")
 load("AdductSums_positive.RData")
 load("AdductSums_negative.RData")
 
-# get current date
-rundate <- Sys.Date()
-
-# create a directory for plots in project directory
-dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
-
-control_label <- "C"
-
-#### CHECK NUMBER OF CONTROLS ####
+# Check number of controls
 if (any(grepl("nr_ctrls", colnames(outlist)))) {
   file_name <- "Check_number_of_controls.txt"
   min_num_controls <- 25
   check_number_of_controls(outlist, min_num_controls, file_name)
 }
 
-#### INTERNAL STANDARDS ####
+# INTERNAL STANDARDS
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
 is_codes <- rownames(is_list)
 
@@ -53,7 +48,7 @@ if (length(sample_names_nodata) == 0) {
   sample_names_nodata <- "none"
 }
 write.table(sample_names_nodata,
-  file = paste(outdir, "sample_names_nodata.txt", sep = "/"),
+  file = "sample_names_nodata.txt",
   row.names = FALSE, col.names = FALSE, quote = FALSE
 )
 if (!is.null(sample_names_nodata)) {
@@ -75,7 +70,7 @@ is_pos <- get_internal_standards(is_list, "pos", outlist_tot_pos, dims_matrix, r
 is_neg <- get_internal_standards(is_list, "neg", outlist_tot_neg, dims_matrix, rundate, project)
 
 # Save results
-save(is_pos, is_neg, is_summed, file = paste0(outdir, "/", project, "_IS_results.RData"))
+save(is_pos, is_neg, is_summed, file = paste0(project, "_IS_results.RData"))
 
 # number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
@@ -92,15 +87,15 @@ plot_width <- 9 + 0.35 * sample_count
 plot_height <- plot_width / 2.5
 
 save_internal_standard_plot(
-  is_neg, "barplot", "Interne Standaard (Neg)", outdir,
+  is_neg, "barplot", "Interne Standaard (Neg)",
   "IS_bar_all_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_pos, "barplot", "Interne Standaard (Pos)", outdir,
+  is_pos, "barplot", "Interne Standaard (Pos)",
   "IS_bar_all_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_summed, "barplot", "Interne Standaard (Summed)", outdir,
+  is_summed, "barplot", "Interne Standaard (Summed)",
   "IS_bar_all_sum", plot_width, plot_height
 )
 
@@ -110,15 +105,15 @@ plot_height <- plot_width / 2.5
 
 save_internal_standard_plot(
   is_neg, "lineplot", "Interne Standaard (Neg)",
-  outdir, "IS_line_all_neg", plot_width, plot_height
+  "IS_line_all_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
   is_pos, "lineplot", "Interne Standaard (Pos)",
-  outdir, "IS_line_all_pos", plot_width, plot_height
+  "IS_line_all_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
   is_summed, "lineplot", "Interne Standaard (Sum)",
-  outdir, "IS_line_all_sum", plot_width, plot_height
+  "IS_line_all_sum", plot_width, plot_height
 )
 
 ## bar plots with a selection of IS
@@ -202,7 +197,7 @@ if (dims_matrix == "Plasma") {
 } else if (dims_matrix == "DBS") {
   is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_dbs_neg, is_neg_selection, "neg")
   is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_dbs_pos, is_pos_selection, "pos")
-  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_neg_selection, "sum")
+  is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_sum_selection, "sum")
   is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
 } else {
   # generate empty table
@@ -223,50 +218,50 @@ if (nrow(is_below_threshold) > 0) {
 # bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
   save_internal_standard_plot(
-    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)", outdir,
+    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)",
     "IS_bar_select_neg", plot_width, plot_height, hline_data_neg
   )
   save_internal_standard_plot(
-    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)", outdir,
+    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)",
     "IS_bar_select_pos", plot_width, plot_height, hline_data_pos
   )
   save_internal_standard_plot(
-    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)", outdir,
+    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)",
     "IS_bar_select_sum", plot_width, plot_height, hline_data_sum
   )
 } else {
   save_internal_standard_plot(
-    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)", outdir,
+    is_neg_selection_subset, "barplot", "Interne Standaard (Neg)",
     "IS_bar_select_neg", plot_width, plot_height
   )
   save_internal_standard_plot(
-    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)", outdir,
+    is_pos_selection_subset, "barplot", "Interne Standaard (Pos)",
     "IS_bar_select_pos", plot_width, plot_height
   )
   save_internal_standard_plot(
-    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)", outdir,
+    is_sum_selection_subset, "barplot", "Interne Standaard (Sum)",
     "IS_bar_select_sum", plot_width, plot_height
   )
 }
 
-## line plots with a selection of IS
+# line plots with a selection of IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.0
 
 save_internal_standard_plot(
-  is_neg_selection_subset, "lineplot", "Interne Standaard (Neg)", outdir,
+  is_neg_selection_subset, "lineplot", "Interne Standaard (Neg)",
   "IS_line_select_neg", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_pos_selection_subset, "lineplot", "Interne Standaard (Pos)", outdir,
+  is_pos_selection_subset, "lineplot", "Interne Standaard (Pos)",
   "IS_line_select_pos", plot_width, plot_height
 )
 save_internal_standard_plot(
-  is_sum_selection_subset, "lineplot", "Interne Standaard (Sum)", outdir,
+  is_sum_selection_subset, "lineplot", "Interne Standaard (Sum)",
   "IS_line_select_sum", plot_width, plot_height
 )
 
-### POSITIVE CONTROLS CHECK
+# POSITIVE CONTROLS
 # these positive controls need to be in the samplesheet, in order to make the positive_control.RData file
 # Positive control samples all have the format P1002.x, P1003.x and P1005.x (where x is a number)
 
@@ -293,7 +288,7 @@ if (length(pos_contr_warning) == 0) {
   pos_contr_warning <- "No positive controls found"
 } 
 write.table(pos_contr_warning,
-  file = paste(outdir, "positive_controls_warning.txt", sep = "/"),
+  file = "positive_controls_warning.txt",
   row.names = FALSE, col.names = FALSE, quote = FALSE
 )
 
@@ -332,16 +327,14 @@ if (length(positive_control_list) > 0) {
   positive_control$Project <- project
 
   # Save results
-  save(positive_control, file = paste0(outdir, "/", project, "_positive_control.RData"))
+  save(positive_control, file = paste0(project, "_positive_control.RData"))
   # round the Z-scores to 2 digits
   positive_control$Zscore <- round_df(positive_control$Zscore, 2)
   write.xlsx(positive_control,
-    file = paste0(outdir, "/", project, "_positive_control.xlsx"),
+    file = paste0(project, "_positive_control.xlsx"),
     sheetName = "Sheet1", col.names = TRUE, row.names = TRUE, append = FALSE
   )
 }
-
-### SST components output ####
 
 # Internal standards lists, calculate coefficients of variation
 if ("plots" %in% colnames(is_list)) {
@@ -354,7 +347,7 @@ is_list_intensities <- get_is_intensities(is_list, int_cols = intensity_col_ids)
 is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
 is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
-# SST components
+# SST COMPONENTS
 sst_components <- read.csv(sst_components_file, header = TRUE, sep = "\t")
 sst_metabolites_df <- outlist %>% filter(HMDB_code %in% sst_components$HMDB_ID)
 sst_sample_column_index <- grep("P1001", colnames(sst_metabolites_df))
@@ -401,7 +394,7 @@ setColWidths(wb, 3, cols = 1, widths = 24)
 addWorksheet(wb, "SST components")
 openxlsx::writeData(wb, sheet = 4, sst_intensities_df)
 setColWidths(wb, 4, cols = 1:3, widths = 24)
-xlsx_name <- paste0(outdir, "/", project, "_IS_SST.xlsx")
+xlsx_name <- paste0(project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
@@ -410,19 +403,19 @@ if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
   zscore_column <- grep("_Zscore", colnames(sst_intensities_df))[1]
   sst_intensities_df_qc <- sst_intensities_df[sst_intensities_df[, zscore_column] < 2, ]
   sst_intensities_df_qc <- select(sst_intensities_df_qc, -c("CV_controls"))
-  write.table(sst_intensities_df_qc, file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, sep = "\t")
+  write.table(sst_intensities_df_qc, file = "sst_qc.txt", row.names = FALSE, sep = "\t")
 } else {
-  write.table("no SST sample present", file = paste(outdir, "sst_qc.txt", sep = "/"), row.names = FALSE, col.names = FALSE)
+  write.table("no SST sample present", file = "sst_qc.txt", row.names = FALSE, col.names = FALSE)
 }
 
-### MISSING M/Z CHECK
-# check the outlist_identified_(negative/positive).RData files for missing m/z values and save to file
-# Load the outlist_identified files + remove the loaded files
-load(paste0(outdir, "/outlist_identified_negative.RData"))
-mzmed_pgrp_ident_neg <- outlist_ident$mzmed.pgrp
-load(paste0(outdir, "/outlist_identified_positive.RData"))
-mzmed_pgrp_ident_pos <- outlist_ident$mzmed.pgrp
-rm(outlist_ident)
+# MISSING M/Z CHECK
+# check the peakgroup_list_identified_(negative/positive).RData files for missing m/z values and save to file
+# Load the peakgroup_list_identified files + remove the loaded files
+load("./peakgroup_list_identified_negative.RData")
+mzmed_pgrp_ident_neg <- peakgroup_list_ident$mzmed.pgrp
+load("./peakgroup_list_identified_positive.RData")
+mzmed_pgrp_ident_pos <- peakgroup_list_ident$mzmed.pgrp
+rm(peakgroup_list_ident)
 
 # Check for missing mz values, if present returned with vector of missing mz values
 mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative")
@@ -430,6 +423,6 @@ mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive")
 
 # Write both scanmodes to missing_mz_warning file
 lapply(c(mz_missing_neg, mz_missing_pos), write,
-  file = paste0(outdir, "/missing_mz_warning.txt"),
+  file = "./missing_mz_warning.txt",
   append = TRUE, ncolumns = 1000
 )
