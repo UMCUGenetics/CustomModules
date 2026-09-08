@@ -2,12 +2,13 @@ process GenerateExcel {
     tag "DIMS GenerateExcel"
     label 'GenerateExcel'
     container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(adductsums_combined)
-       val(analysis_id) 
        path(relevance_file)
+       val(analysis_id) 
+       val(export_scripts_dir)
+       val(path_metabolite_groups)
 
     output:
        path("outlist.RData"), emit: outlist_zscores
@@ -18,6 +19,11 @@ process GenerateExcel {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $analysis_id $relevance_file $params.zscore $params.export_scripts_dir $params.path_metabolite_groups
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R \
+                $analysis_id \
+                $relevance_file \
+                $zscore \
+                $export_scripts_dir \
+                $path_metabolite_groups
         """
 }

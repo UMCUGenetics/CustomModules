@@ -13,6 +13,8 @@ process ParseSamplesheet {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/ParseSamplesheet.R $samplesheet $preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/ParseSamplesheet.R \
+                $samplesheet \
+                $preprocessing_scripts_dir
         """
 }

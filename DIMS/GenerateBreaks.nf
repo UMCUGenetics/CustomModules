@@ -16,9 +16,10 @@ process GenerateBreaks {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R $mzML_file \
-                                                               $trim \
-                                                               $resolution \
-                                                               $preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R \
+                $mzML_file \
+                $trim \
+                $resolution \
+                $preprocessing_scripts_dir
         """
 }
