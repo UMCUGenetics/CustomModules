@@ -525,6 +525,24 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
   unlink(test_pdf_dir, recursive = TRUE)
 })
 
+testthat::test_that("create_overview_plot: Create overview plot", {
+  test_patient_id <- "P2025M1"
+  test_sub_perpage <- "test diagnostics"
+
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
+  test_gua_crea_df <- read.delim(test_path("fixtures/", "test_crea_gua_df.txt"))
+  test_diag_metabolites <- rbind(test_acyl_carnitines_df, test_gua_crea_df)
+
+  test_patient_zscore_df <- test_diag_metabolites %>% filter(Sample == test_patient_id)
+  test_patient_zscore_df$Z_score_original <- test_patient_zscore_df$Z_score
+
+  expect_silent(create_overview_plot(test_patient_zscore_df, test_patient_id))
+
+  expect_doppelganger("overview_plot_P2025M1", create_overview_plot(
+    test_patient_zscore_df, test_patient_id
+  ))
+})
+
 testthat::test_that("create_violin_plot: Create a violin plot", {
   test_patient_id <- "P2025M1"
   test_sub_perpage <- "test acyl carnitines"
