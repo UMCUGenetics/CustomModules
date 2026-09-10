@@ -193,7 +193,14 @@ make_and_save_violin_plot_pdfs <- function(
         )
       }
       # generate normal violin plots
-      create_pdf_violin_plots(pdf_dir, patient_id, metab_perpage, top_metabs_patient, explanation_violin_plot, data_previous_runs)
+      create_pdf_violin_plots(
+        pdf_dir,
+        patient_id,
+        metab_perpage,
+        top_metabs_patient,
+        explanation_violin_plot,
+        data_previous_runs
+      )
     }
   }
 }
@@ -613,11 +620,8 @@ add_previous_runs <- function(patient_zscore_df, data_previous_runs) {
     find_rownr <- which(data_previous_runs$common_name == common_name)
     # add mean, min, max and 5-95% interval of data from previous runs
     if (length(find_rownr) == 1) {
-      patient_zscore_df$mean[row_nr] <- data_previous_runs$average_patients[find_rownr]
-      patient_zscore_df$min[row_nr] <- data_previous_runs$min[find_rownr]
-      patient_zscore_df$max[row_nr] <- data_previous_runs$max[find_rownr]
-      patient_zscore_df$min95[row_nr] <- data_previous_runs$min95[find_rownr]
-      patient_zscore_df$max95[row_nr] <- data_previous_runs$max95[find_rownr]
+      patient_zscore_df[row_nr, c("mean", "min", "max", "min95", "max95")] <-
+        data_previous_runs[find_rownr, c("average_patients", "min", "max", "min95", "max95")]
     }
   }
 
