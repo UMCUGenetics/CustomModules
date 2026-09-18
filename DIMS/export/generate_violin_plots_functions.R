@@ -67,6 +67,12 @@ add_zscores_ratios_to_df <- function(outlist, metabolites_ratios_df, all_sample_
 #'
 #' @returns zscore_ratios_df: dataframe containing Z-scores for all ratios for all samples
 calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_df, intensity_col_names) {
+  # remove Z-score columns from intensity_col_names
+  if (any(grepl("_Zscore", intensity_col_names))) {
+    intensity_col_names <- intensity_col_names[-grep("_Zscore", intensity_col_names)]
+  }
+
+  # create empty data frame for results
   zscore_ratios_df <- data.frame(matrix(
     ncol = ncol(intensities_zscores_df),
     nrow = nrow(metabolites_ratios_df)
@@ -791,9 +797,15 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
   colors_plot <- c("#22E4AC", "#00B0F0", "#504FFF", "#A704FD", "#F36265", "#DA0641")
 
   y_order <- attr(metab_zscores_df, "y_order")
-  metab_zscores_df$HMDB_name <- rev(factor(metab_zscores_df$HMDB_name, levels = rev(y_order)))
-  patient_zscore_df$HMDB_name <- rev(factor(patient_zscore_df$HMDB_name, levels = rev(y_order)))
-
+  
+  metab_zscores_df <- metab_zscores_df %>%
+    mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
+    arrange(HMDB_name)
+  
+  patient_zscore_df <- patient_zscore_df %>%
+    mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
+    arrange(HMDB_name)
+  
   ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score, y = HMDB_name)) +
     # Make violin plots
     geom_violin(scale = "width", na.rm = TRUE) +
@@ -805,7 +817,7 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
     # Add the Z-score at the right side of the plot
     geom_text(
       data = patient_zscore_df,
-      aes(16, label = paste0("Z=", round(Z_score, 2))),
+      aes(16, label = paste0("Z=", round(Z_score_original, 2))),
       hjust = "left", vjust = +0.2, size = 3, na.rm = TRUE
     ) +
     # Set colour for the Z-score of the selected patient

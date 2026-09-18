@@ -28,6 +28,8 @@ for (scanmode in scanmodes) {
   # calculate Z-scores
   if (z_score == 1) {
     outlist_stats <- calculate_zscores_peakgrouplist(outlist_total)
+  } else {
+    outlist_stats <- outlist_total
   }
   # calculate ppm deviation
   outlist_withppm <- calculate_ppm_deviation(outlist_stats)
