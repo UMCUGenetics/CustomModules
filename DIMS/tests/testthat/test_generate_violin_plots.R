@@ -531,6 +531,7 @@ testthat::test_that("create_overview_plot: Create overview plot", {
 
   test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
   test_gua_crea_df <- read.delim(test_path("fixtures/", "test_crea_gua_df.txt"))
+  test_gua_crea_df$Z_score_original <- test_gua_crea_df$Z_score
   test_diag_metabolites <- rbind(test_acyl_carnitines_df, test_gua_crea_df)
 
   test_patient_zscore_df <- test_diag_metabolites %>% filter(Sample == test_patient_id)
