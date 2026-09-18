@@ -102,7 +102,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
       intensity_col_names
     )
     # calculate the intensity ratio for each sample
-    zscore_ratios_df[row_index, intensity_cols_index] <- log2(numerator_intensities / denominator_intensities)
+    zscore_ratios_df[row_index, intensity_cols_index] <- numerator_intensities / denominator_intensities
   }
 
   control_intensities_cols_index <- grep("^C[^_]*$", colnames(intensities_zscores_df), perl = TRUE)
@@ -597,6 +597,65 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
   return(top_metab_pt)
 }
 
+#' Create an overview plot (lollipop plot) for all diagnostics metabolites
+#'
+#' @param patient_zscore_df: Dataframe with metabolite Z-scores per patient (matrix)
+#' @param patient_id: Patient code (string)
+create_overview_plot <- function(patient_zscore_df, patient_id) {
+  patient_zscore_df$HMDB_name <- factor(
+    patient_zscore_df$HMDB_name,
+    levels = rev(patient_zscore_df$HMDB_name)
+  )
+  # add class for legend
+  patient_zscore_df$class <- "amino_acids"
+  patient_zscore_df$class[grep("nitine", patient_zscore_df$HMDB_name)] <- "acyl_carnitines"
+  patient_zscore_df$class[grep("Crea", patient_zscore_df$HMDB_name)] <- "crea_gua"
+  patient_zscore_df$class[grep("Gua", patient_zscore_df$HMDB_name)] <- "crea_gua"
+
+  gglolli <- ggplot(patient_zscore_df, aes(x = Z_score, y = HMDB_name, color = class)) +
+    # lollipop stems
+    geom_segment(
+      aes(x = 0, xend = Z_score,
+          y = HMDB_name, yend = HMDB_name),
+      linewidth = 1
+    ) +
+    # points
+    geom_point(size = 2) +
+    # label extreme values
+    geom_text(
+      data = subset(patient_zscore_df, Z_score == 20 | Z_score == -5),
+      aes(label = round(Z_score_original, 2)),
+      vjust = ifelse(subset(patient_zscore_df, Z_score == 20 | Z_score == -5)$Z_score > 0, -0.5, -0.5),
+      size = 3,
+      show.legend = FALSE
+    ) +
+    scale_color_manual(
+      values = c(
+        acyl_carnitines = "#F05A54",
+        amino_acids     = "#1FA638",
+        crea_gua        = "#4C78E5"
+      )
+    ) +
+    labs(
+      title = paste0("Z-scores for patient ", patient_id),
+      x = "Z_score",
+      y = NULL,
+      color = "class"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      panel.grid.major.y = element_line(colour = "grey85"),
+      panel.grid.major.x = element_line(colour = "grey85"),
+      axis.text.y = element_text(size = 6, hjust = 1, family = "Courier"),
+      plot.title = element_text(size = 12),
+      legend.position = "none"
+    ) +
+    # Limit the x-axis to between -5 and 20
+    xlim(-5, 20)
+
+  return(gglolli)
+}
+
 #' Create a pdf with table with metabolites and violin plots
 #'
 #' @param pdf_dir: location where to save the pdf file (string)
@@ -667,42 +726,55 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     }
   }
 
-  # violin plots
-  for (metab_class in names(metab_perpage)) {
-    # extract list of metabolites to plot on a page
-    metab_zscores_df <- metab_perpage[[metab_class]]
-    # copy Z-scores to Z_score_original for displaying values
-    metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
-    # Cap Z-scores under -5 to -5 and above 20 to 20
-    metab_zscores_df <- metab_zscores_df %>%
-      mutate(Z_score = pmin(pmax(Z_score, -5), 20))
+  # violin plots; store in list. If Diagnostics, then plot lollipop plot first, then violin plots.
+  if (grepl("Diagnost", pdf_dir)) {
+    violinplot_list <- list()
+    patient_allmetabs_df <- as.data.frame(matrix(nrow = 0, ncol = 4))
+    colnames(patient_allmetabs_df) <- c("HMDB_name", "Sample", "Z_score", "Z_score_original")
+    for (metab_class in names(metab_perpage)) {
+      # extract list of metabolites to plot on a page
+      metab_zscores_df <- metab_perpage[[metab_class]]
+      # copy Z-scores to Z_score_original for displaying values
+      metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
+      # Cap Z-scores under -5 to -5 and above 20 to 20
+      metab_zscores_df <- metab_zscores_df %>%
+        mutate(Z_score = pmin(pmax(Z_score, -5), 20))
 
-    # extract original data for patient of interest (pt_name)
-    patient_zscore_df <- metab_zscores_df %>%
-      filter(Sample == patient_id)
+      # extract original data for patient of interest (pt_name)
+      patient_zscore_df <- metab_zscores_df %>%
+        filter(Sample == patient_id)
+      patient_allmetabs_df <- rbind(patient_allmetabs_df, patient_zscore_df)
 
-    # Remove patient of interest and retain only other patient data
-    metab_zscores_df <- metab_zscores_df %>%
-      filter(Sample != patient_id)
+      # Remove patient of interest and retain only other patient data
+      metab_zscores_df <- metab_zscores_df %>%
+        filter(Sample != patient_id)
 
-    # subtitle per page
-    sub_perpage <- gsub("_", " ", metab_class)
-    # for IEM plots, put subtitle on two lines
-    sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
+      # subtitle per page
+      sub_perpage <- gsub("_", " ", metab_class)
+      # for IEM plots, put subtitle on two lines
+      sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
 
-    # draw violin plot.
-    ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
-
-    suppressWarnings(print(ggplot_object))
-  }
-
-  # add explanation of violin plots, version number etc.
-  plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  if (length(explanation) > 0) {
-    text(0.2, 5, explanation[1], pos = 4, cex = 0.8)
-    for (line_index in 2:length(explanation)) {
-      text_y_position <- 5 - (line_index * 0.2)
-      text(-0.2, text_y_position, explanation[line_index], pos = 4, cex = 0.5)
+      # store violin plot in a list
+      ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
+      violinplot_list <- append(violinplot_list, list(ggplot_object))
+    }
+  
+    # put plots into PDF
+    lollipop_plot <- create_overview_plot(patient_allmetabs_df, patient_id)
+    print(lollipop_plot)
+    # add violin plots
+    for (plot_index in 1:length(violinplot_list)) {
+      print(violinplot_list[[plot_index]])
+    }
+ 
+    # add explanation of violin plots, version number etc.
+    plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+    if (length(explanation) > 0) {
+      text(0.2, 5, explanation[1], pos = 4, cex = 0.8)
+      for (line_index in 2:length(explanation)) {
+        text_y_position <- 5 - (line_index * 0.2)
+        text(-0.2, text_y_position, explanation[line_index], pos = 4, cex = 0.5)
+      }
     }
   }
 
