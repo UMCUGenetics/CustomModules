@@ -508,13 +508,16 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
     Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
     `Z-score` = c("", "2.45", "", "-1.51")
   )
+  
+  test_data_previous_runs <- NULL
 
   expect_silent(create_pdf_violin_plots(
     test_pdf_dir,
     test_patient_id,
     test_metab_perpage,
     test_top_metab_pt,
-    test_explanation
+    test_explanation,
+    test_data_previous_runs
   ))
 
   out_pdf_violinplots <- file.path(test_pdf_dir, "R_P2025M1.pdf")
@@ -788,6 +791,7 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     highest = 2,
     lowest = 1
   )
+  test_data_previous_runs <- NULL
 
   expect_silent(make_and_save_violin_plot_pdfs(
     test_zscore_patients_df,
@@ -798,6 +802,7 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     test_run_name,
     test_protocol_name,
     test_explanation_violin_plot,
+    test_data_previous_runs,
     test_number_of_metabolites
   ))
 
@@ -960,3 +965,16 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   expect_snapshot_file("missing_probability_scores.txt")
   file.remove("missing_probability_scores.txt")
 })
+
+testthat::test_that("add_previous_runs: Information for metabolites from previous runs is correctly added", {
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
+  test_patient_id <- "P2025M1"
+  test_patient_zscore_df <- test_acyl_carnitines_df %>% filter(Sample == test_patient_id)
+  test_data_previous_runs <- data.frame(matrix(1:12, ncol = 6, nrow = 2))
+  colnames(test_data_previous_runs) <- c("common_name", "average_patients", "min95", "max95", "min", "max")
+  test_data_previous_runs[, "common_name"] <- c("metab1", "metab3")
+  
+  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$min95[1], 5)
+  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$max95[2], 8)
+})
+
