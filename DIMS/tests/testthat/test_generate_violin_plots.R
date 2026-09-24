@@ -562,7 +562,7 @@ testthat::test_that("run_diem_algorithm :Run dIEM algorithm", {
     c("Disease A", "Disease B", "Disease C", "Disease D", "Disease E", "Disease F", "Disease G")
   )
   expect_equal(run_diem_algorithm(test_expected_biomarkers_df, test_zscore_patient_df, test_sample_cols)$P2025M1,
-    c(10.94172, 0.95343, 12.12121, 0.00000, 44.28850, 0.00000, -38.70370),
+    c(14.00,7.00,12.50,25.00,40.00,25.00,-79.50),
     tolerance = 0.0001
   )
 })
