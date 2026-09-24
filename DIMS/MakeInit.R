@@ -1,5 +1,3 @@
-## adapted from makeInit in old pipeline
-
 # define parameters
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -15,12 +13,12 @@ group_names_unique <- unique(group_names)
 # generate the replication pattern
 repl_pattern <- c()
 for (sample_group in 1:nr_sample_groups) {
-  tmp <- c()
+  replicates_persample <- c()
   for (repl in nr_replicates:1) {
     index <- ((sample_group * nr_replicates) - repl) + 1
-    tmp <- c(tmp, sample_names[index])
+    replicates_persample <- c(replicates_persample, sample_names[index])
   }
-  repl_pattern <- c(repl_pattern, list(tmp))
+  repl_pattern <- c(repl_pattern, list(replicates_persample))
 }
 
 names(repl_pattern) <- group_names_unique

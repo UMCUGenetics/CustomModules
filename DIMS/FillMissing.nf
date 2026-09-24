@@ -13,6 +13,6 @@ process FillMissing {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R $peakgrouplist_file $params.scripts_dir $params.thresh $params.resolution $params.ppm
+        Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R $peakgrouplist_file $params.preprocessing_scripts_dir $params.thresh
         """
 }

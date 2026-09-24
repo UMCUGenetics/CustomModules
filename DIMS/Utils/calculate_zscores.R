@@ -55,7 +55,7 @@ calculate_zscores <- function(peakgroup_list, adducts) {
           ppmdev[i] <- NA
         }
       }
-      peakgroup_list <- cbind(peakgroup_list[, 1:6], ppmdev = ppmdev, peakgroup_list[, 7:ncol(peakgroup_list)])
+      peakgroup_list <- cbind(peakgroup_list[, 1:4], ppmdev = ppmdev, peakgroup_list[, 5:ncol(peakgroup_list)])
     }
   }
 

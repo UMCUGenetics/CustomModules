@@ -16,14 +16,15 @@ process GenerateQCOutput {
        tuple path('positive_controls_warning.txt'), path('missing_mz_warning.txt'), path('sample_names_nodata.txt'), optional: true
        tuple path('*_IS_SST.xlsx'), path('*_positive_control.xlsx'), optional: true
        path('plots/IS_*.png'), emit: plot_files
-       path('Check_number_of_controls.txt'), optional: true
+       path('check_number_of_controls.txt'), optional: true
+       path('sst_qc.txt'), optional: true
+       path('internal_standards_below_threshold.txt'), optional: true
 
     script:
         """
         Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R $init_file \
                                                                  $analysis_id \
                                                                  $params.matrix \
-                                                                 $params.zscore \
                                                                  $params.sst_components_file \
                                                                  $params.export_scripts_dir
         """

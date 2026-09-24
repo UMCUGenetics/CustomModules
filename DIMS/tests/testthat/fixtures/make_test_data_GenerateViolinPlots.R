@@ -1,5 +1,52 @@
 ### Functions used to create mock dataframes used for unit testing of GenerateViolinPlots ###
 
+make_outlist_df <- function() {
+  test_outlist_df <- data.frame(
+    plots = NA,
+    C101.1 = c(1000, 1200, 1300, 1400, 1500, 1600),
+    C102.1 = c(1100, 1700, 925, 1125, 1200, 1050),
+    C103.1 = c(1300, 750, 1000, 1220, 1100, 1200),
+    C104.1 = c(1650, 925, 1600, 1650, 1025, 1150),
+    C105.1 = c(180000, 1950, 750, 15050, 1100, 1300),
+    P2025M1 = c(1000, 1200, 1300, 1400, 1100, 975),
+    P2025M2 = c(1100, 1700, 925, 1125, 1050, 1175),
+    P2025M3 = c(1300, 750, 1000, 1220, 975, 1100),
+    P2025M4 = c(1650, 925, 1600, 1650, 1700, 1750),
+    P2025M5 = c(180000, 1950, 750, 15050, 10000, 1500),
+    HMDB_name = c("metab1", "metab2", "metab3", "metab4", "metab5", "metab6"),
+    HMDB_name_all = NA,
+    HMDB_ID_all = NA,
+    sec_HMDB_ID = NA,
+    HMDB_key = NA,
+    sec_HMDB_ID_rlvnc = NA,
+    name = NA,
+    relevance = NA,
+    descr = NA,
+    origin = NA,
+    fluids = NA,
+    tissue = NA,
+    disease = NA,
+    pathway = NA,
+    HMDB_code = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012"),
+    avg_ctrls = c(37010, 1305, 1115, 4089, 1185, 1260),
+    sd_ctrls = c(79934.23, 508.80, 336.15, 6130.65, 186.75, 210.36),
+    nr_ctrls = c(25, 26, 27, 28, 29, 30),
+    C101.1_Zscore = c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56),
+    C102.1_Zscore = c(2.89, 0.79, -1.88, 5.46, -0.68, 1.65),
+    C103.1_Zscore = c(0.54, -0.85, 1.58, 3.84, 0.84, -1.11),
+    C104.1_Zscore = c(0.53, 1.84, 0.35, -0.54, 1.48, 0.43),
+    C105.1_Zscore = c(3.46, -1.31, 0.14, -0.15, 1.48, 0.36),
+    P2025M1_Zscore = c(0.31, 1.84, 2.34, 0.84, -0.46, 0.14),
+    P2025M2_Zscore = c(2.45, 0.48, 1.45, -0.15, -1.51, 3.56),
+    P2025M3_Zscore = c(2.14, 0.15, -1.44, -0.78, 1.68, 0.51),
+    P2025M4_Zscore = c(12.18, 2.48, -0.18, 0.84, 1.48, -2.45),
+    P2025M5_Zscore = c(3.22, 0.48, -3.18, 0.47, 1.18, 2.14)
+  )
+  rownames(test_outlist_df) <- c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012")
+  
+  write.table(test_outlist_df, file = "tests/testthat/fixtures/GenerateViolinPlots/test_outlist_df.txt", sep = "\t")
+}
+
 make_intensities_zscore_df <- function() {
   test_intensities_zscore_df <- data.frame(
     HMDB_code = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012"),
@@ -258,6 +305,8 @@ make_test_expected_biomark_df <- function() {
   test_expected_biomarkers_df <- data.frame(
     HMDB_code = c("HMDB002", "HMDB002", "HMDB005", "HMDB005", "HMDB005", "HMDB009", "HMDB012", "HMDB012", "HMDB020", "HMDB020",
                   "HMDB025", "HMDB025", "HMDB025", "HMDB028", "HMDB028"),
+    HMDB_name = c("metab2", "metab2", "metab5", "metab5", "metab5", "metab9", "metab12", "metab12", "metab20", "metab20",
+                  "metab25", "metab25", "metab25", "metab28", "metab28"),
     Disease = c("Disease A", "Disease B", "Disease B", "Disease B", "Disease C", "Disease D", "Disease A", "Disease E",
                 "Disease F", "Disease C", "Disease F", "Disease G", "Disease D", "Disease G", "Disease E"),
     M.z = c("1.2", "1.2", "2.5", "2.5", "2.5", "3.0", "4.5", "4.5", "2.5", "2.5", "5.1", "5.1", "5.1", "5.8", "5.8"),
@@ -287,4 +336,63 @@ make_test_probability_score_df <- function() {
 
   write.table(test_probability_score_df, sep = "\t", quote = FALSE, row.names = FALSE,
               file = "tests/testthat/fixtures/test_probability_score_df.txt")
+}
+
+make_zscore_dfs <- function() {
+  test_zscore_patients_df <- data.frame(
+    HMDB_code = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3"),
+    HMDB_name = c("metab1", "metab2", "metab3", "metab4", "metab5", "metab6", "Test_ratio1", "Test_ratio2", "Test_ratio3"),
+    P2025M1 = c(0.31, 1.84, 2.34, 0.84, -0.46, 0.14, -0.58, 0.48, -0.45),
+    P2025M2 = c(2.45, 0.48, 1.45, -0.15, -1.51, 3.56, -0.71, 0.39, -0.54),
+    P2025M3 = c(2.14, 0.15, -1.44, -0.78, 1.68, 0.51, -0.22, 0.38, -0.48),
+    P2025M4 = c(12.18, 2.48, -0.18, 0.84, 1.48, -2.45, -0.21, 0.51, -0.29),
+    P2025M5 = c(3.22, 0.48, -3.18, 0.47, 1.18, 2.14, 1.74, -1.78, 1.78)
+  )
+  
+  test_zscore_controls_df <- data.frame(
+    HMDB_code = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3"),
+    HMDB_name = c("metab1", "metab2", "metab3", "metab4", "metab5", "metab6", "Test_ratio1", "Test_ratio2", "Test_ratio3"),
+    C101.1 = c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.58, 0.48, -0.45),
+    C102.1 = c(2.89, 0.79, -1.88, 5.46, -0.68, 1.65, -0.71, 0.39, -0.54),
+    C103.1 = c(0.54, -0.85, 1.58, 3.84, 0.84, -1.11, -0.22, 0.38, -0.48),
+    C104.1 = c(0.53, 1.84, 0.35, -0.54, 1.48, 0.43, -0.21, 0.51, -0.29),
+    C105.1 = c(3.46, -1.31, 0.14, -0.15, 1.48, 0.36, 1.74, -1.78, 1.78)
+  )
+  
+  write.table(test_zscore_patients_df, sep = "\t", quote = FALSE, row.names = FALSE,
+              file = "tests/testthat/fixtures/GenerateViolinPlots/test_zscore_patients_df.txt")
+  write.table(test_zscore_controls_df, sep = "\t", quote = FALSE, row.names = FALSE,
+              file = "tests/testthat/fixtures/GenerateViolinPlots/test_zscore_controls_df.txt")
+}
+
+make_test_metabolite_class_dfs <- function() {
+  test_metabolite_class_patients_df <- data.frame(
+    HMDB_name = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3",
+                  "HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3",
+                  "HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3"),
+    Sample = c("P2025M1", "P2025M1", "P2025M1", "P2025M1", "P2025M1", "P2025M1", "P2025M1", "P2025M1", "P2025M1",
+               "P2025M2", "P2025M2", "P2025M2", "P2025M2", "P2025M2", "P2025M2", "P2025M2", "P2025M2", "P2025M2",
+               "P2025M3", "P2025M3", "P2025M3", "P2025M3", "P2025M3", "P2025M3", "P2025M3", "P2025M3", "P2025M3"),
+    Z_score = c(0.31, 1.84, 2.34, 0.84, -0.46, 0.14, -0.58, 0.48, -0.45,
+                2.45, 0.48, 1.45, -0.15, -1.51, 3.56, -0.71, 0.39, -0.54,
+                2.14, 0.15, -1.44, -0.78, 1.68, 0.51, -0.22, 0.38, -0.48)
+  )
+  
+  test_metabolite_class_controls_df <- data.frame(
+    HMDB_name = c("HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3",
+                  "HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3",
+                  "HMDB001", "HMDB002", "HMDB003", "HMDB004", "HMDB011", "HMDB012", "HMDB000TT1", "HMDB000TT2", "HMDB000TT3"),
+    Sample = c("C101.1", "C101.1", "C101.1", "C101.1", "C101.1", "C101.1", "C101.1", "C101.1", "C101.1",
+               "C102.1", "C102.1", "C102.1", "C102.1", "C102.1", "C102.1", "C102.1", "C102.1", "C102.1",
+               "C103.1", "C103.1", "C103.1", "C103.1", "C103.1", "C103.1", "C103.1", "C103.1", "C103.1"),
+    Z_score = c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.58, 0.48, -0.45,
+                2.89, 0.79, -1.88, 5.46, -0.68, 1.65, -0.71, 0.39, -0.54,
+                0.54, -0.85, 1.58, 3.84, 0.84, -1.11, -0.22, 0.38, -0.48)
+  )
+  
+  write.table(test_metabolite_class_patients_df, sep = "\t", quote = FALSE, row.names = FALSE,
+              file = "tests/testthat/fixtures/GenerateViolinPlots/test_metabolite_class_patients_df.txt")
+  write.table(test_metabolite_class_controls_df, sep = "\t", quote = FALSE, row.names = FALSE,
+              file = "tests/testthat/fixtures/GenerateViolinPlots/test_metabolite_class_controls_df.txt")
+  
 }

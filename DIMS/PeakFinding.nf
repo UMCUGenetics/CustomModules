@@ -5,13 +5,15 @@ process PeakFinding {
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       tuple(path(rdata_file), path(breaks_file))
+       path(rdata_file)
+       each path(sample_techreps)
 
     output:
-       path '*tive.RData'
+       path '*tive.RData', emit: peaklist_rdata, optional: true
+       path '*tive.txt', optional: true
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $rdata_file $breaks_file $params.resolution $params.scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $rdata_file $params.resolution $params.preprocessing_scripts_dir
         """
 }
