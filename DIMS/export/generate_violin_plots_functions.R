@@ -477,9 +477,10 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
   zscore_expected_df <- merge(x = expected_biomarkers_df, y = zscore_patients_df,
                               by.x = c("HMDB_code"), by.y = c("HMDB_code"))
-  
-  zscore_expected_df <- zscore_expected_df %>% select(HMDB_code, Disease, Change, Change_Weight, Dispensability, all_of(sample_cols))
-  
+
+  zscore_expected_df <- zscore_expected_df %>%
+    select(HMDB_code, Disease, Change, Change_Weight, Dispensability, all_of(sample_cols))
+
   # Change Z-score to zero for specific cases
   zscore_expected_df <- zscore_expected_df %>% mutate(across(
     all_of(sample_cols),
@@ -495,7 +496,7 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
       all_of(sample_cols),
       ~ .x * as.numeric(Change_Weight)
     ))
-  
+
   diagnostic_score_df <- metabolite_score_df %>%
     select(Disease, all_of(sample_cols)) %>%
     group_by(Disease) %>%
@@ -503,7 +504,7 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
       across(all_of(sample_cols), ~ sum(.x, na.rm = TRUE)),
       .groups = "drop"
     )
-  
+
   return(diagnostic_score_df)
 }
 
