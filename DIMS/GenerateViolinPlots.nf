@@ -18,7 +18,8 @@ process GenerateViolinPlots {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R $analysis_id $params.export_scripts_dir \
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R $analysis_id \
+                                                                    $params.export_scripts_dir \
                                                                     $params.path_metabolite_groups \
                                                                     $params.file_ratios_metabolites \
                                                                     $params.file_expected_biomarkers_IEM \
