@@ -706,6 +706,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     patient_zscore_df <- metab_zscores_df %>% filter(Sample == patient_id)
 
     # Remove patient column and change Z-score. If under -5 to -5 and if above 20 to 20.
+    metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
     metab_zscores_df <- metab_zscores_df %>%
       mutate(Z_score = pmin(pmax(Z_score, -5), 20))
 

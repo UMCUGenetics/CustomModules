@@ -666,7 +666,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
   expect_equal(
     colnames(prepare_intensities_zscore_df(test_intensities_zscore_df)),
     c(
-      "HMDB_code", "HMDB_name", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
+      "HMDB_code", "HMDB_name", "plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
       "C109.1", "C110.1", "C111.1", "C112.1", "P2.1", "P3.1", "mean_controls", "sd_controls"
     )
   )
@@ -675,7 +675,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
     unname(sapply(prepare_intensities_zscore_df(test_intensities_zscore_df), class)),
     c(
       "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
-      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
+      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
     )
   )
 })
@@ -684,11 +684,9 @@ testthat::test_that("get_colnames_by_prefix: Get all column names containing a s
   test_intensities_zscore_df <- read.delim(test_path("fixtures/", "test_intensities_zscore_df.txt"))
 
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "P"),
-               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5",
-                 "P2025M1_Zscore", "P2025M2_Zscore", "P2025M3_Zscore", "P2025M4_Zscore", "P2025M5_Zscore"))
+               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5"))
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "C"),
-               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
-                 "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore", "C104.1_Zscore", "C105.1_Zscore"))
+               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1"))
 })
 
 testthat::test_that("remove_suffix_from_items: Remove the suffix from a vector of names", {
@@ -835,10 +833,13 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     highest = 2,
     lowest = 1
   )
+  test_zscore_pat_drugs_df <- test_zscore_patients_df
+  test_zscore_pat_drugs_df$HMDB_code <- gsub("HMDB", "CHEMBL", test_zscore_pat_drugs_df$HMDB_code)
 
   expect_silent(make_and_save_violin_plot_pdfs(
     test_zscore_patients_df,
     test_zscore_controls_df,
+    test_zscore_pat_drugs_df,
     test_path_metabolite_groups,
     test_nr_plots_perpage,
     test_number_of_samples,
