@@ -37,9 +37,11 @@ dir.create(paste0(outdir, "/plots"), showWarnings = FALSE)
 control_label <- "C"
 
 #### CHECK NUMBER OF CONTROLS ####
-file_name <- "Check_number_of_controls.txt"
-min_num_controls <- 25
-check_number_of_controls(outlist_filtered_zscores, min_num_controls, file_name)
+if (any(grepl("nr_ctrls", colnames(outlist)))) {
+  file_name <- "Check_number_of_controls.txt"
+  min_num_controls <- 25
+  check_number_of_controls(outlist, min_num_controls, file_name)
+}
 
 #### INTERNAL STANDARDS ####
 is_list <- outlist_filtered_zscores[grep("Internal standard", outlist_filtered_zscores[, "relevance"], fixed = TRUE), ]

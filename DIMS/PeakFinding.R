@@ -36,7 +36,7 @@ for (scanmode in scanmodes) {
   techreps_scanmode <- techreps_passed[grep(scanmode, techreps_passed[, 3]), ]
   # if techrep is ok, it will be found. If not, skip this techrep.
   if (length(grep(techrepl_name, techreps_scanmode)) == 0) {
-    break
+    next
   }
 
   # put mz and intensities into dataframe
