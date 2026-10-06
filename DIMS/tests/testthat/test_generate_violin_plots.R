@@ -496,6 +496,7 @@ testthat::test_that("add_table_to_pdf: Create a pdf with a single table", {
   test_patient_id <- "P2025M1"
   test_prefix <- "T_"
   test_suffix <- ""
+  test_table_theme <- ttheme_default()
 
   test_top_metab_pt <- data.frame(
     Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
@@ -504,7 +505,8 @@ testthat::test_that("add_table_to_pdf: Create a pdf with a single table", {
   
   expect_silent(add_table_to_pdf(
     test_top_metab_pt,
-    test_patient_id
+    test_patient_id,
+    test_table_theme
   ))
   
   pdf(paste0(test_pdf_dir, "/", test_prefix, test_patient_id, test_suffix, ".pdf"),
@@ -515,7 +517,8 @@ testthat::test_that("add_table_to_pdf: Create a pdf with a single table", {
   
   add_table_to_pdf(
     test_top_metab_pt,
-    test_patient_id
+    test_patient_id,
+    test_table_theme
   )
   
   dev.off()
