@@ -21,6 +21,8 @@ get_intensities_cols <- function(outlist, label) {
 #' @param peakgroup_list: Dataframe with intensities for all samples (matrix)
 #' @param zscore_type: Method for excluding controls (string)
 #' @param stat_filter: Either percentage or outlier threshold used for excluding controls (integer)
+#' @param control_label: part of name of all control samples (string)
+#' @param case_label: part of name of all patient samples (string)
 #'
 #' @returns: peakgroup_list_zscores: same dataframe as the input with added Z-score columns (matrix)
 calculate_zscores <- function(peakgroup_list, zscore_type, stat_filter, control_label = "C", case_label = "P") {
