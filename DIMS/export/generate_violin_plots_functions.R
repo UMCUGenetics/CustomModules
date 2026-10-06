@@ -622,8 +622,9 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
 #'
 #' @param top_metab_pt: dataframe with metabolites and Z-scores for a patient (dataframe)
 #' @param patient_id: patient code (string)
+#' @param table_theme: lay-out for table (list)
 #' @param list_type: label indicating whether the table lists metabolites or drugs (string)
-add_table_to_pdf <- function(top_metab_pt, patient_id, list_type = "metab") {
+add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = "metab") {
   max_rows_per_page <- 35
   total_rows <- nrow(top_metab_pt)
   number_of_pages <- ceiling(total_rows / max_rows_per_page)
@@ -694,7 +695,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # put table into PDF file, if not empty
   if (!is.null(dim(top_metab_pt))) {
-    add_table_to_pdf(top_metab_pt, patient_id_sub)
+    add_table_to_pdf(top_metab_pt, patient_id_sub, table_theme)
   }
 
   # violin plots
@@ -729,7 +730,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # put table of drugs into PDF file, if not empty
   if (!is.null(top_drugs_patient) && nrow(top_drugs_patient) > 0) {
-    add_table_to_pdf(top_drugs_patient, patient_id_sub, "drug")
+    add_table_to_pdf(top_drugs_patient, patient_id_sub, table_theme, "drug")
   }
 
   # add explanation of violin plots, version number etc.
