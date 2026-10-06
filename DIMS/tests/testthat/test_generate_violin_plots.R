@@ -487,6 +487,50 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
   )
 })
 
+testthat::test_that("add_table_to_pdf: Create a pdf with a single table", {
+  local_edition(3)
+  temp_dir <- "./"
+  dir.create(paste0(temp_dir, "table/"))
+  
+  test_pdf_dir <- paste0(temp_dir, "table/")
+  test_patient_id <- "P2025M1"
+  test_prefix <- "T_"
+  test_suffix <- ""
+  test_table_theme <- ttheme_default()
+
+  test_top_metab_pt <- data.frame(
+    Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
+    `Z-score` = c("", "2.45", "", "-1.51")
+  )
+  
+  expect_silent(add_table_to_pdf(
+    test_top_metab_pt,
+    test_patient_id,
+    test_table_theme
+  ))
+  
+  pdf(paste0(test_pdf_dir, "/", test_prefix, test_patient_id, test_suffix, ".pdf"),
+      onefile = TRUE#,
+      #width = plot_width,
+      #height = plot_height
+  )
+  
+  add_table_to_pdf(
+    test_top_metab_pt,
+    test_patient_id,
+    test_table_theme
+  )
+  
+  dev.off()
+  
+  out_pdf_table <- file.path(test_pdf_dir, "T_P2025M1.pdf")
+  expect_true(file.exists(out_pdf_table))
+  content_pdf_table <- pdftools::pdf_text(out_pdf_table)
+  expect_snapshot(content_pdf_table)
+  
+  unlink(test_pdf_dir, recursive = TRUE)
+})
+
 testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top metabolites and violin plots", {
   local_edition(3)
   temp_dir <- "./"
@@ -508,12 +552,15 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
     Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
     `Z-score` = c("", "2.45", "", "-1.51")
   )
+  
+  test_top_drugs_patient <- NULL
 
   expect_silent(create_pdf_violin_plots(
     test_pdf_dir,
     test_patient_id,
     test_metab_perpage,
     test_top_metab_pt,
+    test_top_drugs_patient,
     test_explanation
   ))
 
@@ -619,7 +666,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
   expect_equal(
     colnames(prepare_intensities_zscore_df(test_intensities_zscore_df)),
     c(
-      "HMDB_code", "HMDB_name", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
+      "HMDB_code", "HMDB_name", "plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
       "C109.1", "C110.1", "C111.1", "C112.1", "P2.1", "P3.1", "mean_controls", "sd_controls"
     )
   )
@@ -628,7 +675,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
     unname(sapply(prepare_intensities_zscore_df(test_intensities_zscore_df), class)),
     c(
       "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
-      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
+      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
     )
   )
 })
@@ -637,11 +684,9 @@ testthat::test_that("get_colnames_by_prefix: Get all column names containing a s
   test_intensities_zscore_df <- read.delim(test_path("fixtures/", "test_intensities_zscore_df.txt"))
 
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "P"),
-               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5",
-                 "P2025M1_Zscore", "P2025M2_Zscore", "P2025M3_Zscore", "P2025M4_Zscore", "P2025M5_Zscore"))
+               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5"))
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "C"),
-               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
-                 "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore", "C104.1_Zscore", "C105.1_Zscore"))
+               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1"))
 })
 
 testthat::test_that("remove_suffix_from_items: Remove the suffix from a vector of names", {
@@ -788,10 +833,13 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     highest = 2,
     lowest = 1
   )
+  test_zscore_pat_drugs_df <- test_zscore_patients_df
+  test_zscore_pat_drugs_df$HMDB_code <- gsub("HMDB", "CHEMBL", test_zscore_pat_drugs_df$HMDB_code)
 
   expect_silent(make_and_save_violin_plot_pdfs(
     test_zscore_patients_df,
     test_zscore_controls_df,
+    test_zscore_pat_drugs_df,
     test_path_metabolite_groups,
     test_nr_plots_perpage,
     test_number_of_samples,

@@ -7,6 +7,7 @@ process GenerateViolinPlots {
     input:
        path(outlist_zscores)
        val(analysis_id)
+       path(outlist_drugs)
 
     output:
        path('Diagnostics/*.pdf'), emit: diag_plot_files, optional: true
