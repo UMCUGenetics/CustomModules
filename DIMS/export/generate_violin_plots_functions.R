@@ -612,19 +612,19 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
   patient_zscore_df$class[grep("Crea", patient_zscore_df$HMDB_name)] <- "crea_gua"
   patient_zscore_df$class[grep("Gua", patient_zscore_df$HMDB_name)] <- "crea_gua"
 
-  gglolli <- ggplot(patient_zscore_df, aes(x = Z_score, y = HMDB_name, color = class)) +
+  gglolli <- ggplot(patient_zscore_df, aes(x = Z_score_capped, y = HMDB_name, color = class)) +
     # lollipop stems
     geom_segment(
-      aes(x = 0, xend = Z_score, y = HMDB_name, yend = HMDB_name),
+      aes(x = 0, xend = Z_score_capped, y = HMDB_name, yend = HMDB_name),
       linewidth = 1
     ) +
     # points
     geom_point(size = 2) +
     # label extreme values
     geom_text(
-      data = subset(patient_zscore_df, Z_score == 20 | Z_score == -5),
-      aes(label = round(Z_score_original, 2)),
-      vjust = ifelse(subset(patient_zscore_df, Z_score == 20 | Z_score == -5)$Z_score > 0, -0.5, -0.5),
+      data = subset(patient_zscore_df, Z_score_capped == 20 | Z_score_capped == -5),
+      aes(label = round(Z_score, 2)),
+      vjust = ifelse(subset(patient_zscore_df, Z_score_capped == 20 | Z_score_capped == -5)$Z_score_capped > 0, -0.5, -0.5),
       size = 3,
       show.legend = FALSE
     ) +
@@ -733,11 +733,11 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     for (metab_class in names(metab_perpage)) {
       # extract list of metabolites to plot on a page
       metab_zscores_df <- metab_perpage[[metab_class]]
-      # copy Z-scores to Z_score_original for displaying values
-      metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
+      # copy Z-scores to Z_score_capped for displaying values
+      metab_zscores_df$Z_score_capped <- metab_zscores_df$Z_score
       # Cap Z-scores under -5 to -5 and above 20 to 20
       metab_zscores_df <- metab_zscores_df %>%
-        mutate(Z_score = pmin(pmax(Z_score, -5), 20))
+        mutate(Z_score_capped = pmin(pmax(Z_score_capped, -5), 20))
 
       # extract original data for patient of interest (pt_name)
       patient_zscore_df <- metab_zscores_df %>%
@@ -805,18 +805,18 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
     mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
     arrange(HMDB_name)
   
-  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score, y = HMDB_name)) +
+  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score_capped, y = HMDB_name)) +
     # Make violin plots
     geom_violin(scale = "width", na.rm = TRUE) +
     # Add Z-score for the selected patient, shape=22 gives square for patient of interest
     geom_point(
-      data = patient_zscore_df, aes(color = Z_score),
+      data = patient_zscore_df, aes(color = Z_score_capped),
       size = 3.5 * circlesize, shape = 22, fill = "white", na.rm = TRUE
     ) +
     # Add the Z-score at the right side of the plot
     geom_text(
       data = patient_zscore_df,
-      aes(16, label = paste0("Z=", round(Z_score_original, 2))),
+      aes(16, label = paste0("Z=", round(Z_score, 2))),
       hjust = "left", vjust = +0.2, size = 3, na.rm = TRUE
     ) +
     # Set colour for the Z-score of the selected patient
