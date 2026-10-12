@@ -10,7 +10,7 @@
 prepare_intensities_zscore_df <- function(intensities_zscore_df) {
   intensities_zscore_df <- intensities_zscore_df %>%
     select(-c(
-      plots, HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMDB_ID_rlvnc, name,
+      HMDB_name_all, HMDB_ID_all, sec_HMDB_ID, HMDB_key, sec_HMDB_ID_rlvnc, name,
       relevance, descr, origin, fluids, tissue, disease, pathway, nr_ctrls
     )) %>%
     relocate(c(HMDB_code, HMDB_name)) %>%
@@ -27,6 +27,11 @@ prepare_intensities_zscore_df <- function(intensities_zscore_df) {
 #' @returns sample_colnames: a vector of column names all containing the prefix.
 get_colnames_by_prefix <- function(dataframe, prefix) {
   sample_colnames <- grep(paste0("^", prefix), colnames(dataframe), value = TRUE)
+  # remove Z-score columns from intensity_col_names
+  if (any(grepl("_Zscore", sample_colnames))) {
+    sample_colnames <- sample_colnames[-grep("_Zscore", sample_colnames)]
+  }
+
   return(sample_colnames)
 }
 
@@ -125,6 +130,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
 #'
 #' @param zscore_patients_df: dataframe with Z-scores for all patient samples
 #' @param zscore_controls_df: dataframe with Z-scores for all control samples
+#' @param zscore_pat_drugs_df: dataframe with Z-scores for all patient samples for drug metabolites
 #' @param path_metabolite_groups: string containing the path for the metabolite groups directories
 #' @param nr_plots_perpage: integer containing the number of metabolites on a plot per page
 #' @param number_of_samples: list containing the number of patient and control samples
@@ -135,6 +141,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
 make_and_save_violin_plot_pdfs <- function(
     zscore_patients_df,
     zscore_controls_df,
+    zscore_pat_drugs_df,
     path_metabolite_groups,
     nr_plots_perpage,
     number_of_samples,
@@ -181,6 +188,13 @@ make_and_save_violin_plot_pdfs <- function(
       if (grepl("Diagnost", pdf_dir)) {
         # make list of metabolites that exceed alarm values for this patient
         top_metabs_patient <- get_top_metabolites_df(patient_id, dims_helix_table)
+        # for drugs: make list of top highest and lowest Z-scores for this patient
+        top_drugs_patient <- prepare_toplist(
+          patient_id,
+          zscore_pat_drugs_df,
+          number_of_metabolites$highest,
+          number_of_metabolites$lowest
+        )
       } else {
         # make list of top highest and lowest Z-scores for this patient
         top_metabs_patient <- prepare_toplist(
@@ -189,9 +203,16 @@ make_and_save_violin_plot_pdfs <- function(
           number_of_metabolites$highest,
           number_of_metabolites$lowest
         )
+        # for drugs: make list of top highest and lowest Z-scores for this patient
+        top_drugs_patient <- prepare_toplist(
+          patient_id,
+          zscore_pat_drugs_df,
+          number_of_metabolites$highest,
+          number_of_metabolites$lowest
+        )
       }
       # generate normal violin plots
-      create_pdf_violin_plots(pdf_dir, patient_id, metab_perpage, top_metabs_patient, explanation_violin_plot)
+      create_pdf_violin_plots(pdf_dir, patient_id, metab_perpage, top_metabs_patient, top_drugs_patient, explanation_violin_plot)
     }
   }
 }
@@ -565,7 +586,7 @@ get_top_metabolites_df <- function(patient_name, dims_helix_table) {
 
 #' Create a dataframe with the top 20 highest and top 10 lowest metabolites per patient
 #'
-#' @param pt_name: patient code (string)
+#' @param patient_id: patient code (string)
 #' @param zscore_patients: dataframe with metabolite Z-scores per patient (dataframe)
 #' @param top_highest: the number of metabolites with the highest Z-score to display in the table (numeric)
 #' @param top_lowest: the number of metabolites with the lowest Z-score to display in the table (numeric)
@@ -597,14 +618,45 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
   return(top_metab_pt)
 }
 
+#' Add a table with top deviating metabolites for a patient to pdf
+#'
+#' @param top_metab_pt: dataframe with metabolites and Z-scores for a patient (dataframe)
+#' @param patient_id: patient code (string)
+#' @param table_theme: lay-out for table (list)
+#' @param list_type: label indicating whether the table lists metabolites or drugs (string)
+add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = "metab") {
+  max_rows_per_page <- 35
+  total_rows <- nrow(top_metab_pt)
+  number_of_pages <- ceiling(total_rows / max_rows_per_page)
+  
+  for (page in seq(number_of_pages)) {
+    start_row <- (page - 1) * max_rows_per_page + 1
+    end_row <- min(page * max_rows_per_page, total_rows)
+    page_data <- top_metab_pt[start_row:end_row, ]
+    
+    table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
+    if (list_type == "drug") {
+      table_title <- paste0("Top deviating drug metabolites for patient: ", patient_id)
+    } else {
+      table_title <- paste0("Top deviating metabolites for patient: ", patient_id)
+    }
+      
+    grid.arrange(
+      table_grob,
+      top = table_title
+    )
+  }
+}
+
 #' Create a pdf with table with metabolites and violin plots
 #'
 #' @param pdf_dir: location where to save the pdf file (string)
 #' @param patient_id: patient id (string)
 #' @param metab_perpage: list of dataframes, each dataframe contains data for a page in de pdf (list)
 #' @param top_metab_pt: dataframe with increased and decreased metabolites for this patient (dataframe)
+#' @param top_drugs_pt: dataframe with increased and decreased drug metabolites for this patient (dataframe)
 #' @param explanation: text that explains the violin plots and the pipeline version (string)
-create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_pt, explanation) {
+create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_pt, top_drugs_patient, explanation) {
   # set parameters for plots
   plot_height <- 9.6
   plot_width <- 6
@@ -643,37 +695,18 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # put table into PDF file, if not empty
   if (!is.null(dim(top_metab_pt))) {
-    max_rows_per_page <- 35
-    total_rows <- nrow(top_metab_pt)
-    number_of_pages <- ceiling(total_rows / max_rows_per_page)
-
-    # get the names and numbers in the table aligned
-    table_theme <- ttheme_default(
-      core = list(fg_params = list(hjust = 0, x = 0.05, fontsize = 6)),
-      colhead = list(fg_params = list(fontsize = 8, fontface = "bold"))
-    )
-
-    for (page in seq(number_of_pages)) {
-      start_row <- (page - 1) * max_rows_per_page + 1
-      end_row <- min(page * max_rows_per_page, total_rows)
-      page_data <- top_metab_pt[start_row:end_row, ]
-
-      table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
-
-      grid.arrange(
-        table_grob,
-        top = paste0("Top deviating metabolites for patient: ", patient_id)
-      )
-    }
+    add_table_to_pdf(top_metab_pt, patient_id_sub, table_theme)
   }
 
   # violin plots
   for (metab_class in names(metab_perpage)) {
     # extract list of metabolites to plot on a page
     metab_zscores_df <- metab_perpage[[metab_class]]
-    # copy Z-scores to Z_score_original for displaying values
+    # extract original data for patient of interest (patient_id) before cut-offs
+    patient_zscore_df <- metab_zscores_df %>% filter(Sample == patient_id)
+
+    # Remove patient column and change Z-score. If under -5 to -5 and if above 20 to 20.
     metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
-    # Cap Z-scores under -5 to -5 and above 20 to 20
     metab_zscores_df <- metab_zscores_df %>%
       mutate(Z_score = pmin(pmax(Z_score, -5), 20))
 
@@ -696,13 +729,20 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     suppressWarnings(print(ggplot_object))
   }
 
+  # put table of drugs into PDF file, if not empty
+  if (!is.null(top_drugs_patient) && nrow(top_drugs_patient) > 0) {
+    add_table_to_pdf(top_drugs_patient, patient_id_sub, table_theme, "drug")
+  }
+
   # add explanation of violin plots, version number etc.
-  plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  if (length(explanation) > 0) {
-    text(0.2, 5, explanation[1], pos = 4, cex = 0.8)
-    for (line_index in 2:length(explanation)) {
-      text_y_position <- 5 - (line_index * 0.2)
-      text(-0.2, text_y_position, explanation[line_index], pos = 4, cex = 0.5)
+  if (grepl("Diagnost", pdf_dir)) {
+    plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+    if (length(explanation) > 0) {
+      text(0.2, 5, explanation[1], pos = 4, cex = 0.8)
+      for (line_index in 2:length(explanation)) {
+        text_y_position <- 5 - (line_index * 0.2)
+        text(-0.2, text_y_position, explanation[line_index], pos = 4, cex = 0.5)
+      }
     }
   }
 
@@ -957,6 +997,7 @@ make_and_save_diem_plots <- function(
         patient_id,
         diem_metabolites_perpage,
         top_metabolites_patient,
+        NULL,
         explanation_violin_plot
       )
     } else {

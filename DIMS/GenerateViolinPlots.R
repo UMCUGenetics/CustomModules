@@ -17,12 +17,17 @@ path_metabolite_groups <- cmd_args[3]
 file_ratios_metabolites <- cmd_args[4]
 file_expected_biomarkers_iem <- cmd_args[5]
 file_explanation <- cmd_args[6]
+file_drugs_in_dataset <- cmd_args[7]
 
 # load functions
 source(paste0(export_scripts_dir, "generate_violin_plots_functions.R"))
+
 # load dataframe with intensities and Z-scores for all samples
 intensities_zscore_df <- get(load("outlist.RData"))
-rm(outlist)
+
+# load dataframe with intensities and Z-scores for drug metabolites
+intensities_zscore_drugs_df <- get(load("Drugs_in_dataset.RData"))
+
 # read input files
 metabolites_ratios_df <- read.csv(file_ratios_metabolites, sep = ";", stringsAsFactors = FALSE)
 expected_biomarkers_df <- read.csv(file_expected_biomarkers_iem, sep = ";", stringsAsFactors = FALSE)
@@ -50,6 +55,7 @@ number_of_metabolites <- list(
 
 control_ids <- get_colnames_by_prefix(intensities_zscore_df, "C")
 patient_ids <- get_colnames_by_prefix(intensities_zscore_df, "P")
+patient_ids_drugs <- get_colnames_by_prefix(intensities_zscore_drugs_df, "P")
 all_sample_ids <- c(control_ids, patient_ids)
 number_of_samples <- list(
   controls = length(control_ids),
@@ -68,11 +74,16 @@ zscore_patients_df <- intensities_zscore_ratios_df %>%
 zscore_controls_df <- intensities_zscore_ratios_df %>%
   select(HMDB_code, HMDB_name, any_of(paste0(control_ids, "_Zscore"))) %>%
   rename_with(~ str_remove(.x, "_Zscore"), .cols = contains("_Zscore"))
+zscore_pat_drugs_df <- intensities_zscore_drugs_df %>%
+  select(HMDB_code, HMDB_name, any_of(paste0(patient_ids_drugs, "_Zscore"))) %>%
+  rename_with(~ str_remove(.x, "_Zscore"), .cols = contains("_Zscore"))
+
 
 #### Make violin plots #####
 make_and_save_violin_plot_pdfs(
   zscore_patients_df,
   zscore_controls_df,
+  zscore_pat_drugs_df,
   path_metabolite_groups,
   nr_plots_perpage,
   number_of_samples,
