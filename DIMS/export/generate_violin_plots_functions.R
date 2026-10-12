@@ -615,8 +615,7 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
   gglolli <- ggplot(patient_zscore_df, aes(x = Z_score, y = HMDB_name, color = class)) +
     # lollipop stems
     geom_segment(
-      aes(x = 0, xend = Z_score,
-          y = HMDB_name, yend = HMDB_name),
+      aes(x = 0, xend = Z_score, y = HMDB_name, yend = HMDB_name),
       linewidth = 1
     ) +
     # points
@@ -726,7 +725,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     }
   }
 
-  # violin plots; store in list. If Diagnostics, then plot lollipop plot first, then violin plots.
+  # If Diagnostics, then plot lollipop plot first, then violin plots.
   if (grepl("Diagnost", pdf_dir)) {
     violinplot_list <- list()
     patient_allmetabs_df <- as.data.frame(matrix(nrow = 0, ncol = 4))
