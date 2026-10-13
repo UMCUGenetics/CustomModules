@@ -206,7 +206,7 @@ check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
   # The m/z range for a standard run = 70-600
   mz_range <- seq(70, 599, by = 1)
   mz_missing <- setdiff(mz_range, mzmed_pgrp_ident)
-  # Check if m/z are missing and make a txt file with information
+  # Check if m/z are missing
   mz_missing_group <- cumsum(c(1, diff(mz_missing) != 1))
   if (length(mz_missing_group) > 1) {
     results_mz_missing <- c(paste0("Missing m/z values ", scanmode, " mode"))
@@ -214,6 +214,7 @@ check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
   } else {
     results_mz_missing <- paste0(scanmode, " mode did not have missing mz values")
   }
+  
   return(results_mz_missing)
 }
 
@@ -237,11 +238,9 @@ find_is_below_threshold <- function(is_selection_subset, thresholds, is_names, s
   }
   is_below_threshold <- is_selection_subset[below_threshold_index, ]
   # Add information on scan mode
-    if (nrow(is_below_threshold) > 0) {
+  if (nrow(is_below_threshold) > 0) {
     is_below_threshold <- cbind(is_below_threshold, scanmode = scanmode)
-  } else {
-    is_below_threshold$scanmode_char <- character(0)
-  }
+  } 
  
   return(is_below_threshold)
 }
