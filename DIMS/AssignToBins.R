@@ -1,7 +1,7 @@
-# load required packages
+# Load required packages
 suppressPackageStartupMessages(library("xcms"))
 
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 mzml_filepath <- cmd_args[1]
@@ -15,17 +15,17 @@ dims_thresh <- 100
 pos_results <- NULL
 neg_results <- NULL
 
-# load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
+# Load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_filepath)
 pos_bins <- rep(0, length(breaks_fwhm) - 1)
 neg_bins <- pos_bins
-# load trim parameters file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+# Load trim parameters file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(trim_parameters_filepath)
 
-# get name of the technical replicate
+# Get name of the technical replicate
 techrep_name <- sub("\\..*$", "", basename(mzml_filepath))
 
-# read in the data for 1 sample
+# Read in the data for 1 sample
 raw_data <- suppressMessages(xcms::xcmsRaw(mzml_filepath))
 
 # Generate a matrix with retention times and intensities
@@ -38,7 +38,7 @@ neg_times <- raw_data@scantime[raw_data@polarity == "negative"]
 pos_times_trimmed <- pos_times[pos_times > trim_left_pos & pos_times < trim_right_pos]
 neg_times_trimmed <- neg_times[neg_times > trim_left_neg & neg_times < trim_right_neg]
 
-# get TIC intensities for areas between trim_left and trim_right
+# Get TIC intensities for areas between trim_left and trim_right
 tic_intensity_persample <- cbind(raw_data@scantime, raw_data@tic)
 colnames(tic_intensity_persample) <- c("retention_time", "tic_intensity")
 tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(pos_times_trimmed) &
@@ -46,14 +46,14 @@ tic_intensity_pos <- tic_intensity_persample[tic_intensity_persample[ , "retenti
 tic_intensity_neg <- tic_intensity_persample[tic_intensity_persample[ , "retention_time"] > min(neg_times_trimmed) &
                                              tic_intensity_persample[ , "retention_time"] < max(neg_times_trimmed), ]
 
-# calculate weighted mean of intensities for pos and neg separately
+# Calculate weighted mean of intensities for pos and neg separately
 mean_pos <- weighted.mean(tic_intensity_pos[ , "tic_intensity"], tic_intensity_pos[ , "tic_intensity"])
 mean_neg <- weighted.mean(tic_intensity_neg[ , "tic_intensity"], tic_intensity_neg[ , "tic_intensity"])
-# intensity per scan should be at least 80% of weighted mean
+# Intensity per scan should be at least 80% of weighted mean
 dims_thresh_pos <- 0.8 * mean_pos
 dims_thresh_neg <- 0.8 * mean_neg
 
-# select only data from scans which pass the dims_thresh_pos and *_neg filter
+# Select only data from scans which pass the dims_thresh_pos and *_neg filter
 pos_times_pass <- tic_intensity_pos[which(tic_intensity_pos[ , "tic_intensity"] > dims_thresh_pos), "retention_time"]
 neg_times_pass <- tic_intensity_neg[which(tic_intensity_neg[ , "tic_intensity"] > dims_thresh_neg), "retention_time"]
 # Separate each mode into its own matrix
@@ -107,7 +107,7 @@ neg_bins[neg_bins < dims_thresh] <- 0
 pos_results <- cbind(pos_results, pos_bins)
 neg_results <- cbind(neg_results, neg_bins)
 
-# transpose
+# Transpose
 pos_results_transpose <- t(pos_results)
 neg_results_transpose <- t(neg_results)
 
@@ -115,7 +115,7 @@ neg_results_transpose <- t(neg_results)
 rownames(pos_results_transpose) <- techrep_name
 rownames(neg_results_transpose) <- techrep_name
 
-# delete the last value of breaks_fwhm_avg to match dimensions of pos_results and neg_results
+# Delete the last value of breaks_fwhm_avg to match dimensions of pos_results and neg_results
 breaks_fwhm_avg_minuslast <- breaks_fwhm_avg[-length(breaks_fwhm_avg)]
 # Format as string and show precision of float to 5 digits
 breaks_fwhm_avg_minuslast <- sprintf("%.5f", breaks_fwhm_avg_minuslast)
@@ -124,7 +124,7 @@ breaks_fwhm_avg_minuslast <- sprintf("%.5f", breaks_fwhm_avg_minuslast)
 colnames(pos_results_transpose) <- breaks_fwhm_avg_minuslast
 colnames(neg_results_transpose) <- breaks_fwhm_avg_minuslast
 
-# transpose back
+# Transpose back
 pos_results_final <- t(pos_results_transpose)
 neg_results_final <- t(neg_results_transpose)
 
@@ -132,7 +132,7 @@ peak_list <- list("pos" = pos_results_final, "neg" = neg_results_final, "breaksF
 
 save(peak_list, file = paste0(techrep_name, ".RData"))
 
-# for TIC plots: write txt files with data including threshold values for plots
+# For TIC plots: write txt files with data including threshold values for plots
 dims_thresh <- c(rep(dims_thresh_pos, length(pos_times)), rep(dims_thresh_neg, length(neg_times)))
 tic_intensity_persample <- cbind(round(raw_data@scantime, 2), raw_data@tic, round(dims_thresh, 0))
 colnames(tic_intensity_persample) <- c("retention_time", "tic_intensity", "threshold")

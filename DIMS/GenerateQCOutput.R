@@ -1,9 +1,10 @@
+# Load required packages
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
 suppressMessages(library("dplyr"))
 
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 init_file <- cmd_args[1]
@@ -12,22 +13,22 @@ dims_matrix <- cmd_args[3]
 sst_components_file <- cmd_args[4]
 export_scripts_dir <- cmd_args[5]
 
-# load in function scripts
+# Load in function scripts
 source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
 
 # Initialize
 options(digits = 16)
 control_label <- "C"
-# get current date
+# Get current date
 rundate <- Sys.Date()
-# create a directory for plots
+# Create a directory for plots
 dir.create("plots", showWarnings = FALSE)
 
-# load init files
+# Load init files
 load(init_file)
-# load outlist from GenerateExcel
+# Load outlist from GenerateExcel
 load("outlist.RData")
-# load combined adducts for each scanmodus
+# Load combined adducts for each scanmodus
 load("AdductSums_positive.RData")
 load("AdductSums_negative.RData")
 
@@ -38,11 +39,11 @@ if (any(grepl("nr_ctrls", colnames(outlist)))) {
   check_number_of_controls(outlist, min_num_controls, file_name)
 }
 
-# INTERNAL STANDARDS
+# Internal standards
 is_list <- outlist[grep("Internal standard", outlist[, "relevance"], fixed = TRUE), ]
 is_codes <- rownames(is_list)
 
-# check if there is data present for all the samples that the pipeline started with
+# Check if there is data present for all the samples that the pipeline started with
 sample_names_nodata <- setdiff(names(repl_pattern), names(is_list))
 if (length(sample_names_nodata) == 0) {
   sample_names_nodata <- "none"
@@ -72,17 +73,17 @@ is_neg <- get_internal_standards(is_list, "neg", outlist_tot_neg, dims_matrix, r
 # Save results
 save(is_pos, is_neg, is_summed, file = paste0(project, "_IS_results.RData"))
 
-# number of samples, for plotting length and width
+# Number of samples, for plotting length and width
 sample_count <- length(repl_pattern)
 
-# change the order of the x-axis summed plots to a natural sorted one
+# Change the order of the x-axis summed plots to a natural sorted one
 sample_naturalorder <- unique(as.character(is_summed$Sample))
 sample_naturalorder <- stringr::str_sort(sample_naturalorder, numeric = TRUE)
 is_summed$Sample_level <- factor(is_summed$Sample, levels = c(sample_naturalorder))
 is_pos$Sample_level <- factor(is_pos$Sample, levels = c(sample_naturalorder))
 is_neg$Sample_level <- factor(is_neg$Sample, levels = c(sample_naturalorder))
 
-## bar plots with all IS
+# Bar plots with all IS
 plot_width <- 9 + 0.35 * sample_count
 plot_height <- plot_width / 2.5
 
@@ -99,7 +100,7 @@ save_internal_standard_plot(
   "IS_bar_all_sum", plot_width, plot_height
 )
 
-## Line plots with all IS
+# Line plots with all IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
@@ -116,7 +117,7 @@ save_internal_standard_plot(
   "IS_line_all_sum", plot_width, plot_height
 )
 
-## bar plots with a selection of IS
+# bar plots with a selection of IS
 is_neg_selection <- c(
   "2H2-Ornithine (IS)", "2H3-Glutamate (IS)",
   "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)",
@@ -133,7 +134,7 @@ is_sum_selection <- c(
   "13C6-Tyrosine (IS)"
 )
 
-# define threshold for acceptance of selected internal standards
+# Define threshold for acceptance of selected internal standards
 threshold_is_dbs_neg <- c(15000, 200000, 130000, 18000, 50000)
 threshold_is_dbs_pos <- c(150000, 3300000, 1750000, 150000, 270000)
 threshold_is_dbs_sum <- c(1300000, 2500000, 500000, 1800000, 1400000)
@@ -141,7 +142,7 @@ threshold_is_pl_neg  <- c(70000, 700000, 700000, 65000, 350000)
 threshold_is_pl_pos  <- c(1500000, 9000000, 3000000, 400000, 700000)
 threshold_is_pl_sum  <- c(8000000, 12500000, 2500000, 3000000, 4000000)
 
-# add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
+# Add minimal intensity lines based on matrix (DBS or Plasma) and machine mode (neg, pos, sum)
 if (dims_matrix == "DBS") {
   add_min_intens_lines <- TRUE
   hline_data_neg <-
@@ -180,7 +181,7 @@ if (dims_matrix == "DBS") {
   add_min_intens_lines <- FALSE
 }
 
-# bar plots with a selection of IS
+# Bar plots with a selection of IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.5
 
@@ -188,7 +189,7 @@ is_neg_selection_subset <- subset(is_neg, HMDB_name %in% is_neg_selection)
 is_pos_selection_subset <- subset(is_pos, HMDB_name %in% is_pos_selection)
 is_sum_selection_subset <- subset(is_summed, HMDB_name %in% is_sum_selection)
 
-# export txt file with samples with internal standard level below threshold
+# Export txt file with samples with internal standard level below threshold
 if (dims_matrix == "Plasma") {
   is_below_threshold_neg <- find_is_below_threshold(is_neg_selection_subset, threshold_is_pl_neg, is_neg_selection, "neg")
   is_below_threshold_pos <- find_is_below_threshold(is_pos_selection_subset, threshold_is_pl_pos, is_pos_selection, "pos")
@@ -200,7 +201,7 @@ if (dims_matrix == "Plasma") {
   is_below_threshold_sum <- find_is_below_threshold(is_sum_selection_subset, threshold_is_dbs_sum, is_sum_selection, "sum")
   is_below_threshold <- rbind(is_below_threshold_pos, is_below_threshold_neg, is_below_threshold_sum)
 } else {
-  # generate empty table
+  # Generate empty table
   is_below_threshold <- is_neg_selection_subset[0, ]
 }
 
@@ -215,7 +216,7 @@ if (nrow(is_below_threshold) > 0) {
 	      )
 }
 
-# bar plot either with or without minimal intensity lines
+# Bar plot either with or without minimal intensity lines
 if (add_min_intens_lines) {
   save_internal_standard_plot(
     is_neg_selection_subset, "barplot", "Interne Standaard (Neg)",
@@ -244,7 +245,7 @@ if (add_min_intens_lines) {
   )
 }
 
-# line plots with a selection of IS
+# Line plots with a selection of IS
 plot_width <- 8 + 0.2 * sample_count
 plot_height <- plot_width / 2.0
 
@@ -261,8 +262,8 @@ save_internal_standard_plot(
   "IS_line_select_sum", plot_width, plot_height
 )
 
-# POSITIVE CONTROLS
-# these positive controls need to be in the samplesheet, in order to make the positive_control.RData file
+# Positive controls
+# These positive controls need to be in the samplesheet, in order to make the positive_control.RData file
 # Positive control samples all have the format P1002.x, P1003.x and P1005.x (where x is a number)
 
 column_list <- colnames(outlist)
@@ -271,7 +272,7 @@ positive_controls_index <- grepl(pattern = paste(patterns, collapse = "|"), colu
 positive_control_list <- column_list[positive_controls_index]
 pos_contr_warning <- c()
 
-# find if one or more positive control samples are missing
+# Find if one or more positive control samples are missing
 if (sum(positive_controls_index) > 0) {
   if (all(sapply(c("^P1002", "^P1003", "^P1005"),
                  function(x) any(grepl(x, positive_control_list))))) {
@@ -283,7 +284,7 @@ if (sum(positive_controls_index) > 0) {
     )
   }
 }
-# if there are no positive controls, generate a warning
+# If there are no positive controls, generate a warning
 if (length(pos_contr_warning) == 0) {
   pos_contr_warning <- "No positive controls found"
 } 
@@ -292,7 +293,7 @@ write.table(pos_contr_warning,
   row.names = FALSE, col.names = FALSE, quote = FALSE
 )
 
-# make positive control excel with specific HMDB_codes in combination with specific control samples
+# Make positive control excel with specific HMDB_codes in combination with specific control samples
 if (length(positive_control_list) > 0) {
   positive_control <- NULL
   for (pos_ctrl in positive_control_list) {
@@ -328,7 +329,7 @@ if (length(positive_control_list) > 0) {
 
   # Save results
   save(positive_control, file = paste0(project, "_positive_control.RData"))
-  # round the Z-scores to 2 digits
+  # Round the Z-scores to 2 digits
   positive_control$Zscore <- round_df(positive_control$Zscore, 2)
   write.xlsx(positive_control,
     file = paste0(project, "_positive_control.xlsx"),
@@ -347,15 +348,14 @@ is_list_intensities <- get_is_intensities(is_list, int_cols = intensity_col_ids)
 is_neg_intensities <- get_is_intensities(outlist_tot_neg, is_codes = is_codes)
 is_pos_intensities <- get_is_intensities(outlist_tot_pos, is_codes = is_codes)
 
-# SST COMPONENTS
+# SST components
 sst_components <- read.csv(sst_components_file, header = TRUE, sep = "\t")
 sst_metabolites_df <- outlist %>% filter(HMDB_code %in% sst_components$HMDB_ID)
 sst_sample_column_index <- grep("P1001", colnames(sst_metabolites_df))
 
 # Check if SST mix sample(s) are present
 if (length(sst_sample_column_index) > 0) {
-  # Get the SST intensities of the controls, calculate the coefficient of variation
-  # and add to SST mix intensities
+  # Get the SST intensities of the controls, calculate the coefficient of variation and add to SST mix intensities
   sst_sample_intensities_df <- sst_metabolites_df[, sst_sample_column_index]
   control_col_ids <- grep(control_label, colnames(sst_metabolites_df), fixed = TRUE)
   control_sst_intensities_df <- sst_metabolites_df[, control_col_ids]
@@ -398,7 +398,7 @@ xlsx_name <- paste0(project, "_IS_SST.xlsx")
 openxlsx::saveWorkbook(wb, xlsx_name, overwrite = TRUE)
 rm(wb)
 
-# generate text file for workflow completed mail for components with Z-score < 2
+# Generate text file for workflow completed mail for components with Z-score < 2
 if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
   zscore_column <- grep("_Zscore", colnames(sst_intensities_df))[1]
   sst_intensities_df_qc <- sst_intensities_df[sst_intensities_df[, zscore_column] < 2, ]
@@ -408,8 +408,8 @@ if (sum(grepl("P1001", colnames(sst_intensities_df))) > 0) {
   write.table("no SST sample present", file = "sst_qc.txt", row.names = FALSE, col.names = FALSE)
 }
 
-# MISSING M/Z CHECK
-# check the peakgroup_list_identified_(negative/positive).RData files for missing m/z values and save to file
+# Missing m/z check
+# Check the peakgroup_list_identified_(negative/positive).RData files for missing m/z values and save to file
 # Load the peakgroup_list_identified files + remove the loaded files
 load("./peakgroup_list_identified_negative.RData")
 mzmed_pgrp_ident_neg <- peakgroup_list_ident$mzmed.pgrp

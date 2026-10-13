@@ -1,4 +1,4 @@
-# load required packages
+# Load required packages
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
@@ -6,7 +6,7 @@ suppressMessages(library("tidyr"))
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 project <- cmd_args[1]
@@ -15,7 +15,7 @@ z_score <- as.numeric(cmd_args[3])
 export_scripts_dir <- cmd_args[4]
 path_metabolite_groups <- cmd_args[5]
 
-# load in function scripts
+# Load in function scripts
 source(paste0(export_scripts_dir, "generate_excel_functions.R"))
 
 # Initialize
@@ -24,15 +24,15 @@ plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
-# percentage of outliers to remove from calculation of robust scaler
+# Percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 # Z-score for removing outliers with grubbs test
 outlier_threshold <- 2
 
-# load HMDB rlvnc table
+# Load HMDB rlvnc table
 load(hmdb_rlvc_file)
 
-# load outlist object
+# Load outlist object
 load("AdductSums_combined.RData")
 
 # Filter for biological relevance
@@ -43,7 +43,7 @@ outlist <- outlist_subset %>%
   left_join(rlvnc %>% rename(sec_HMDB_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
 rownames(outlist) <- outlist$HMDB_key
 
-# filter out all irrelevant HMDBs
+# Filter out all irrelevant HMDBs
 outlist <- outlist %>%
   tibble::rownames_to_column("rowname") %>%
   filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
@@ -64,9 +64,9 @@ if (z_score == 1) {
   wb_helix_zscores <- openxlsx::createWorkbook("SinglePatient")
   openxlsx::addWorksheet(wb_helix_zscores, sheetname)
   row_helix <- 2 # start on row 2 because of header
-  # add a column for plots
+  # Add a column for plots
   outlist <- cbind(plots = NA, outlist)
-  # three columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
+  # Three columns will be added for mean, stdev and number of controls; Z-scores start at ncol + 4
   startcol <- ncol(outlist) + 4
 
   # Get columns with control intensities
@@ -81,35 +81,35 @@ if (z_score == 1) {
 
   intensity_col_ids <- c(control_col_idx, patient_col_idx)
 
-  # if there are any intensities of 0 left, set them to NA for stats
+  # If there are any intensities of 0 left, set them to NA for stats
   outlist[, intensity_col_ids][outlist[, intensity_col_ids] == 0] <- NA
 
-  # calculate robust Z-scores
+  # Calculate robust Z-scores
   outlist_robust_zscore <- calculate_zscores(outlist, "_RobustZscore", control_col_idx, perc, intensity_col_ids)
 
-  # calculate Z-scores after removal of outliers in Control samples with grubbs test
+  # Calculate Z-scores after removal of outliers in Control samples with grubbs test
   outlist_nooutliers <- calculate_zscores(
     outlist, "_OutlierRemovedZscore", control_col_idx, outlier_threshold, intensity_col_ids
   )
 
-  # calculate Z-scores
+  # Calculate Z-scores
   outlist <- calculate_zscores(outlist, "_Zscore", control_col_idx, NULL, intensity_col_ids)
 
-  # output metabolites filtered on relevance
+  # Output metabolites filtered on relevance
   save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
-  # output filtered metabolites with robust scaled Zscores
+  # Output filtered metabolites with robust scaled Zscores
   save_to_rdata_and_txt(outlist_robust_zscore, "AdductSums_filtered_robustZ")
-  # output filtered metabolites after removal of outliers
+  # Output filtered metabolites after removal of outliers
   save_to_rdata_and_txt(outlist_nooutliers, "AdductSums_filtered_outliersremovedZ")
 
-  # use outlier-removed outlist for generating Excel file
+  # Use outlier-removed outlist for generating Excel file
   outlist <- outlist_nooutliers
   colnames(outlist) <- gsub("_OutlierRemovedZscore", "_Zscore", colnames(outlist))
 
-  # save outlist for GenerateQC step
+  # Save outlist for GenerateQC step
   save(outlist, file = "outlist.RData")
 
-  # get Helix IDs for extra Excel file
+  # Get Helix IDs for extra Excel file
   metabolite_files <- list.files(
     path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
     pattern = "*.txt", full.names = FALSE, recursive = FALSE
@@ -122,7 +122,7 @@ if (z_score == 1) {
     )
     metab_df_helix <- rbind(metab_df_helix, metab_list)
   }
-  # get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
+  # Get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
   metab_df_helix <- metab_df_helix %>%
     filter(Helix == "ja") %>%
     select(c(HMDB_code, HMDB_name)) %>%
@@ -145,7 +145,7 @@ if (z_score == 1) {
   intensities_df <- outlist %>% select(HMDB_key, matches("^C|^P[0-9]"), -ends_with("_Zscore"))
 
   for (row_index in seq_len(nrow(intensities_df))) {
-    # get HMDB ID
+    # Get HMDB ID
     hmdb_id <- intensities_df %>%
       slice(row_index) %>%
       pull(HMDB_key)
@@ -153,7 +153,7 @@ if (z_score == 1) {
     # Transform dataframe to long format
     intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
 
-    # set plot width to 40 times the number of samples
+    # Set plot width to 40 times the number of samples
     plot_width <- length(unique(intensities_df_long$Samples)) * 40
     col_width <- plot_width * 2
 
@@ -210,7 +210,7 @@ if (z_score == 1) {
   openxlsx::saveWorkbook(wb_helix_intensities, paste0("Helix_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
 
-  # reorder outlist for Excel file
+  # Reorder outlist for Excel file
   outlist <- outlist %>%
     relocate(c(HMDB_code, HMDB_name_all, descr, avg_ctrls, sd_ctrls), .after = plots) %>%
     relocate(all_of(grep("_Zscore", colnames(outlist))), .after = sd_ctrls) %>%
@@ -229,7 +229,7 @@ if (z_score == 1) {
     relocate(c(HMDB_name, HMDB_name_all, HMDB_code, HMDB_ID_all))
 }
 
-# write Excel file
+# Write Excel file
 openxlsx::writeData(wb_intensities_zscores, sheet = 1, outlist, startCol = 1)
 openxlsx::saveWorkbook(wb_intensities_zscores, paste0(project, ".xlsx"), overwrite = TRUE)
 rm(wb_intensities_zscores)

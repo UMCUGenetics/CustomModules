@@ -1,4 +1,4 @@
-# load required packages
+# Load required packages
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("gridExtra"))
 library(reshape2)
@@ -6,8 +6,7 @@ library(openxlsx)
 library(ggplot2)
 library(stringr)
 
-
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 run_name <- cmd_args[1]
@@ -23,9 +22,9 @@ iem_variables <- list(
   top_number_iem_diseases = 5,
   threshold_iem = 5
 )
-# number of diseases that score highest in dIEM algorithm to plot
+# Number of diseases that score highest in dIEM algorithm to plot
 top_number_iem_diseases <- 5
-# probability score cut-off for plotting the top diseases
+# Probability score cut-off for plotting the top diseases
 threshold_iem <- 5
 nr_plots_perpage <- 20
 zscore_cutoff <- 5
@@ -35,14 +34,14 @@ number_of_metabolites <- list(
   lowest = 10
 )
 
-# load functions
+# Load functions
 source(paste0(export_scripts_dir, "generate_violin_plots_functions.R"))
 
-# load dataframe with intensities and Z-scores for all samples
+# Load dataframe with intensities and Z-scores for all samples
 intensities_zscore_df <- get(load("outlist.RData"))
 rm(outlist)
 
-# read input files
+# Read input files
 metabolites_ratios_df <- read.csv(file_ratios_metabolites, sep = ";", stringsAsFactors = FALSE)
 expected_biomarkers_df <- read.csv(file_expected_biomarkers_iem, sep = ";", stringsAsFactors = FALSE)
 expected_biomarkers_df <- expected_biomarkers_df %>%
