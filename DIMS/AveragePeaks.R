@@ -23,7 +23,7 @@ colnames(averaged_peaks) <- c("samplenr", "mzmed.pkt", "fq", "mzmin.pkt", "mzmax
 for (file_nr in 1:length(tech_reps)) {
   tech_repl_file <- paste0(tech_reps[file_nr], "_", scanmode, ".RData")
   tech_repl <- get(load(tech_repl_file))
-  # combine data for all technical replicates
+  # Combine data for all technical replicates
   peaklist_allrepl <- rbind(peaklist_allrepl, tech_repl)
 }
 # Make sure mass and intensity columns are numeric

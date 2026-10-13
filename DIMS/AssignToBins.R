@@ -78,24 +78,24 @@ bin_indices_neg <- cut(
 
 # Get the list of intensity values for each bin and sum the intensities
 if (nrow(pos_raw_data_matrix) > 0) {
-  # set NA in intensities to zero
+  # Set NA in intensities to zero
   pos_raw_data_matrix[is.na(pos_raw_data_matrix[, "intensity"]), "intensity"] <- 0
-  # aggregate intensities, calculate mean, use only values above dims_thresh_pos
+  # Aggregate intensities, calculate mean, use only values above dims_thresh_pos
   aggr_int_pos <- stats::aggregate(pos_raw_data_matrix[, "intensity"],
 				   list(bin_indices_pos),
 				   FUN = function(x) { mean(x) })
-  # set NA to zero in second column
+  # Set NA to zero in second column
   aggr_int_pos[is.na(aggr_int_pos[, 2]), 2] <- 0
   pos_bins[aggr_int_pos[, 1]] <- aggr_int_pos[, 2]
 }
 if (nrow(neg_raw_data_matrix) > 0) {
-  # set NA in intensities to zero
+  # Set NA in intensities to zero
   neg_raw_data_matrix[is.na(neg_raw_data_matrix[, "intensity"]), "intensity"] <- 0
-  # aggregate intensities, calculate mean, use only values above dims_thresh_neg
+  # Aggregate intensities, calculate mean, use only values above dims_thresh_neg
   aggr_int_neg <- stats::aggregate(neg_raw_data_matrix[, "intensity"],
 				   list(bin_indices_neg),
 				   FUN = function(x) { mean(x) })
-  # set NA to zero in second column
+  # Set NA to zero in second column
   aggr_int_neg[is.na(aggr_int_neg[, 2]), 2] <- 0
   neg_bins[aggr_int_neg[, 1]] <- aggr_int_neg[, 2]
 }

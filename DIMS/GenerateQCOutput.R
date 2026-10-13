@@ -117,7 +117,7 @@ save_internal_standard_plot(
   "IS_line_all_sum", plot_width, plot_height
 )
 
-# bar plots with a selection of IS
+# Bar plots with a selection of IS
 is_neg_selection <- c(
   "2H2-Ornithine (IS)", "2H3-Glutamate (IS)",
   "2H2-Citrulline (IS)", "2H4_13C5-Arginine (IS)",
@@ -322,7 +322,7 @@ if (length(positive_control_list) > 0) {
   }
 
   positive_control$Zscore <- as.numeric(positive_control$Zscore)
-  # extra information added to excel for future reference. made in beginning of this script
+  # Extra information added to excel for future reference. Made in beginning of this script.
   positive_control$Matrix <- dims_matrix
   positive_control$Rundate <- rundate
   positive_control$Project <- project
