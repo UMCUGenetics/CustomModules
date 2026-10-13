@@ -1,4 +1,4 @@
-# functions for combining sum adducts
+# Functions for combining sum adducts
 
 #' Combine all AdductSum parts in 1 dataframe
 #'

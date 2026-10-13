@@ -1,6 +1,6 @@
-# functions for generating peak groups and annotating them
+# Functions for generating peak groups and annotating them
 
-#' find peaks in all samples with query m/z values and form peak groups
+#' Find peaks in all samples with query m/z values and form peak groups
 #'
 #' @param outlist_sorted: matrix of peaks (mzmed, intensity) in all samples
 #' @param mz_tolerance: Value for mass tolerance around query m/z (float)
@@ -8,39 +8,39 @@
 #'
 #' @return ints_sorted: matrix of peak groups
 find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
-  # set up object for intensities for all samples
+  # Set up object for intensities for all samples
   ints_allsamps <- matrix(0, nrow = nrow(outlist_sorted), ncol = 3 + (length(sample_names)))
   colnames(ints_allsamps) <- c("mzmed.pgrp", "mzmin.pgrp", "mzmax.pgrp", sample_names)
 
-  # start with the m/z with the highest intensity
+  # Start with the m/z with the highest intensity
   row_index <- 1
   while (nrow(outlist_sorted) > 1) {
-    # store row numbers
+    # Store row numbers
     outlist_sorted$rownr <- 1:nrow(outlist_sorted)
-    # find the peaks in the dataset with corresponding m/z plus or minus tolerance
+    # Find the peaks in the dataset with corresponding m/z plus or minus tolerance
     reference_mass <- outlist_sorted$mzmed.pkt[1]
     minmz_ref <- reference_mass - mz_tolerance
     maxmz_ref <- reference_mass + mz_tolerance
     select_peak_indices <- which((outlist_sorted$mzmed.pkt > minmz_ref) & (outlist_sorted$mzmed.pkt < maxmz_ref))
     select_peaks <- outlist_sorted[select_peak_indices, ]
     nrsamples <- length(select_peak_indices)
-    # if peaks have been found, create a peak group
+    # If peaks have been found, create a peak group
     if (nrsamples > 0) {
-      # if any sample has more than one peak, choose the one with the lowest absolute ppm deviation
+      # If any sample has more than one peak, choose the one with the lowest absolute ppm deviation
       select_peaks$abs_ppmdev <- abs(10^6 * (select_peaks$mzmed.pkt - reference_mass) / reference_mass)
       select_peaks <- select_peaks %>% dplyr::group_by(samplenr) %>% dplyr::slice_min(order_by = abs_ppmdev, n = 1)
-      # calculate m/z values for peak group
+      # Calculate m/z values for peak group
       ints_allsamps[row_index, "mzmed.pgrp"] <- mean(select_peaks$mzmed.pkt)
       ints_allsamps[row_index, "mzmin.pgrp"] <- min(select_peaks$mzmed.pkt)
       ints_allsamps[row_index, "mzmax.pgrp"] <- max(select_peaks$mzmed.pkt)
-      # put intensities into proper columns
+      # Put intensities into proper columns
       column_indices <- c()
       for (sample_name in select_peaks$samplenr) {
         column_number <- which(colnames(ints_allsamps) == sample_name)
         column_indices <- c(column_indices, column_number)
       }
       ints_allsamps[row_index, column_indices] <- select_peaks$height.pkt
-      # remove selected peaks from peaklist
+      # Remove selected peaks from peaklist
       outlist_sorted <- outlist_sorted[-select_peaks$rownr, ]
       row_index <- row_index + 1
     } else {
@@ -49,21 +49,21 @@ find_peak_groups <- function(outlist_sorted, mz_tolerance, sample_names) {
     }
   }
 
-  # remove empty rows
+  # Remove empty rows
   ints_allsamps <- ints_allsamps[-which(apply(ints_allsamps, 1, sum) == 0), ]
-  # sort by ascending m/z
+  # Sort by ascending m/z
   ints_allsamps_df <- as.data.frame(ints_allsamps)
   ints_sorted_bymz <- ints_allsamps_df %>% dplyr::arrange(mzmed.pgrp)
 
-  # count the number of non-zero intensities per row. First 3 columns are m/z
+  # Count the number of non-zero intensities per row. First 3 columns are m/z
   nr_nonzero <- apply(ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)], 1, function(x) sum(x > 0))
-  # add nrsamples column before intensity columns
+  # Add nrsamples column before intensity columns
   ints_sorted <- cbind(ints_sorted_bymz[, 1:3], nrsamples = nr_nonzero, ints_sorted_bymz[, 4:ncol(ints_sorted_bymz)])
 
   return(ints_sorted)
 }
 
-#' annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
+#' Annotate peak groups; assign metabolites (adducts, isotopes) with suitable mass from HMDB
 #'
 #' @param ints_sorted: matrix of peak groups
 #' @param hmdb_add_iso: subset of HMDB (matrix)
@@ -77,12 +77,12 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
   colnames(assigned_hmdb) <- c("assi_HMDB", "all_hmdb_names", "iso_HMDB", "HMDB_code",
                                "all_hmdb_ids", "sec_hmdb_ids", "theormz_HMDB")
 
-  # make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
+  # Make sure isotope entries in the hmdb part have no HMDB IDs in the HMDB_ID_all column
   hmdb_add_iso[grep("iso", rownames(hmdb_add_iso)), "HMDB_ID_all"] <- ""
  
-  # for each peak group, find all entries in HMDB part with mass within ppm range
+  # For each peak group, find all entries in HMDB part with mass within ppm range
   for (row_number in 1:nrow(ints_sorted)) {
-    # initialize to make sure there's no information from the previous peak group
+    # Initialize to make sure there's no information from the previous peak group
     select_metabolites <- NULL
     select_adducts <- NULL
     select_isotopes <- NULL
@@ -94,16 +94,16 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
     sec_hmdb_ids <- ""
     theor_mz <- 0
 
-    # take reference mass
+    # Take reference mass
     reference_mass <- ints_sorted[row_number, "mzmed.pgrp"]
-    # select indices for all HMDB entries with mass between +/- ppm tolerance
+    # Select indices for all HMDB entries with mass between +/- ppm tolerance
     select_from_hmdb <- which(hmdb_add_iso[, column_label] > (reference_mass - mz_tolerance) &
                               hmdb_add_iso[, column_label] < (reference_mass + mz_tolerance))
     if (length(select_from_hmdb) > 0) {
-      # get dataframe of all entries which are selected
+      # Get dataframe of all entries which are selected
       select_hmdb_df <- hmdb_add_iso[select_from_hmdb, ]
-      # separate into main metabolites, metabolites with adducts and isotopes
-      # main metabolites have no "_" in their name
+      # Separate into main metabolites, metabolites with adducts and isotopes
+      # Main metabolites have no "_" in their name
       if (any(!grepl("_", rownames(select_hmdb_df)))) {
         grep_noiso_noadduct <- which(!grepl("_", rownames(select_hmdb_df)))
       } else {
@@ -112,17 +112,17 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
       if (length(grep_noiso_noadduct) > 0) {
         select_metabolites <- select_hmdb_df[grep_noiso_noadduct, ]
       }
-      # find isotopes
+      # Find isotopes
       grep_isotopes <- grep("iso", rownames(select_hmdb_df))
       if (length(grep_isotopes) > 0) {
         select_isotopes <- select_hmdb_df[grep_isotopes, ]
       }
-      # find adducts
+      # Find adducts
       grep_adducts <- grep("^HMDB[0-9]{6,7}_", rownames(select_hmdb_df[, ]))
       if (length(grep_adducts) > 0) {
         select_adducts <- select_hmdb_df[grep_adducts, ]
       }
-      # take metabolite info first, then adducts. Isotope info in separate column.
+      # Take metabolite info first, then adducts. Isotope info in separate column.
       if (length(select_metabolites) > 0) {
         all_hmdb_names <- paste0(select_metabolites$HMDB_name_all[select_metabolites$HMDB_name_all != ""], collapse = ";")
         all_hmdb_ids   <- paste0(select_metabolites$HMDB_ID_all[select_metabolites$HMDB_ID_all != ""], collapse = ";")
@@ -151,10 +151,10 @@ annotate_peak_groups <- function(ints_sorted, hmdb_add_iso, column_label, mz_tol
     assigned_hmdb[row_number, "theormz_HMDB"] <- theor_mz
   }
 
-  # combine all information
+  # Combine all information
   peakgrouplist_identified <- as.data.frame(cbind(ints_sorted, assigned_hmdb))
 
-  # add column for ppm deviation
+  # Add column for ppm deviation
   peakgrouplist_identified[, "theormz_HMDB"] <- as.numeric(peakgrouplist_identified[, "theormz_HMDB"])
   peakgrouplist_identified[, "mzmed.pgrp"] <- as.numeric(peakgrouplist_identified[, "mzmed.pgrp"])
   peakgrouplist_identified[, "ppmdev"] <- 1000000 * (peakgrouplist_identified[, "mzmed.pgrp"] -

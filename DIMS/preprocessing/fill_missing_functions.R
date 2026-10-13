@@ -1,4 +1,4 @@
-# function for fill missing (zero) intensities with random noise
+# Function for fill missing (zero) intensities with random noise
 
 #' Replace intensities that are zero with random value
 #'
@@ -9,12 +9,12 @@
 #'
 #' @return final_outlist: peak groups with filled-in intensities (matrix)
 fill_missing_intensities <- function(peakgroup_list, repl_pattern, thresh, disable_randomness = FALSE) {
-  # for unit test, turn off randomness
+  # For unit test, turn off randomness
   if (disable_randomness) {
     set.seed(123)
   }
 
-  # replace missing intensities with random values around threshold
+  # Replace missing intensities with random values around threshold
   if (!is.null(peakgroup_list)) {
     for (sample_index in seq_along(names(repl_pattern))) {
       sample_peaks <- peakgroup_list[, names(repl_pattern)[sample_index]]
