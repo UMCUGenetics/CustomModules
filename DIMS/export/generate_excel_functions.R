@@ -9,9 +9,9 @@
 #'                  col_idx: vector with indices of the control columns
 #'                  df_intensities: dataframe with the intensities of the controls
 get_intensities_cols <- function(peakgroup_list, label) {
-  # get the column indices
+  # Get the column indices
   col_idx <- grep(label, colnames(peakgroup_list), fixed = TRUE)
-  # get intensity columns
+  # Get intensity columns
   df_intensities <- as.data.frame(peakgroup_list[, col_idx])
   colnames(df_intensities) <- colnames(peakgroup_list)[col_idx]
 
@@ -83,11 +83,11 @@ calculate_zscores <- function(peakgroup_list, zscore_type, control_cols, stat_fi
 #'
 #' @returns trimmed_control_intensities: Intensities trimmed for outliers (vector of float)
 robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
-  # determine how many values will be removed, based on percentage
+  # Determine how many values will be removed, based on percentage
   nr_to_remove <- ceiling(length(control_col_ids) * perc / 100)
-  # sort intensities
+  # Sort intensities
   sorted_control_intensities <- sort(as.numeric(control_intensities))
-  # remove highest and lowest intensities
+  # Remove highest and lowest intensities
   start_index <- nr_to_remove + 1
   end_index <- length(sorted_control_intensities) - nr_to_remove
   trimmed_control_intensities <- sorted_control_intensities[start_index:end_index]
@@ -102,11 +102,11 @@ robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
 #'
 #' @returns trimmed_control_intensities: Intensities trimmed for outliers (vector of float)
 remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
-  # calculate Z-scores for all intensities
+  # Calculate Z-scores for all intensities
   mean_permetabolite <- mean(as.numeric(control_intensities))
   stdev_permetabolite <- sd(as.numeric(control_intensities))
   zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
-  # remove intensities with a Z-score greater than outlier_threshold
+  # Remove intensities with a Z-score greater than outlier_threshold
   if (sum(zscores_permetabolite > outlier_threshold) > 0) {
     trimmed_control_intensities <- control_intensities[-which(zscores_permetabolite > outlier_threshold)]
   } else {

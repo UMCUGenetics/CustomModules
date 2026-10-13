@@ -1,4 +1,4 @@
-# functions for checking the quality of the dataset (internal standards, positive controls and SST sample)
+# Functions for checking the quality of the dataset (internal standards, positive controls and SST sample)
 
 #' Check the number of control samples for each metabolite and report findings in a txt file
 #'
@@ -201,12 +201,12 @@ calc_coefficient_of_variation <- function(intensity_list) {
 #'
 #' @return results_mz_missing: Either the missing mz values or a message that no values are missing (string)
 check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
-  # retrieve all unique m/z values in whole numbers and check if all are available
+  # Retrieve all unique m/z values in whole numbers and check if all are available
   mzmed_pgrp_ident <- unique(round(mzmed_pgrp_ident, digits = 0))
-  # m/z range for a standard run = 70-600
+  # The m/z range for a standard run = 70-600
   mz_range <- seq(70, 599, by = 1)
   mz_missing <- setdiff(mz_range, mzmed_pgrp_ident)
-  # check if m/z are missing and make a txt file with information
+  # Check if m/z are missing and make a txt file with information
   mz_missing_group <- cumsum(c(1, diff(mz_missing) != 1))
   if (length(mz_missing_group) > 1) {
     results_mz_missing <- c(paste0("Missing m/z values ", scanmode, " mode"))
@@ -226,7 +226,7 @@ check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
 #'
 #' @return is_below_threshold: All samples for which internal standard intensity is below threshold (matrix)
 find_is_below_threshold <- function(is_selection_subset, thresholds, is_names, scanmode) {
-  # for every line, check if intensity is below the appropriate threshold
+  # For every line, check if intensity is below the appropriate threshold
   below_threshold_index <- c()
   for (line_index in seq_len(nrow(is_selection_subset))) {
     is_selected <- is_selection_subset$HMDB_name[line_index]
@@ -236,7 +236,7 @@ find_is_below_threshold <- function(is_selection_subset, thresholds, is_names, s
     }
   }
   is_below_threshold <- is_selection_subset[below_threshold_index, ]
-  # add information on scan mode
+  # Add information on scan mode
     if (nrow(is_below_threshold) > 0) {
     is_below_threshold <- cbind(is_below_threshold, scanmode = scanmode)
   } else {

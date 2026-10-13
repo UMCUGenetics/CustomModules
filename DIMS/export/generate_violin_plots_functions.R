@@ -1,4 +1,4 @@
-# functions for creating violin plot PDF output
+# Functions for creating violin plot PDF output
 
 #' Preparing the intensities and Z-score dataframe.
 #' Certain columns are removed, the HMDB_code and HMDB_name column are moved forward,
@@ -58,7 +58,7 @@ remove_suffix_from_items <- function(vector_names, suffix) {
 add_zscores_ratios_to_df <- function(peakgroup_list, metabolites_ratios_df, all_sample_ids) {
   intensities_zscores_df <- prepare_intensities_zscore_df(peakgroup_list)
 
-  # calculate Z-scores for the ratios
+  # Calculate Z-scores for the ratios
   zscore_ratios_df <- calculate_zscore_ratios(metabolites_ratios_df, intensities_zscores_df, all_sample_ids)
   intensities_zscore_ratios_df <- rbind(intensities_zscores_df, zscore_ratios_df)
 
@@ -73,19 +73,19 @@ add_zscores_ratios_to_df <- function(peakgroup_list, metabolites_ratios_df, all_
 #'
 #' @return zscore_ratios_df: Dataframe containing Z-scores for all ratios for all samples (matrix)
 calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_df, intensity_col_names) {
-  # remove Z-score columns from intensity_col_names
+  # Remove Z-score columns from intensity_col_names
   if (any(grepl("_Zscore", intensity_col_names))) {
     intensity_col_names <- intensity_col_names[-grep("_Zscore", intensity_col_names)]
   }
 
-  # create empty data frame for results
+  # Create empty data frame for results
   zscore_ratios_df <- data.frame(matrix(
     ncol = ncol(intensities_zscores_df),
     nrow = nrow(metabolites_ratios_df)
   ))
   colnames(zscore_ratios_df) <- colnames(intensities_zscores_df)
 
-  # put HMDB info into first two columns of ratio_zscore_df
+  # Put HMDB info into first two columns of ratio_zscore_df
   zscore_ratios_df$HMDB_code <- metabolites_ratios_df$HMDB.code
   zscore_ratios_df$HMDB_name <- metabolites_ratios_df$Ratio_name
 
@@ -107,7 +107,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
       "HMDB_denominator",
       intensity_col_names
     )
-    # calculate the intensity ratio for each sample
+    # Calculate the intensity ratio for each sample
     zscore_ratios_df[row_index, intensity_cols_index] <- numerator_intensities / denominator_intensities
   }
 
@@ -150,10 +150,10 @@ make_and_save_violin_plot_pdfs <- function(
     number_of_metabolites) {
   # Get all patient IDs
   patient_col_names <- remove_suffix_from_items(get_colnames_by_prefix(zscore_patients_df, "P"), "_Zscore")
-  # get all files from metabolite_groups directory
+  # Get all files from metabolite_groups directory
   metabolite_dirs <- list.files(path = path_metabolite_groups, full.names = FALSE, recursive = FALSE)
   for (metabolite_dir in metabolite_dirs) {
-    # create a directory for the output PDFs
+    # Create a directory for the output PDFs
     pdf_dir <- paste0("./", metabolite_dir)
     dir.create(pdf_dir, showWarnings = FALSE)
 
@@ -168,29 +168,29 @@ make_and_save_violin_plot_pdfs <- function(
       number_of_samples$controls
     )
 
-    # for Diagnostics metabolites to be saved in Helix
+    # For Diagnostics metabolites to be saved in Helix
     if (grepl("Diagnost", pdf_dir)) {
-      # get table that combines DIMS results with metabolite classes/Helix table
+      # Get table that combines DIMS results with metabolite classes/Helix table
       dims_helix_table <- prepare_helix_patient_data(metab_interest_patients, metab_list_all)
-      # check if run contains diagnostic patients (e.g. "P2024M")
+      # Check if run contains diagnostic patients (e.g. "P2024M")
       if (any(is_diagnostic_patients(dims_helix_table$Sample))) {
-        # transform dataframe for Helix output
+        # Transform dataframe for Helix output
         output_helix <- transform_metab_df_to_helix_df(protocol_name, dims_helix_table)
-        # round the Z-scores to 1 decimal
+        # Round the Z-scores to 1 decimal
         output_helix$Amount <- round(output_helix$Amount, 1)
-        # save the DIMS Helix dataframe
+        # Save the DIMS Helix dataframe
         path_helixfile <- paste0("./output_Helix_", run_name, ".csv")
         write.csv(output_helix, path_helixfile, quote = FALSE, row.names = FALSE)
       }
     }
 
-    # make violin plots per patient
+    # Make violin plots per patient
     for (patient_id in patient_col_names) {
       if (grepl("Diagnost", pdf_dir)) {
-        # make list of metabolites that exceed alarm values for this patient
+        # Make list of metabolites that exceed alarm values for this patient
         top_metabs_patient <- get_top_metabolites_df(patient_id, dims_helix_table)
       } else {
-        # make list of top highest and lowest Z-scores for this patient
+        # Make list of top highest and lowest Z-scores for this patient
         top_metabs_patient <- prepare_toplist(
           patient_id,
           zscore_patients_df,
@@ -198,7 +198,7 @@ make_and_save_violin_plot_pdfs <- function(
           number_of_metabolites$lowest
         )
       }
-      # generate normal violin plots
+      # Generate normal violin plots
       create_pdf_violin_plots(pdf_dir, patient_id, metab_perpage, top_metabs_patient, explanation_violin_plot)
     }
   }
@@ -210,9 +210,9 @@ make_and_save_violin_plot_pdfs <- function(
 #'
 #' @return list_of_dataframes: Dataframes with info on metabolites (list of dataframes)
 get_list_dataframes_from_dir <- function(dir_with_subdirs) {
-  # get a list of all metabolite files
+  # Get a list of all metabolite files
   txt_files_paths <- list.files(dir_with_subdirs, pattern = "*.txt", recursive = FALSE, full.names = TRUE)
-  # put all metabolites into one list
+  # Put all metabolites into one list
   list_of_dataframes <- lapply(txt_files_paths, read.table, sep = "\t", header = TRUE, quote = "")
   names(list_of_dataframes) <- gsub(".txt", "", basename(txt_files_paths))
 
@@ -227,15 +227,15 @@ get_list_dataframes_from_dir <- function(dir_with_subdirs) {
 #' @return list_dfs_metabs_info_zscores: Dataframes for each metabolite class
 #'         containing info and zscores for all samples (list)
 merge_metabolite_info_zscores <- function(list_df_metabolite_groups, zscore_df) {
-  # remove HMDB_name column and "_Zscore" from column (patient) names
+  # Remove HMDB_name column and "_Zscore" from column (patient) names
   zscore_df <- zscore_df %>%
     select(-HMDB_name)
 
-  # put data into pages, max 20 violin plots per page in PDF
+  # Put data into pages, max 20 violin plots per page in PDF
   list_dfs_metabs_info_zscores <- list()
 
   for (metabolite_class in names(list_df_metabolite_groups)) {
-    # select the metabolite_class dataframe and select the HMDB_code and HMDB_name columns
+    # Select the metabolite_class dataframe and select the HMDB_code and HMDB_name columns
     metabolite_info_df <- list_df_metabolite_groups[[metabolite_class]] %>% select(HMDB_code, HMDB_name)
 
     # Pad or truncate the HMDB names
@@ -246,7 +246,7 @@ merge_metabolite_info_zscores <- function(list_df_metabolite_groups, zscore_df) 
       inner_join(zscore_df, by = "HMDB_code") %>%
       select(-HMDB_code)
 
-    # put the data frame in long format
+    # Put the data frame in long format
     metabolite_zscore_df_long <- reshape2::melt(
       metabolite_zscore_df,
       id.vars = "HMDB_name",
@@ -299,10 +299,10 @@ get_data_per_metabolite_class <- function(
 
     # Add new items to main list
     list_metabolite_df_per_page <- append(list_metabolite_df_per_page, page_plot_data_list)
-    # create list of page headers
+    # Create list of page headers
     metabolite_categories <- c(metabolite_categories, paste(metabolite_class, seq(number_of_chunks_metabolites), sep = "_"))
   }
-  # add page headers to list
+  # Add page headers to list
   names(list_metabolite_df_per_page) <- metabolite_categories
 
   return(list_metabolite_df_per_page)
@@ -356,27 +356,27 @@ prepare_helix_patient_data <- function(list_dfs_metab_classes_zscores, list_meta
 #'
 #' @return fraction_side_intensity: Intensities (vector of floats)
 get_intensities_fraction_side <- function(ratios_metabs_df, row_index, intensities_zscore_df, fraction_side, intensity_cols) {
-  # get the HMDB ID(s) for the given fraction side
+  # Get the HMDB ID(s) for the given fraction side
   fraction_side_hmdb_ids <- ratios_metabs_df[row_index, fraction_side]
   if (grepl("plus", fraction_side_hmdb_ids)) {
-    # if fraction side contains "plus", split to get both HMDB IDs
+    # If fraction side contains "plus", split to get both HMDB IDs
     fraction_side_hmdb_id_list <- strsplit(fraction_side_hmdb_ids, "plus")[[1]]
-    # get intensities for both HMDB IDs for all samples
+    # Get intensities for both HMDB IDs for all samples
     fraction_side_intensity_list <- intensities_zscore_df %>%
       filter(HMDB_code %in% fraction_side_hmdb_id_list) %>%
       select(any_of(intensity_cols))
-    # sum intensities to 1 intensity per samples
+    # Sum intensities to 1 intensity per samples
     fraction_side_intensity <- apply(fraction_side_intensity_list, 2, sum)
   } else if (fraction_side_hmdb_ids == "one") {
-    # set intensity to 1
+    # Set intensity to 1
     fraction_side_intensity <- 1
   } else {
-    # get intensities of the HMDB ID for all samples
+    # Get intensities of the HMDB ID for all samples
     fraction_side_intensity <- intensities_zscore_df %>%
       filter(HMDB_code == fraction_side_hmdb_ids) %>%
       select(any_of(intensity_cols))
   }
-  # vector of intensities for all samples
+  # Vector of intensities for all samples
   fraction_side_intensity <- as.numeric(fraction_side_intensity)
 
   return(fraction_side_intensity)
@@ -407,9 +407,9 @@ get_sample_ids_with_zscores <- function(colnames_zscore_cols, colnames_intensity
 #' @return metabolite_info_df: Dataframe where the HMDB names are transformed (matrix)
 pad_truncate_hmdb_names <- function(metabolite_info_df, width, pad_character) {
   # Change the HMDB_name column so all names have 45 characters
-  # remove characters if name is longer and add "..."
-  # add empty spaces till 45 charachters if name is shorter
-  # keep the name if name is exactly 45 characters
+  # Remove characters if name is longer and add "..."
+  # Add empty spaces till 45 charachters if name is shorter
+  # Keep the name if name is exactly 45 characters
   keep_lenght <- width - 3
   metabolite_info_df <- metabolite_info_df %>% mutate(HMDB_name = case_when(
     str_length(HMDB_name) > width ~ str_c(str_sub(HMDB_name, 1, keep_lenght), "..."),
@@ -545,7 +545,7 @@ add_lab_id_and_onderzoeksnr <- function(df_metabs_helix) {
 #' @return top_metab_patient: Dataframe with metabolites that exceed the min and max Z-score cutoffs
 #'          for the selected patient (matrix)
 get_top_metabolites_df <- function(patient_name, dims_helix_table) {
-  # extract data for patient of interest (patient_name)
+  # Extract data for patient of interest (patient_name)
   patient_metabs_helix <- dims_helix_table %>%
     filter(Sample == patient_name) %>%
     mutate(Z_score = round(Z_score, 2))
@@ -554,7 +554,7 @@ get_top_metabolites_df <- function(patient_name, dims_helix_table) {
   patient_low_df <- patient_metabs_helix %>% filter(Z_score < low_zscore)
 
   if (nrow(patient_high_df) > 0 || nrow(patient_low_df) > 0) {
-    # sort tables on zscore
+    # Sort tables on zscore
     patient_high_df <- patient_high_df %>%
       arrange(desc(Z_score)) %>%
       select(c(HMDB_name, Z_score))
@@ -562,16 +562,16 @@ get_top_metabolites_df <- function(patient_name, dims_helix_table) {
       arrange(Z_score) %>%
       select(c(HMDB_name, Z_score))
   }
-  # add lines for increased, decreased
+  # Add lines for increased, decreased
   line_increased <- c("Increased", "")
   line_decreased <- c("Decreased", "")
 
-  # combine the two lists
+  # Combine the two lists
   top_metab_patient <- rbind(line_increased, patient_high_df, line_decreased, patient_low_df)
 
-  # remove row names
+  # Remove row names
   rownames(top_metab_patient) <- NULL
-  # change column names for display
+  # Change column names for display
   colnames(top_metab_patient) <- c("Metabolite", "Z-score")
 
   return(top_metab_patient)
@@ -598,14 +598,14 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
   patient_df_high <- patient_df[nrow(patient_df):(nrow(patient_df) - num_of_highest_metabolites + 1), ]
   patient_df_high <- patient_df_high %>% mutate(across(!!sym(patient_id), ~ round(.x, 2)))
 
-  # add lines for increased, decreased
+  # Add lines for increased, decreased
   extra_line1 <- c("Increased", "", "")
   extra_line2 <- c("Decreased", "", "")
   top_metab_patient <- rbind(extra_line1, patient_df_high, extra_line2, patient_df_low)
-  # remove row names
+  # Remove row names
   rownames(top_metab_patient) <- NULL
 
-  # change column names for display
+  # Change column names for display
   colnames(top_metab_patient) <- c("HMDB_ID", "Metabolite", "Z-score")
 
   return(top_metab_patient)
@@ -619,23 +619,23 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
 #' @param top_metab_patient: Dataframe with increased and decreased metabolites for this patient (matrix)
 #' @param explanation_violin_plot: Text that explains the violin plots and the pipeline version (vector of strings)
 create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, explanation_violin_plot) {
-  # set parameters for plots
+  # Set parameters for plots
   plot_height <- 9.6
   plot_width <- 6
 
-  # get the names and numbers in the table aligned
+  # Get the names and numbers in the table aligned
   table_theme <- ttheme_default(
     core = list(fg_params = list(hjust = 0, x = 0.05, fontsize = 6)),
     colhead = list(fg_params = list(fontsize = 8, fontface = "bold"))
   )
 
-  # patient plots, create the PDF device
+  # Patient plots, create the PDF device
   patient_id_sub <- patient_id
   suffix <- ""
   if (grepl("Diagnost", pdf_dir) && is_diagnostic_patients(patient_id)) {
     prefix <- "MB"
     suffix <- "_DIMS_PL_DIAG"
-    # substitute P and M in P2020M00001 into right format for Helix
+    # Substitute P and M in P2020M00001 into right format for Helix
     patient_id_sub <- gsub("[PM]", "", patient_id)
     patient_id_sub <- gsub("\\..*", "", patient_id_sub)
   } else if (grepl("Diagnost", pdf_dir)) {
@@ -652,16 +652,16 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     height = plot_height
   )
 
-  # page headers:
+  # Page headers:
   page_headers <- names(metab_perpage)
 
-  # put table into PDF file, if not empty
+  # Put table into PDF file, if not empty
   if (!is.null(dim(top_metab_patient))) {
     max_rows_per_page <- 35
     total_rows <- nrow(top_metab_patient)
     number_of_pages <- ceiling(total_rows / max_rows_per_page)
 
-    # get the names and numbers in the table aligned
+    # Get the names and numbers in the table aligned
     table_theme <- ttheme_default(
       core = list(fg_params = list(hjust = 0, x = 0.05, fontsize = 6)),
       colhead = list(fg_params = list(fontsize = 8, fontface = "bold"))
@@ -681,17 +681,17 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     }
   }
 
-  # violin plots
+  # Violin plots
   for (metab_class in names(metab_perpage)) {
-    # extract list of metabolites to plot on a page
+    # Extract list of metabolites to plot on a page
     metab_zscores_df <- metab_perpage[[metab_class]]
-    # copy Z-scores to Z_score_original for displaying values
+    # Copy Z-scores to Z_score_original for displaying values
     metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
     # Cap Z-scores under -5 to -5 and above 20 to 20
     metab_zscores_df <- metab_zscores_df %>%
       mutate(Z_score = pmin(pmax(Z_score, -5), 20))
 
-    # extract original data for patient of interest (pt_name)
+    # Extract original data for patient of interest (pt_name)
     patient_zscore_df <- metab_zscores_df %>%
       filter(Sample == patient_id)
 
@@ -699,18 +699,18 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     metab_zscores_df <- metab_zscores_df %>%
       filter(Sample != patient_id)
 
-    # subtitle per page
+    # Subtitle per page
     sub_perpage <- gsub("_", " ", metab_class)
-    # for IEM plots, put subtitle on two lines
+    # For IEM plots, put subtitle on two lines
     sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
 
-    # draw violin plot.
+    # Draw violin plot.
     ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
 
     suppressWarnings(print(ggplot_object))
   }
 
-  # add explanation_violin_plot of violin plots, version number etc.
+  # Add explanation_violin_plot of violin plots, version number etc.
   plot(NA, xlim = c(0, 5), ylim = c(0, 5), bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
   if (length(explanation_violin_plot) > 0) {
     text(0.2, 5, explanation_violin_plot[1], pos = 4, cex = 0.8)
@@ -720,7 +720,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     }
   }
 
-  # close the PDF file
+  # Close the PDF file
   dev.off()
 }
 
@@ -926,11 +926,11 @@ make_and_save_diem_plots <- function(
     number_of_metabolites,
     iem_variables,
     explanation_violin_plot) {
-  # create output folder
+  # Create output folder
   diem_plot_dir <- paste("./dIEM_plots", sep = "/")
   dir.create(diem_plot_dir)
 
-  # reduce patient_col_names to contain only the patient names
+  # Reduce patient_col_names to contain only the patient names
   if (sum(grepl("Zscore", patient_col_names)) > 0) {
     patient_col_names <- patient_col_names[-grep("Zscore", patient_col_names)]
   }
@@ -996,12 +996,12 @@ get_probabilities_top_iems <- function(patient_top_iems_probs, expected_biomarke
   metabolites_iems_names <- c()
 
   for (iem in patient_top_iems_probs$Disease) {
-    # get the IEM probabilities for the selected patient
+    # Get the IEM probabilities for the selected patient
     iem_probablity <- patient_top_iems_probs %>%
       filter(Disease == iem) %>%
       pull(!!sym(patient_id))
     metabolites_iems_names <- c(metabolites_iems_names, paste0(iem, ", probability score ", iem_probablity))
-    # get the HMDB codes and names for the IEM of the selected patient
+    # Get the HMDB codes and names for the IEM of the selected patient
     metabolites_iem_df <- expected_biomarkers_df %>%
       filter(Disease == iem) %>%
       select(HMDB_code, HMDB_name)
