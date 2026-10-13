@@ -12,19 +12,18 @@ get_intensities_cols <- function(peakgroup_list, label) {
   # Get the column indices
   col_idx <- grep(label, colnames(peakgroup_list), fixed = TRUE)
   # Get intensity columns
-  df_intensities <- as.data.frame(peakgroup_list[, col_idx])
-  colnames(df_intensities) <- colnames(peakgroup_list)[col_idx]
+  df_intensities <- outlist %>% select(all_of(col_idx))
 
   return(list(col_idx = col_idx, df_intensities = df_intensities))
 }
 
 #' Calculate the Z-scores with different methods for excluding outliers in controls
 #'
-#' @param peakgroup_list: dataframe with intensities for all samples (matrix)
-#' @param zscore_type: string with method for excluding controls
-#' @param control_cols: vector with indices of the control columns
-#' @param stat_filter: integer used for excluding controls, either percentage or outlier threshold
-#' @param intensity_col_ids: vector with indices of the samples for which to calculate Z-scores
+#' @param peakgroup_list: Dataframe with intensities for all samples (matrix)
+#' @param zscore_type: Method for excluding controls (string)
+#' @param control_cols: Indices of the control columns (vector of integers)
+#' @param stat_filter: Parameter for excluding controls, either percentage or outlier threshold (integer)
+#' @param intensity_col_ids: Indices of the samples for which to calculate Z-scores (vector of integers)
 #'
 #' @returns: peakgroup_list: same dataframe as the input with added Z-score columns (matrix)
 calculate_zscores <- function(peakgroup_list, zscore_type, control_cols, stat_filter, intensity_col_ids) {
