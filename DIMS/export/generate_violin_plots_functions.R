@@ -782,27 +782,28 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
 #'
 #' @returns probability_score: a dataframe with probability scores for IEMs for each patient (dataframe)
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
-  zscore_expected_df <- merge(x = expected_biomarkers_df, y = zscore_patients_df,
-                              by.x = c("HMDB_code"), by.y = c("HMDB_code"))
+  zscore_expected_df <- merge(
+    x = expected_biomarkers_df,
+    y = zscore_patients_df,
+    by.x = c("HMDB_code"),
+    by.y = c("HMDB_code")
+  )
 
   zscore_expected_df <- zscore_expected_df %>%
     select(HMDB_code, Disease, Change, Change_Weight, Dispensability, all_of(sample_cols))
 
   # Change Z-score to zero for specific cases
-  zscore_expected_df <- zscore_expected_df %>% mutate(across(
-    all_of(sample_cols),
-    ~ case_when(
-      Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
-      Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
-      TRUE ~ .x
-    )
-  ))
-
-  metabolite_score_df <- zscore_expected_df %>%
+  zscore_expected_df <- zscore_expected_df %>%
     mutate(across(
       all_of(sample_cols),
-      ~ .x * as.numeric(Change_Weight)
+      ~ case_when(
+        Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
+        Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
+        TRUE ~ .x
+      )
     ))
+
+  metabolite_score_df <- zscore_expected_df %>% mutate(across(all_of(sample_cols), ~ .x * as.numeric(Change_Weight)))
 
   diagnostic_score_df <- metabolite_score_df %>%
     select(Disease, all_of(sample_cols)) %>%
