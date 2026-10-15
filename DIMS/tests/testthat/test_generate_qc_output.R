@@ -1,5 +1,5 @@
-# unit tests for GenerateQCOutput
-# functions: get_internal_standards, save_internal_standard_plot,
+# Unit tests for GenerateQCOutput
+# Functions: get_internal_standards, save_internal_standard_plot,
 #            get_pos_ctrl_data, round_df,
 #            get_is_intensities, calc_coefficient_of_variation,
 #            check_missing_mz
@@ -60,7 +60,7 @@ testthat::test_that("Save internal standard plots", {
 
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "barplot", "Test barplot", temp_dir,
+      test_plot_data, "barplot", "Test barplot",
       file_name_barplot, 6, 4, test_hline_data
     )
   )
@@ -71,7 +71,7 @@ testthat::test_that("Save internal standard plots", {
   out_file_lineplot <- file.path(temp_dir, "plots", paste0(file_name_lineplot, ".png"))
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "lineplot", "Test lineplot", temp_dir,
+      test_plot_data, "lineplot", "Test lineplot",
       file_name_lineplot, 6, 4
     )
   )
@@ -80,7 +80,7 @@ testthat::test_that("Save internal standard plots", {
   test_plot_data <- test_plot_data[-c(1, 2, 3, 4, 5, 6), ]
 
   expect_identical(save_internal_standard_plot(
-    test_plot_data, "barplot", "Test barplot", temp_dir,
+    test_plot_data, "barplot", "Test barplot",
     file_name_barplot, 6, 4, test_hline_data
   ), NULL)
 
@@ -88,7 +88,7 @@ testthat::test_that("Save internal standard plots", {
 
   expect_silent(
     save_internal_standard_plot(
-      test_plot_data, "barplot", "Test barplot", temp_dir,
+      test_plot_data, "barplot", "Test barplot",
       file_name_barplot_select, 6, 4, test_hline_data
     )
   )
@@ -205,19 +205,19 @@ testthat::test_that("Check missing mz values", {
 
 testthat::test_that("list of internal standards below threshold is correctly created", {
   test_is <- read.delim(test_path("fixtures", "test_internal_standards.txt"))
-  # select columns
+  # Select columns
   test_is_wide <- test_is[ , c("HMDB_code", "HMDB_name", "C101.1", "C102.1", "P2.1", "P3.1")]
-  # melt into long format
+  # Melt into long format
   test_is_long <- reshape2::melt(test_is_wide, id.vars = c("HMDB_name","HMDB_code"))
   colnames(test_is_long)[4] <- "Intensity"
 
   test_is_names <- c("metab_1 (IS)", "metab_2 (IS)", "metab_3 (IS)", "metab_4 (IS)")
   test_thresholds <- rep(300, 4)
 
-  # 8 rows have intensity below threshold
+  # Eight rows have intensity below threshold
   expect_equal(nrow(find_is_below_threshold(test_is_long, test_thresholds, test_is_names, "test")), 8)
-  # the maximum intensity in the output should be less than threshold
+  # The maximum intensity in the output should be less than threshold
   expect_lt(max(find_is_below_threshold(test_is_long, test_thresholds, test_is_names, "test")$Intensity), 300)
-  # if all values are above threshold, the result should be an empty data table
+  # If all values are above threshold, the result should be an empty data table
   expect_equal(nrow(find_is_below_threshold(test_is_long, test_thresholds / 3, test_is_names, "test")), 0)
 })

@@ -1,11 +1,11 @@
-# unit test for AveragePeaks
+# Unit test for AveragePeaks
 
-# source all functions for PeakGrouping
+# Source all functions for PeakGrouping
 source("../../preprocessing/average_peaks_functions.R")
 
-# test find_peak_groups
+# Test find_peak_groups
 testthat::test_that("peaks are correctly averaged", {
-  # create peak list to test on:
+  # Create peak list to test on:
   samplenrs <- rep(c("repl_001", "repl_002", "repl_003"), 3)
   test_peaklist_sorted_num <- matrix(0, nrow = 9, ncol = 5)
   colnames(test_peaklist_sorted_num) <- c("mzmed.pkt", "fq", "mzmin.pkt", "mzmax.pkt", "height.pkt")
@@ -17,14 +17,14 @@ testthat::test_that("peaks are correctly averaged", {
   test_sample_name <- "P001"
   test_empty_peaklist <- test_peaklist_sorted[0, ]
 
-  # test that first peak is correctly averaged
+  # Test that first peak is correctly averaged
   expect_equal(as.numeric(average_peaks_per_sample(test_peaklist_sorted, test_sample_name)[1, 6]), 600, tolerance = 0.001, TRUE)
-  # test number of rows
+  # Test number of rows
   expect_equal(nrow(average_peaks_per_sample(test_peaklist_sorted, test_sample_name)), 2)
-  # test column names
+  # Test column names
   expect_equal(colnames(average_peaks_per_sample(test_peaklist_sorted, test_sample_name)),
                c("samplenr", "mzmed.pkt", "fq", "mzmin.pkt", "mzmax.pkt", "height.pkt"), TRUE)
-  # test what happens when peak list is empty
+  # Test what happens when peak list is empty
   expect_error(average_peaks_per_sample(test_empty_peaklist, test_sample_name))
 })
 

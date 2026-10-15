@@ -3,7 +3,7 @@ library(testthat)
 library(withr)
 library(vdiffr)
 library(pdftools)
-# enable snapshots
+# Enable snapshots
 local_edition(3)
 
 Sys.setenv(NOT_CRAN = "true")

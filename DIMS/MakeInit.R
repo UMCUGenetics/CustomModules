@@ -1,4 +1,4 @@
-# define parameters
+# Define parameters
 args <- commandArgs(trailingOnly = TRUE)
 
 sample_sheet <- read.csv(args[1], sep = "\t")
@@ -10,7 +10,7 @@ group_names <- trimws(as.vector(unlist(sample_sheet[2])))
 group_names <- gsub("[^-.[:alnum:]]", "_", group_names)
 group_names_unique <- unique(group_names)
 
-# generate the replication pattern
+# Generate the replication pattern
 repl_pattern <- c()
 for (sample_group in 1:nr_sample_groups) {
   replicates_persample <- c()
@@ -23,7 +23,7 @@ for (sample_group in 1:nr_sample_groups) {
 
 names(repl_pattern) <- group_names_unique
 
-# preview the replication pattern
+# Preview the replication pattern
 print(tail(repl_pattern))
 
 save(repl_pattern, file = "init.RData")

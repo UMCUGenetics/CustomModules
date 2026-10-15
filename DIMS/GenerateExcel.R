@@ -1,4 +1,4 @@
-# load required packages
+# Load required packages
 library("ggplot2")
 library("reshape2")
 library("openxlsx")
@@ -6,7 +6,7 @@ suppressMessages(library("tidyr"))
 suppressMessages(library("dplyr"))
 suppressMessages(library("stringr"))
 
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 project <- cmd_args[1]
@@ -15,26 +15,24 @@ z_score <- as.numeric(cmd_args[3])
 export_scripts_dir <- cmd_args[4]
 path_metabolite_groups <- cmd_args[5]
 
-# load in function scripts
+# Load in function scripts
 source(paste0(export_scripts_dir, "generate_excel_functions.R"))
 
-# set the number of digits for floats
+# Initialize
 options(digits = 16)
-
-# Initialise
 plot <- TRUE
 export <- TRUE
 control_label <- "C"
 case_label <- "P"
-# percentage of outliers to remove from calculation of robust scaler
+# Percentage of outliers to remove from calculation of robust scaler
 perc <- 5
 # Z-score for removing outliers with grubbs test
 outlier_threshold <- 2
 
-# load HMDB rlvnc table
+# Load HMDB rlvnc table
 load(hmdb_rlvc_file)
 
-# load adduct sums object (outlist)
+# Load outlist object
 load("AdductSums_combined.RData")
 
 ## DrugDB output
@@ -148,6 +146,6 @@ if (z_score == 1) {
       -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway, monositopic_mass, molecular_formula) #,
     ) 
 }
+
 # Create Excel for Helix
 create_excel_output(outlist_helix, intensity_col_ids, "Helix_", z_score, project)
-
