@@ -1,4 +1,4 @@
-# Functions for summing intensities from different adducts of the same metabolite
+# Function for summing intensities from different adducts of the same metabolite
 
 #' Sum intensities for different adducts of the same metabolite
 #'
@@ -51,6 +51,8 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
 
   for (hmdb_index in 1:nrow(hmdb_part_info)) {
     compound <- hmdb_part_info[hmdb_index, "HMDB_id"]
+    adducts <- hmdb_part_info[hmdb_index, "adducts"]
+    adducts <- as.numeric(strsplit(adducts, ",")[[1]])
     compound_plus_adducts <- c(compound, paste(compound, adducts, sep = "_"))
 
     # Find indices of rows in peakgroup_list that contain compound plus adducts
@@ -68,7 +70,7 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
       names_long <- c(names_long, hmdb_part_info[hmdb_index, "CompoundName"])
     }
   }
-
+ 
   if (!is.null(adductsum)) {
     rownames(adductsum) <- names
     adductsum <- cbind(adductsum, "HMDB_name" = names_long)
@@ -77,6 +79,6 @@ sum_intensities_adducts <- function(peakgroup_list, hmdb_part, adducts, z_score)
     hmdb_info <- hmdb_part[names, cols_hmdb_info, drop = FALSE]
     adductsum <- cbind(adductsum, hmdb_info)
   }
-
+ 
   return(adductsum)
 }
