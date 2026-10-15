@@ -6,10 +6,10 @@
 #' is changed to numeric.
 #'
 #' @param intensities_zscore_df: Dataframe with intensities, Z-scores and metabolite information for all 
-#' samples (matrix)
+#'   samples (matrix)
 #'
 #' @return intensities_zscore_df: Dataframe containing intensities, Z-scores, HMDB IDs, HMDB names and
-#'          renamed columns for mean and average of all controls
+#'   renamed columns for mean and average of all controls
 prepare_intensities_zscore_df <- function(intensities_zscore_df) {
   intensities_zscore_df <- intensities_zscore_df %>%
     select(-c(
@@ -54,7 +54,7 @@ remove_suffix_from_items <- function(vector_names, suffix) {
 #' @param all_sample_ids: Sample names for controls and patients (vector of strings)
 #'
 #' @return intensities_zscore_ratios_df: Dataframe containing intensities and Z-scores for all controls and patients
-#'         for all metabolites and ratios (matrix)
+#'   for all metabolites and ratios (matrix)
 add_zscores_ratios_to_df <- function(peakgroup_list, metabolites_ratios_df, all_sample_ids) {
   intensities_zscores_df <- prepare_intensities_zscore_df(peakgroup_list)
 
@@ -225,7 +225,7 @@ get_list_dataframes_from_dir <- function(dir_with_subdirs) {
 #' @param zscore_df: Dataframe with metabolite Z-scores for all patient (matrix)
 #'
 #' @return list_dfs_metabs_info_zscores: Dataframes for each metabolite class
-#'         containing info and zscores for all samples (list)
+#'   containing info and zscores for all samples (list)
 merge_metabolite_info_zscores <- function(list_df_metabolite_groups, zscore_df) {
   # Remove HMDB_name column and "_Zscore" from column (patient) names
   zscore_df <- zscore_df %>%
@@ -269,7 +269,7 @@ merge_metabolite_info_zscores <- function(list_df_metabolite_groups, zscore_df) 
 #' @param number_of_controls: Number of controls (integer)
 #'
 #' @return list_metabolite_df_per_page: Dataframes with metabolite Z-scores for each patient and control,
-#'                                      the length of list is the number of pages for the violin plot pdf (list)
+#'   the length of list is the number of pages for the violin plot pdf (list)
 get_data_per_metabolite_class <- function(
     metab_interest_patients,
     metab_interest_controls,
@@ -314,7 +314,7 @@ get_data_per_metabolite_class <- function(
 #' @param list_metabolite_classes: list of tables with metabolites for Helix and violin plots (list)
 #'
 #' @return df_zscores_to_helix: dataframe with patient data with only metabolites for Helix and violin plots
-#'         with Helix name, high/low Z-score cutoffs
+#'   with Helix name, high/low Z-score cutoffs
 prepare_helix_patient_data <- function(list_dfs_metab_classes_zscores, list_metabolite_classes) {
   # Combine Z-scores of metab groups together
   metabolite_zscore_dataframe <- bind_rows(list_dfs_metab_classes_zscores)
@@ -470,8 +470,7 @@ make_metabolite_order <- function(number_of_plots_per_page, metabolite_names_chu
   return(metabolite_order)
 }
 
-#' Check sample name for Diagnostics patients for vector of sample names
-#' (e.g. starting with "PYYYYM")
+#' Check sample name for Diagnostics patients for vector of sample names (e.g. starting with "PYYYYM")
 #'
 #' @param patient_column: Column names from dataframe (vector of strings)
 #'
@@ -543,7 +542,7 @@ add_lab_id_and_onderzoeksnr <- function(df_metabs_helix) {
 #' @param dims_helix_table: Dataframe with metabolite Z-scores for each patient and Helix info (matrix)
 #'
 #' @return top_metab_patient: Dataframe with metabolites that exceed the min and max Z-score cutoffs
-#'          for the selected patient (matrix)
+#'   for the selected patient (matrix)
 get_top_metabolites_df <- function(patient_name, dims_helix_table) {
   # Extract data for patient of interest (patient_name)
   patient_metabs_helix <- dims_helix_table %>%
@@ -783,7 +782,6 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
     xlim(-5, 20) +
     # Set grey vertical lines at -2 and 2
     geom_vline(xintercept = c(-2, 2), col = "grey", lwd = 0.5, lty = 2)
-
 
   return(ggplot_object)
 }
