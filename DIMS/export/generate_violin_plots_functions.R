@@ -774,13 +774,27 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
   return(ggplot_object)
 }
 
-#' Run the dIEM algorithm - Nieuwe
+#' Run the dIEM algorithm
 #'
-#' @param expected_biomarkers_df: dataframe with information for HMDB codes about IEMs (dataframe)
-#' @param zscore_patients: dataframe containing Z-scores for patient (dataframe)
-#' @param sample_cols: vector containing column names with intensities and Z-scores for patients (vector)
+#' Calculates a dIEM score for each disease (IEM) and each patient, based on the Z-scores of the expected biomarkers.
 #'
-#' @returns probability_score: a dataframe with probability scores for IEMs for each patient (dataframe)
+#' The algorithms performs the following steps:
+#' 1. Z-scores are set to zero for metabolites that do not contribute:
+#'    indispensable metabolites that should be increased with a Z-score <= 1.6,
+#'    and indispensable metabolites that should be descreased with a Z-score >= -1.2
+#' 2. Per metabolite a score is calculated: score = Z-scre * Change_Weight
+#'    Change_Weight is 1 if the marker should be increased or -1.5 if the marker should be decreased.
+#' 3. Per disease, all metabolite scores are summed.
+#'
+#' @section Version history:
+#' v1.0.0: adapted from Haijes et al. (DOI: 10.3390/ijms21030979)
+#' v1.1.0 (current): simplified - metabolite ranking removed and the score calculation reduced to Z-score * Change_Weight
+#'
+#' @param expected_biomarkers_df: dataframe with expected biomarkers per IEM (dataframe)
+#' @param zscore_patients_df: dataframe containing Z-scores for patient (dataframe)
+#' @param sample_cols: vector containing column names with Z-scores for patients (vector)
+#'
+#' @returns diagnostic_score_df: a dataframe with scores for IEMs for each patient (dataframe)
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
   zscore_expected_df <- merge(
     x = expected_biomarkers_df,
@@ -803,8 +817,10 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
       )
     ))
 
+  # Calculation of the metabolite score = Z-score * Change_Weight
   metabolite_score_df <- zscore_expected_df %>% mutate(across(all_of(sample_cols), ~ .x * as.numeric(Change_Weight)))
 
+  # Summarising all metabolite scores for each disease.
   diagnostic_score_df <- metabolite_score_df %>%
     select(Disease, all_of(sample_cols)) %>%
     group_by(Disease) %>%
