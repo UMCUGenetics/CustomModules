@@ -883,100 +883,62 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
   return(ggplot_object)
 }
 
-#' Run the dIEM algorithm (DOI: 10.3390/ijms21030979)
+#' Run the dIEM algorithm
 #'
-#' @param expected_biomarkers_df: dataframe with information for HMDB codes about IEMs (dataframe)
-#' @param zscore_patients: dataframe containing Z-scores for patient (dataframe)
-#' @param sample_cols: vector containing column names with intensities and Z-scores for patients (vector)
+#' Calculates a dIEM score for each disease (IEM) and each patient, based on the Z-scores of the expected biomarkers.
 #'
-#' @returns probability_score: a dataframe with probability scores for IEMs for each patient (dataframe)
+#' The algorithms performs the following steps:
+#' 1. Z-scores are set to zero for metabolites that do not contribute:
+#'    indispensable metabolites that should be increased with a Z-score <= 1.6,
+#'    and indispensable metabolites that should be descreased with a Z-score >= -1.2
+#' 2. Per metabolite a score is calculated: score = Z-scre * Change_Weight
+#'    Change_Weight is 1 if the marker should be increased or -1.5 if the marker should be decreased.
+#' 3. Per disease, all metabolite scores are summed.
+#'
+#' @section Version history:
+#' v1.0.0: adapted from Haijes et al. (DOI: 10.3390/ijms21030979)
+#' v1.1.0 (current): simplified - metabolite ranking removed and the score calculation reduced to Z-score * Change_Weight
+#'
+#' @param expected_biomarkers_df: dataframe with expected biomarkers per IEM (dataframe)
+#' @param zscore_patients_df: dataframe containing Z-scores for patient (dataframe)
+#' @param sample_cols: vector containing column names with Z-scores for patients (vector)
+#'
+#' @returns diagnostic_score_df: a dataframe with scores for IEMs for each patient (dataframe)
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
-  # Rank the metabolites for each patient individually
-  ranking_patients <- zscore_patients_df %>%
-    mutate(across(-c(HMDB_code, HMDB_name), rank_patient_zscores))
-
-  ranking_patients <- merge(
-    x = expected_biomarkers_df, y = ranking_patients,
-    by.x = c("HMDB_code"), by.y = c("HMDB_code")
-  )
-
   zscore_expected_df <- merge(
-    x = expected_biomarkers_df, y = zscore_patients_df,
-    by.x = c("HMDB_code"), by.y = c("HMDB_code")
+    x = expected_biomarkers_df,
+    y = zscore_patients_df,
+    by.x = c("HMDB_code"),
+    by.y = c("HMDB_code")
   )
 
-  # Reduce sample_cols to contain only the patient names
-  if (sum(grepl("Zscore", sample_cols)) > 0) {
-    sample_cols <- sample_cols[-grep("Zscore", sample_cols)]
-  }
+  zscore_expected_df <- zscore_expected_df %>%
+    select(HMDB_code, Disease, Change, Change_Weight, Dispensability, all_of(sample_cols))
 
   # Change Z-score to zero for specific cases
-  zscore_expected_df <- zscore_expected_df %>% mutate(across(
-    all_of(sample_cols),
-    ~ case_when(
-      Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
-      Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
-      TRUE ~ .x
-    )
-  ))
-
-  # Sort both dataframes on HMDB_code for calculating the metabolite score
-  zscore_expected_df <- zscore_expected_df[order(zscore_expected_df$HMDB_code), ]
-  ranking_patients <- ranking_patients[order(ranking_patients$HMDB_code), ]
-
-  # Set up dataframe for the metabolite score, copy zscore_expected_df for biomarker info
-  metabolite_score_info <- zscore_expected_df
-  # Calculate metabolite score: Z-score/(Rank * 0.9)
-  metabolite_score_info[sample_cols] <- zscore_expected_df[sample_cols] / (ranking_patients[sample_cols] * 0.9)
-
-  # Calculate the weighted score: metabolite_score * Total_Weight
-  metabolite_weight_score <- metabolite_score_info %>%
+  zscore_expected_df <- zscore_expected_df %>%
     mutate(across(
       all_of(sample_cols),
-      ~ .x * Total_Weight
-    )) %>%
-    arrange(desc(Disease), desc(Absolute_Weight))
+      ~ case_when(
+        Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
+        Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
+        TRUE ~ .x
+      )
+    ))
 
-  # Calculate the probability score for each disease - Mz combination
-  probability_score <- metabolite_weight_score %>%
-    filter(!duplicated(select(., Disease, M.z)) |
-             !duplicated(select(., Disease, M.z), fromLast = FALSE)) %>%
+  # Calculation of the metabolite score = Z-score * Change_Weight
+  metabolite_score_df <- zscore_expected_df %>% mutate(across(all_of(sample_cols), ~ .x * as.numeric(Change_Weight)))
+
+  # Summarising all metabolite scores for each disease.
+  diagnostic_score_df <- metabolite_score_df %>%
+    select(Disease, all_of(sample_cols)) %>%
     group_by(Disease) %>%
-    summarise(across(all_of(sample_cols), sum), .groups = "drop")
+    summarise(
+      across(all_of(sample_cols), ~ sum(.x, na.rm = TRUE)),
+      .groups = "drop"
+    )
 
-  # Set probability score to 0 for Z-scores == 0
-  for (sample_col in sample_cols) {
-    # Get indexes of Zscore that equal 0
-    zscores_zero_idx <- which(zscore_expected_df[[sample_col]] == 0)
-    # Get diseases that have a Zscore of 0
-    diseases_zero <- unique(zscore_expected_df[zscores_zero_idx, "Disease"])
-    # Set probabilty of these diseases to 0
-    probability_score[probability_score$Disease %in% diseases_zero, sample_col] <- 0
-  }
-
-  colnames(probability_score) <- gsub("_Zscore", "_prob_score", colnames(probability_score))
-
-  return(probability_score)
-}
-
-#' Ranking Z-scores for a patient, separate for positive and negative Z-scores
-#'
-#' @param zscore_col: vector with Z-scores for a single patient (vector of integers)
-#'
-#' @returns ranking: a vector of the ranking of the Z-scores (vector of integers)
-rank_patient_zscores <- function(zscore_col) {
-  # Create ranking column with default NA values
-  ranking <- rep(NA_real_, length(zscore_col))
-
-  # Get indexes for negative and positive rows
-  neg_indexes <- which(zscore_col <= 0)
-  pos_indexes <- which(zscore_col > 0)
-
-  # Rank the negative and positive Zscores
-  ranking[neg_indexes] <- dense_rank(zscore_col[neg_indexes])
-  ranking[pos_indexes] <- dense_rank(-zscore_col[pos_indexes])
-
-  return(ranking)
+  return(diagnostic_score_df)
 }
 
 #' Save the probability score dataframe as an Excel file

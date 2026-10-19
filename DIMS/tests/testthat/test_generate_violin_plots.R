@@ -627,33 +627,8 @@ testthat::test_that("run_diem_algorithm :Run dIEM algorithm", {
     c("Disease A", "Disease B", "Disease C", "Disease D", "Disease E", "Disease F", "Disease G")
   )
   expect_equal(run_diem_algorithm(test_expected_biomarkers_df, test_zscore_patient_df, test_sample_cols)$P2025M1,
-    c(10.94172, 0.95343, 12.12121, 0.00000, 44.28850, 0.00000, -38.70370),
+    c(14.00,7.00,12.50,25.00,40.00,25.00,-79.50),
     tolerance = 0.0001
-  )
-})
-
-testthat::test_that("rank_patient_zscores: Ranking Z-scores for a patient", {
-  test_zscore_col <- c(1, 5, 6, 2, 7, -2, 3)
-
-  expect_equal(length(rank_patient_zscores(test_zscore_col)), 7)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(6, 3, 2, 5, 1, 1, 4)
-  )
-
-  test_zscore_col <- c(3, 2, 1, 3)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(1, 2, 3, 1)
-  )
-
-  test_zscore_col <- c(-1, -2, -3, -4)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(4, 3, 2, 1)
   )
 })
 
