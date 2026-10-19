@@ -629,6 +629,64 @@ prepare_toplist <- function(patient_id, zscore_patients, num_of_highest_metaboli
   return(top_metab_patient)
 }
 
+#' Create an overview plot (lollipop plot) for all diagnostics metabolites
+#'
+#' @param patient_zscore_df: Dataframe with metabolite Z-scores per patient (matrix)
+#' @param patient_id: Patient code (string)
+create_overview_plot <- function(patient_zscore_df, patient_id) {
+  patient_zscore_df$HMDB_name <- factor(
+    patient_zscore_df$HMDB_name,
+    levels = rev(patient_zscore_df$HMDB_name)
+  )
+  # add class for legend
+  patient_zscore_df$class <- "amino_acids"
+  patient_zscore_df$class[grep("nitine", patient_zscore_df$HMDB_name)] <- "acyl_carnitines"
+  patient_zscore_df$class[grep("Crea", patient_zscore_df$HMDB_name)] <- "crea_gua"
+  patient_zscore_df$class[grep("Gua", patient_zscore_df$HMDB_name)] <- "crea_gua"
+
+  gglolli <- ggplot(patient_zscore_df, aes(x = Z_score_capped, y = HMDB_name, color = class)) +
+    # lollipop stems
+    geom_segment(
+      aes(x = 0, xend = Z_score_capped, y = HMDB_name, yend = HMDB_name),
+      linewidth = 1
+    ) +
+    # points
+    geom_point(size = 2) +
+    # label extreme values
+    geom_text(
+      data = subset(patient_zscore_df, Z_score_capped == 20 | Z_score_capped == -5),
+      aes(label = round(Z_score, 2)),
+      vjust = ifelse(subset(patient_zscore_df, Z_score_capped == 20 | Z_score_capped == -5)$Z_score_capped > 0, -0.5, -0.5),
+      size = 3,
+      show.legend = FALSE
+    ) +
+    scale_color_manual(
+      values = c(
+        acyl_carnitines = "#F05A54",
+        amino_acids     = "#1FA638",
+        crea_gua        = "#4C78E5"
+      )
+    ) +
+    labs(
+      title = paste0("Z-scores for patient ", patient_id),
+      x = "Z_score",
+      y = NULL,
+      color = "class"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      panel.grid.major.y = element_line(colour = "grey85"),
+      panel.grid.major.x = element_line(colour = "grey85"),
+      axis.text.y = element_text(size = 6, hjust = 1, family = "Courier"),
+      plot.title = element_text(size = 12),
+      legend.position = "none"
+    ) +
+    # Limit the x-axis to between -5 and 20
+    xlim(-5, 20)
+
+  return(gglolli)
+}
+
 #' Add a table with top deviating metabolites for a patient to pdf
 #'
 #' @param top_metab_pt: dataframe with metabolites and Z-scores for a patient (dataframe)
@@ -666,7 +724,7 @@ add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = 
 #' @param metab_perpage: List of dataframes, each dataframe contains data for a page in de pdf (list)
 #' @param top_metab_patient: Dataframe with increased and decreased metabolites for this patient (matrix)
 #' @param explanation_violin_plot: Text that explains the violin plots and the pipeline version (vector of strings)
-create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, explanation_violin_plot) {
+create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, top_drugs_patient, explanation_violin_plot) {
   # Set parameters for plots
   plot_height <- 9.6
   plot_width <- 6
@@ -729,32 +787,46 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     }
   }
 
-  # Violin plots
-  for (metab_class in names(metab_perpage)) {
-    # Extract list of metabolites to plot on a page
-    metab_zscores_df <- metab_perpage[[metab_class]]
-    # Copy Z-scores to Z_score_original for displaying values
-    metab_zscores_df$Z_score_original <- metab_zscores_df$Z_score
-    metab_zscores_df <- metab_zscores_df %>%
-      mutate(Z_score = pmin(pmax(Z_score, -5), 20))
+  # If Diagnostics, then plot lollipop plot first, then violin plots.
+  if (grepl("Diagnost", pdf_dir)) {
+    violinplot_list <- list()
+    patient_allmetabs_df <- as.data.frame(matrix(nrow = 0, ncol = 4))
+    colnames(patient_allmetabs_df) <- c("HMDB_name", "Sample", "Z_score", "Z_score_original")
+    for (metab_class in names(metab_perpage)) {
+      # Extract list of metabolites to plot on a page
+      metab_zscores_df <- metab_perpage[[metab_class]]
+      # Copy Z-scores to Z_score_capped for displaying values
+      metab_zscores_df$Z_score_capped <- metab_zscores_df$Z_score
+      # Cap Z-scores under -5 to -5 and above 20 to 20
+      metab_zscores_df <- metab_zscores_df %>%
+        mutate(Z_score_capped = pmin(pmax(Z_score_capped, -5), 20))
 
-    # Extract original data for patient of interest (pt_name)
-    patient_zscore_df <- metab_zscores_df %>%
-      filter(Sample == patient_id)
+      # Extract original data for patient of interest (pt_name)
+      patient_zscore_df <- metab_zscores_df %>%
+        filter(Sample == patient_id)
+      patient_allmetabs_df <- rbind(patient_allmetabs_df, patient_zscore_df)
 
-    # Remove patient of interest and retain only other patient data
-    metab_zscores_df <- metab_zscores_df %>%
-      filter(Sample != patient_id)
+      # Remove patient of interest and retain only other patient data
+      metab_zscores_df <- metab_zscores_df %>%
+        filter(Sample != patient_id)
 
-    # Subtitle per page
-    sub_perpage <- gsub("_", " ", metab_class)
-    # For IEM plots, put subtitle on two lines
-    sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
+      # Subtitle per page
+      sub_perpage <- gsub("_", " ", metab_class)
+      # For IEM plots, put subtitle on two lines
+      sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
 
-    # Draw violin plot.
-    ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
-
-    suppressWarnings(print(ggplot_object))
+      # Store violin plot in a list
+      ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
+      violinplot_list <- append(violinplot_list, list(ggplot_object))
+    }
+  
+    # Put plots into PDF
+    lollipop_plot <- create_overview_plot(patient_allmetabs_df, patient_id)
+    print(lollipop_plot)
+    # Add violin plots
+    for (plot_index in 1:length(violinplot_list)) {
+      print(violinplot_list[[plot_index]])
+    }
   }
 
   # Add explanation_violin_plot of violin plots, version number etc.
@@ -795,18 +867,18 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
     mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
     arrange(HMDB_name)
   
-  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score, y = HMDB_name)) +
+  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score_capped, y = HMDB_name)) +
     # Make violin plots
     geom_violin(scale = "width", na.rm = TRUE) +
     # Add Z-score for the selected patient, shape=22 gives square for patient of interest
     geom_point(
-      data = patient_zscore_df, aes(color = Z_score),
+      data = patient_zscore_df, aes(color = Z_score_capped),
       size = 3.5 * circlesize, shape = 22, fill = "white", na.rm = TRUE
     ) +
     # Add the Z-score at the right side of the plot
     geom_text(
       data = patient_zscore_df,
-      aes(16, label = paste0("Z=", round(Z_score_original, 2))),
+      aes(16, label = paste0("Z=", round(Z_score, 2))),
       hjust = "left", vjust = +0.2, size = 3, na.rm = TRUE
     ) +
     # Set colour for the Z-score of the selected patient
@@ -834,100 +906,62 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
   return(ggplot_object)
 }
 
-#' Run the dIEM algorithm (DOI: 10.3390/ijms21030979)
+#' Run the dIEM algorithm
 #'
-#' @param expected_biomarkers_df: Dataframe with information for HMDB codes about IEMs (matrix)
-#' @param zscore_patients_df: Dataframe containing Z-scores for all patients (matrix)
-#' @param sample_cols: Column names with intensities and Z-scores for patients (vector of strings)
+#' Calculates a dIEM score for each disease (IEM) and each patient, based on the Z-scores of the expected biomarkers.
 #'
-#' @return probability_score: a dataframe with probability scores for IEMs for each patient (matrix)
+#' The algorithms performs the following steps:
+#' 1. Z-scores are set to zero for metabolites that do not contribute:
+#'    indispensable metabolites that should be increased with a Z-score <= 1.6,
+#'    and indispensable metabolites that should be descreased with a Z-score >= -1.2
+#' 2. Per metabolite a score is calculated: score = Z-scre * Change_Weight
+#'    Change_Weight is 1 if the marker should be increased or -1.5 if the marker should be decreased.
+#' 3. Per disease, all metabolite scores are summed.
+#'
+#' @section Version history:
+#' v1.0.0: adapted from Haijes et al. (DOI: 10.3390/ijms21030979)
+#' v1.1.0 (current): simplified - metabolite ranking removed and the score calculation reduced to Z-score * Change_Weight
+#'
+#' @param expected_biomarkers_df: dataframe with expected biomarkers per IEM (dataframe)
+#' @param zscore_patients_df: dataframe containing Z-scores for patient (dataframe)
+#' @param sample_cols: vector containing column names with Z-scores for patients (vector)
+#'
+#' @returns diagnostic_score_df: a dataframe with scores for IEMs for each patient (dataframe)
 run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sample_cols) {
-  # Rank the metabolites for each patient individually
-  ranking_patients <- zscore_patients_df %>%
-    mutate(across(-c(HMDB_code, HMDB_name), rank_patient_zscores))
-
-  ranking_patients <- merge(
-    x = expected_biomarkers_df, y = ranking_patients,
-    by.x = c("HMDB_code"), by.y = c("HMDB_code")
-  )
-
   zscore_expected_df <- merge(
-    x = expected_biomarkers_df, y = zscore_patients_df,
-    by.x = c("HMDB_code"), by.y = c("HMDB_code")
+    x = expected_biomarkers_df,
+    y = zscore_patients_df,
+    by.x = c("HMDB_code"),
+    by.y = c("HMDB_code")
   )
 
-  # Reduce sample_cols to contain only the patient names
-  if (sum(grepl("Zscore", sample_cols)) > 0) {
-    sample_cols <- sample_cols[-grep("Zscore", sample_cols)]
-  }
+  zscore_expected_df <- zscore_expected_df %>%
+    select(HMDB_code, Disease, Change, Change_Weight, Dispensability, all_of(sample_cols))
 
   # Change Z-score to zero for specific cases
-  zscore_expected_df <- zscore_expected_df %>% mutate(across(
-    all_of(sample_cols),
-    ~ case_when(
-      Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
-      Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
-      TRUE ~ .x
-    )
-  ))
-
-  # Sort both dataframes on HMDB_code for calculating the metabolite score
-  zscore_expected_df <- zscore_expected_df[order(zscore_expected_df$HMDB_code), ]
-  ranking_patients <- ranking_patients[order(ranking_patients$HMDB_code), ]
-
-  # Set up dataframe for the metabolite score, copy zscore_expected_df for biomarker info
-  metabolite_score_info <- zscore_expected_df
-  # Calculate metabolite score: Z-score/(Rank * 0.9)
-  metabolite_score_info[sample_cols] <- zscore_expected_df[sample_cols] / (ranking_patients[sample_cols] * 0.9)
-
-  # Calculate the weighted score: metabolite_score * Total_Weight
-  metabolite_weight_score <- metabolite_score_info %>%
+  zscore_expected_df <- zscore_expected_df %>%
     mutate(across(
       all_of(sample_cols),
-      ~ .x * Total_Weight
-    )) %>%
-    arrange(desc(Disease), desc(Absolute_Weight))
+      ~ case_when(
+        Change == "Increase" & Dispensability == "Indispensable" & .x <= 1.6 ~ 0,
+        Change == "Decrease" & Dispensability == "Indispensable" & .x >= -1.2 ~ 0,
+        TRUE ~ .x
+      )
+    ))
 
-  # Calculate the probability score for each disease - Mz combination
-  probability_score <- metabolite_weight_score %>%
-    filter(!duplicated(select(., Disease, M.z)) |
-             !duplicated(select(., Disease, M.z), fromLast = FALSE)) %>%
+  # Calculation of the metabolite score = Z-score * Change_Weight
+  metabolite_score_df <- zscore_expected_df %>% mutate(across(all_of(sample_cols), ~ .x * as.numeric(Change_Weight)))
+
+  # Summarising all metabolite scores for each disease.
+  diagnostic_score_df <- metabolite_score_df %>%
+    select(Disease, all_of(sample_cols)) %>%
     group_by(Disease) %>%
-    summarise(across(all_of(sample_cols), sum), .groups = "drop")
+    summarise(
+      across(all_of(sample_cols), ~ sum(.x, na.rm = TRUE)),
+      .groups = "drop"
+    )
 
-  # Set probability score to 0 for Z-scores == 0
-  for (sample_col in sample_cols) {
-    # Get indexes of Zscore that equal 0
-    zscores_zero_idx <- which(zscore_expected_df[[sample_col]] == 0)
-    # Get diseases that have a Zscore of 0
-    diseases_zero <- unique(zscore_expected_df[zscores_zero_idx, "Disease"])
-    # Set probabilty of these diseases to 0
-    probability_score[probability_score$Disease %in% diseases_zero, sample_col] <- 0
-  }
-
-  colnames(probability_score) <- gsub("_Zscore", "_prob_score", colnames(probability_score))
-
-  return(probability_score)
-}
-
-#' Ranking Z-scores for a patient, separate for positive and negative Z-scores
-#'
-#' @param zscore_col: Z-scores for a single patient (vector of floats)
-#'
-#' @return ranking: Ranking of the Z-scores (vector of integers)
-rank_patient_zscores <- function(zscore_col) {
-  # Create ranking column with default NA values
-  ranking <- rep(NA_real_, length(zscore_col))
-
-  # Get indexes for negative and positive rows
-  neg_indexes <- which(zscore_col <= 0)
-  pos_indexes <- which(zscore_col > 0)
-
-  # Rank the negative and positive Zscores
-  ranking[neg_indexes] <- dense_rank(zscore_col[neg_indexes])
-  ranking[pos_indexes] <- dense_rank(-zscore_col[pos_indexes])
-
-  return(ranking)
+  return(diagnostic_score_df)
 }
 
 #' Save the probability score dataframe to an Excel file

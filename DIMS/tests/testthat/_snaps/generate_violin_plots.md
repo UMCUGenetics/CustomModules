@@ -3,7 +3,14 @@
     Code
       content_pdf_table
     Output
-      [1] "Top deviating metabolites for patient: P2025M1\n\n\n\n\n            Metabolite Z.score\n             Increased\n              metab1       2.45\n            Decreased\n             metab11      −1.51\n"
+      [1] "Top deviating metabolites for patient: P2025M1\n             Metabolite Z.score\n             Increased\n              metab1        2.45\n             Decreased\n              metab11       −1.51\n"
+
+# create_pdf_violin_plots: Create a pdf with a table of top metabolites and violin plots
+
+    Code
+      content_pdf_violinplots
+    Output
+      [1] "Top deviating metabolites for patient: P2025M1\n                Metabolite  Z.score\n               Increased\n               metab1      2.45\n               Decreased\n               metab11     −1.51\n"
 
 # save_prob_scores_to_excel: Saving the probability score dataframe as an Excel file
 

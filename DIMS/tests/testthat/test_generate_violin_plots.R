@@ -572,6 +572,24 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
   unlink(test_pdf_dir, recursive = TRUE)
 })
 
+testthat::test_that("create_overview_plot: Create overview plot", {
+  test_patient_id <- "P2025M1"
+  test_sub_perpage <- "test diagnostics"
+
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
+  test_gua_crea_df <- read.delim(test_path("fixtures/", "test_crea_gua_df.txt"))
+  test_diag_metabolites <- rbind(test_acyl_carnitines_df, test_gua_crea_df)
+
+  test_patient_zscore_df <- test_diag_metabolites %>% filter(Sample == test_patient_id)
+  test_patient_zscore_df$Z_score_capped <- test_patient_zscore_df$Z_score
+
+  expect_silent(create_overview_plot(test_patient_zscore_df, test_patient_id))
+
+  expect_doppelganger("overview_plot_P2025M1", create_overview_plot(
+    test_patient_zscore_df, test_patient_id
+  ))
+})
+
 testthat::test_that("create_violin_plot: Create a violin plot", {
   test_patient_id <- "P2025M1"
   test_sub_perpage <- "test acyl carnitines"
@@ -609,33 +627,8 @@ testthat::test_that("run_diem_algorithm :Run dIEM algorithm", {
     c("Disease A", "Disease B", "Disease C", "Disease D", "Disease E", "Disease F", "Disease G")
   )
   expect_equal(run_diem_algorithm(test_expected_biomarkers_df, test_zscore_patient_df, test_sample_cols)$P2025M1,
-    c(10.94172, 0.95343, 12.12121, 0.00000, 44.28850, 0.00000, -38.70370),
+    c(14.00,7.00,12.50,25.00,40.00,25.00,-79.50),
     tolerance = 0.0001
-  )
-})
-
-testthat::test_that("rank_patient_zscores: Ranking Z-scores for a patient", {
-  test_zscore_col <- c(1, 5, 6, 2, 7, -2, 3)
-
-  expect_equal(length(rank_patient_zscores(test_zscore_col)), 7)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(6, 3, 2, 5, 1, 1, 4)
-  )
-
-  test_zscore_col <- c(3, 2, 1, 3)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(1, 2, 3, 1)
-  )
-
-  test_zscore_col <- c(-1, -2, -3, -4)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(4, 3, 2, 1)
   )
 })
 
@@ -721,7 +714,8 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1,
-    c(1000, 1200, 1300, 1400, 1500, 1600, 0.83333, 0.9285714, 3700.00000), tolerance = 0.0001
+    c(1000, 1200, 1300, 1400, 1500, 1600, 0.8333333, 0.9285714, 3700.0000),
+    tolerance = 0.0001
   )
   expect_equal(
     add_zscores_ratios_to_df(
@@ -729,7 +723,7 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1_Zscore,
-    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.4574, 0.5552, -0.4486),
+    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.4573938, 0.5552258, -0.4485691),
     tolerance = 0.0001
   )
 })
@@ -756,11 +750,12 @@ testthat::test_that("calculate_zscore_ratios: Calculate Zscores for ratios", {
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1,
-    c(0.83333, 0.9285714, 3700.00000), tolerance = 0.0001
+    c(0.8333333, 0.9285714, 3700.0000),
+    tolerance = 0.0001
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1_Zscore,
-    c(-0.4574, 0.5552, -0.4486),
+    c(-0.4573938, 0.5552258, -0.4485691),
     tolerance = 0.0001
   )
 })

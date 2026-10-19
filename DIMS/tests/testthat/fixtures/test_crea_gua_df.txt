@@ -1,4 +1,4 @@
-HMDB_name	Sample	Z_score	Z_score_original
+HMDB_name	Sample	Z_score	Z_score_capped
 metab4                                       	P2025M1	0.84	0.84
 metab11                                      	P2025M1	-0.46	-0.46
 metab4                                       	P2025M2	-0.15	-0.15
