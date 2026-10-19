@@ -12,9 +12,9 @@ get_intensities_cols <- function(peakgroup_list, label) {
   # Get the column indices
   col_idx <- grep(label, colnames(peakgroup_list), fixed = TRUE)
   # Remove Z-score columns
-  col_idx <- col_idx[!grepl("_Zscore", colnames(outlist)[col_idx], fixed = TRUE)]
+  col_idx <- col_idx[!grepl("_Zscore", colnames(peakgroup_list)[col_idx], fixed = TRUE)]
   # Get intensity columns
-  df_intensities <- outlist %>% select(all_of(col_idx))
+  df_intensities <- peakgroup_list %>% select(all_of(col_idx))
 
   return(list(col_idx = col_idx, df_intensities = df_intensities))
 }
