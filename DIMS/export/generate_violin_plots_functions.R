@@ -832,26 +832,6 @@ run_diem_algorithm <- function(expected_biomarkers_df, zscore_patients_df, sampl
   return(diagnostic_score_df)
 }
 
-#' Ranking Z-scores for a patient, separate for positive and negative Z-scores
-#'
-#' @param zscore_col: vector with Z-scores for a single patient (vector of integers)
-#'
-#' @returns ranking: a vector of the ranking of the Z-scores (vector of integers)
-rank_patient_zscores <- function(zscore_col) {
-  # Create ranking column with default NA values
-  ranking <- rep(NA_real_, length(zscore_col))
-
-  # Get indexes for negative and positive rows
-  neg_indexes <- which(zscore_col <= 0)
-  pos_indexes <- which(zscore_col > 0)
-
-  # Rank the negative and positive Zscores
-  ranking[neg_indexes] <- dense_rank(zscore_col[neg_indexes])
-  ranking[pos_indexes] <- dense_rank(-zscore_col[pos_indexes])
-
-  return(ranking)
-}
-
 #' Save the probability score dataframe as an Excel file
 #'
 #' @param probability_score: a dataframe containing probability scores for each patient (dataframe)

@@ -567,31 +567,6 @@ testthat::test_that("run_diem_algorithm :Run dIEM algorithm", {
   )
 })
 
-testthat::test_that("rank_patient_zscores: Ranking Z-scores for a patient", {
-  test_zscore_col <- c(1, 5, 6, 2, 7, -2, 3)
-
-  expect_equal(length(rank_patient_zscores(test_zscore_col)), 7)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(6, 3, 2, 5, 1, 1, 4)
-  )
-
-  test_zscore_col <- c(3, 2, 1, 3)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(1, 2, 3, 1)
-  )
-
-  test_zscore_col <- c(-1, -2, -3, -4)
-
-  expect_identical(
-    rank_patient_zscores(test_zscore_col),
-    c(4, 3, 2, 1)
-  )
-})
-
 testthat::test_that("save_prob_scores_to_excel: Saving the probability score dataframe as an Excel file", {
   local_edition(3)
   test_probability_score_df <- read.delim(test_path("fixtures/", "test_probability_score_df.txt"))
