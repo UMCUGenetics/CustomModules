@@ -8,6 +8,7 @@ process PeakGrouping {
        path(averagedpeaks_file)
        each path(pattern_file)
        val(preprocessing_scripts_dir)
+       val(ppm)
 
     output:
        path '*_identified.RData', emit: grouped_identified
