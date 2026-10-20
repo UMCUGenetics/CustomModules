@@ -9,6 +9,7 @@ process GenerateExcel {
        val(analysis_id) 
        val(export_scripts_dir)
        val(path_metabolite_groups)
+       val(zscore)
 
     output:
        path("outlist.RData"), emit: outlist_zscores
