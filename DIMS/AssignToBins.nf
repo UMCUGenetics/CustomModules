@@ -5,6 +5,7 @@ process AssignToBins {
 
     input:
        tuple(val(file_id), path(mzML_file), path(breaks_file), path(trim_params_file))
+       val(resolution)
 
     output:
        path("${file_id}.RData"), emit: rdata_file
