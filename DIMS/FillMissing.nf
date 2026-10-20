@@ -7,6 +7,7 @@ process FillMissing {
        path(peakgrouplist_file)
        each path(replication_pattern)
        val(preprocessing_scripts_dir)
+       val(threshold)
 
     output:
        path('*_filled.RData'), emit: filled_data
@@ -16,6 +17,6 @@ process FillMissing {
         Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R \
                 $peakgrouplist_file \
                 $preprocessing_scripts_dir \
-                $params.thresh
+                $threshold
         """
 }
