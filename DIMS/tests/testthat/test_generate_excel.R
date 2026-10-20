@@ -1,5 +1,5 @@
-# unit tests for GenerateExcel
-# functions: get_intensities_cols, calculate_zscores,
+# Unit tests for GenerateExcel
+# Functions: get_intensities_cols, calculate_zscores,
 #            robust_scaler, remove_outliers_grubbs,
 #            save_to_rdata_and_txt, set_row_height_col_width_wb
 library("ggplot2")

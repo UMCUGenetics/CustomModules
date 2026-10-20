@@ -1,12 +1,12 @@
-# unit tests for SumAdducts
-# function: sum_intensities_adducts_perclass
+# Unit tests for SumAdducts
+# Function: sum_intensities_adducts_perclass
 source("../../preprocessing/sum_intensities_adducts.R")
 
 suppressPackageStartupMessages(library("dplyr"))
 
-# test sum_intensities_adducts_perclass
+# Test sum_intensities_adducts_perclass
 testthat::test_that("adduct sums per class are correctly calculated", {
-  # create peakgroup_list to test on in diagnostics setting
+  # Create peakgroup_list to test on in diagnostics setting
   test_peakgroup_list <- data.frame(matrix(NA, nrow = 4, ncol = 23))
   colnames(test_peakgroup_list) <- c("mzmed.pgrp", "nrsamples", "ppmdev", "assi_HMDB", "all_hmdb_names",
                                      "iso_HMDB", "HMDB_code", "all_hmdb_ids", "sec_hmdb_ids", "theormz_HMDB",
@@ -23,7 +23,7 @@ testthat::test_that("adduct sums per class are correctly calculated", {
   test_peakgroup_list[ , grep("C", colnames(test_peakgroup_list))] <- 1000*(1:16)
   test_peakgroup_list[ , grep("P", colnames(test_peakgroup_list))] <- 10000*(1:16)
  
-  # create HMDB part object 
+  # Create HMDB part object 
   test_hmdb_main_part <- matrix(NA, nrow = 2, ncol = 9)
   colnames(test_hmdb_main_part) <- c("HMDB_ID_all", "sec_HMDB_ID", "CompoundName", "HMDB_name_all",
                                      "Composition", "MNeutral", "MNeg", "Mpos", "adducts")
@@ -39,4 +39,3 @@ testthat::test_that("adduct sums per class are correctly calculated", {
   expect_equal(as.vector(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1)[1, c(1:4)]), 
                c("6000", "18000", "60000", "180000"))
 })
-

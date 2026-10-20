@@ -1,18 +1,21 @@
 # Functions for GenerateExcel
-get_intensities_cols <- function(outlist, label) {
-  #' Get the indices of the control columns and a dataframe of intensities of the controls
-  #'
-  #' @param outlist: dataframe with intensities for all samples
-  #' @param label: string used by grep to get the correct columns
-  #'
-  #' @returns: list with 2 items:
-  #'                  col_idx: vector with indices of the control columns
-  #'                  df_intensities: dataframe with the intensities of the controls
-  col_idx <- grep(label, colnames(outlist), fixed = TRUE)
-  # remove Z-score columns
-  col_idx <- col_idx[!grepl("_Zscore", colnames(outlist)[col_idx], fixed = TRUE)]
-  df_intensities <- as.data.frame(outlist[, col_idx])
-  colnames(df_intensities) <- colnames(outlist)[col_idx]
+
+#' Get the indices of the control columns and a dataframe of intensities of the controls
+#'
+#' @param peakgroup_list: Dataframe with intensities for all samples (matrix)
+#' @param label: Label used by grep to get the correct column (string)
+#'
+#' @returns: List with 2 items:
+#'   col_idx: vector with indices of the control columns
+#'   df_intensities: dataframe with the intensities of the controls
+get_intensities_cols <- function(peakgroup_list, label) {
+  # Get the column indices
+  col_idx <- grep(label, colnames(peakgroup_list), fixed = TRUE)
+  # Remove Z-score columns
+  col_idx <- col_idx[!grepl("_Zscore", colnames(peakgroup_list)[col_idx], fixed = TRUE)]
+  # Get intensity columns
+  df_intensities <- peakgroup_list %>% select(all_of(col_idx))
+
   return(list(col_idx = col_idx, df_intensities = df_intensities))
 }
 
@@ -21,8 +24,8 @@ get_intensities_cols <- function(outlist, label) {
 #' @param peakgroup_list: Dataframe with intensities for all samples (matrix)
 #' @param zscore_type: Method for excluding controls (string)
 #' @param stat_filter: Either percentage or outlier threshold used for excluding controls (integer)
-#' @param control_label: part of name of all control samples (string)
-#' @param case_label: part of name of all patient samples (string)
+#' @param control_label: Part of name of all control samples (string)
+#' @param case_label: Part of name of all patient samples (string)
 #'
 #' @returns: peakgroup_list_zscores: same dataframe as the input with added Z-score columns (matrix)
 calculate_zscores <- function(peakgroup_list, zscore_type, stat_filter, control_label = "C", case_label = "P") {
@@ -38,7 +41,7 @@ calculate_zscores <- function(peakgroup_list, zscore_type, stat_filter, control_
   
   # calculate mean and standard deviation of controls
   if (zscore_type == "_Zscore") {
-    # using all controls
+    # Using all controls
     peakgroup_list$avg_ctrls <- apply(peakgroup_list[, control_col_idx], 1, function(x) mean(as.numeric(x), na.rm = TRUE))
     peakgroup_list$sd_ctrls <- apply(peakgroup_list[, control_col_idx], 1, function(x) sd(as.numeric(x), na.rm = TRUE))
   } else {
@@ -79,61 +82,67 @@ calculate_zscores <- function(peakgroup_list, zscore_type, stat_filter, control_
   return(peakgroup_list_zscores)
 }
 
+#' Robust scaler: remove outlier values in controls
+#'
+#' @param control_intensities: Intensities for control samples (vector of float)
+#' @param control_col_ids: Column names for control samples (vector of string)
+#' @param perc: Percentage of outliers which will be removed from controls (float)
+#'
+#' @returns trimmed_control_intensities: Intensities trimmed for outliers (vector of float)
 robust_scaler <- function(control_intensities, control_col_ids, perc = 5) {
-  #' Calculate robust scaler: Z-score based on controls without outliers
-  #'
-  #' @param control_intensities: Matrix with intensities for control samples
-  #' @param control_col_ids: Vector with column names for control samples
-  #' @param perc: Percentage of outliers which will be removed from controls (float)
-  #'
-  #' @return trimmed_control_intensities: Intensities trimmed for outliers
+  # Determine how many values will be removed, based on percentage
   nr_to_remove <- ceiling(length(control_col_ids) * perc / 100)
+  # Sort intensities
   sorted_control_intensities <- sort(as.numeric(control_intensities))
+  # Remove highest and lowest intensities
   start_index <- nr_to_remove + 1
   end_index <- length(sorted_control_intensities) - nr_to_remove
   trimmed_control_intensities <- sorted_control_intensities[start_index:end_index]
+
   return(trimmed_control_intensities)
 }
 
+#' Remove outlier values using Grubb's test
+#'
+#' @param control_intensities: Intensities for control samples (vector of float)
+#' @param outlier_threshold: Threshold for outliers to be removed from controls (float)
+#'
+#' @returns trimmed_control_intensities: Intensities trimmed for outliers (vector of float)
 remove_outliers_grubbs <- function(control_intensities, outlier_threshold = 2) {
-  #' Remove outliers per metabolite according to Grubb's test
-  #'
-  #' @param control_intensities: Vector with intensities for control samples
-  #' @param outlier_threshold: Threshold for outliers which will be removed from controls (float)
-  #'
-  #' @return trimmed_control_intensities: Intensities trimmed for outliers
+  # Calculate Z-scores for all intensities
   mean_permetabolite <- mean(as.numeric(control_intensities))
   stdev_permetabolite <- sd(as.numeric(control_intensities))
   zscores_permetabolite <- (control_intensities - mean_permetabolite) / stdev_permetabolite
-  # remove intensities with a zscore_permetabolite greater than outlier_threshold
+  # Remove intensities with a Z-score greater than outlier_threshold
   if (sum(zscores_permetabolite > outlier_threshold) > 0) {
     trimmed_control_intensities <- control_intensities[-which(zscores_permetabolite > outlier_threshold)]
   } else {
     trimmed_control_intensities <- control_intensities
   }
+
   return(trimmed_control_intensities)
 }
 
+#' Save a dataframe to RData and txt
+#'
+#' @param df: Dataframe (matrix)
+#' @param file_name: File name (string)
 save_to_rdata_and_txt <- function(df, file_name) {
-  #' Save a dataframe to RData and txt
-  #'
-  #' @param df: dataframe
-  #' @param file_name: string with the file name
   save(df, file = paste0(file_name, ".RData"))
   write.table(df, file = paste0(file_name, ".txt"), sep = "\t", row.names = FALSE)
 }
 
+#' Set the row height and column width of the Excel
+#'
+#' @param wb: An openxlsx workbook (S4 object)
+#' @param sheetname: Name of the workbook sheet (string)
+#' @param num_rows_df: Number of rows in dataframe (integer)
+#' @param num_col_df: Number of columns in dataframe (integer)
+#' @param plot_width: Width of the plots to be added (integer)
+#' @param plots_present: Parameter that indicates whether plots are added to the workbook (boolean)
+#'
+#' @returns wb: Workbook object with changed row heights and column widths
 set_row_height_col_width_wb <- function(wb, sheetname, num_rows_df, num_cols_df, plot_width, plots_present) {
-  #' Change the row height and column width of the Excel
-  #'
-  #' @param wb: an openxlsx workbook (S4 object)
-  #' @param sheetname: name of the workbook sheet (string)
-  #' @param num_rows_df: number of rows in dataframe (int)
-  #' @param num_col_df: number of columns in dataframe (int)
-  #' @param plot_width: width of the plots to be added (int)
-  #' @param plots_present: boolean if plots are added to the workbook (boolean)
-  #'
-  #' @returns wb: a workbook object with changed row heights and column widths
   if (plots_present) {
     openxlsx::setColWidths(wb, sheetname, cols = 1, widths = plot_width / 20)
     openxlsx::setRowHeights(wb, sheetname, rows = c(seq(2, num_rows_df + 1)), heights = 560 / 4)
@@ -151,9 +160,10 @@ set_row_height_col_width_wb <- function(wb, sheetname, num_rows_df, num_cols_df,
 #' pivot to long format, arrange Samples nummerically, change Sample names, get group size and
 #' set Intensities to numeric.
 #'
-#' @param intensities_df: a dataframe with HMDB_key column and intensities for all samples
+#' @param intensities_df: Dataframe with HMDB_key column and intensities (matrix) 
+#' @param row_index: Index of row (integer) 
 #'
-#' @returns intensities_df_long: a dataframe with on each row a sample and their intensity
+#' @returns intensities_df_long: Dataframe with on each row a sample and its intensity (matrix)
 intensities_df_to_long_format <- function(intensities_df, row_index) {
   intensities_df_long <- intensities_df %>%
     slice(row_index) %>%
@@ -177,8 +187,8 @@ intensities_df_to_long_format <- function(intensities_df, row_index) {
 #' Create a plot of intensities of samples for Excel
 #' Use boxplot if group size is above 2, otherwise use a dash/line
 #'
-#' @param intensities_df_long: a dataframe with on each row a sample and their intensity
-#' @param hmdb_id: HMDB ID of the selected metabolite
+#' @param intensities_df_long: Dataframe with on each row a sample and its intensity (matrix)
+#' @param hmdb_id: HMDB ID of the selected metabolite (string)
 #'
 #' @returns boxplot_object: ggplot2 object containing the plot of intensities
 create_boxplot <- function(intensities_df_long, hmdb_id) {
@@ -205,18 +215,17 @@ create_boxplot <- function(intensities_df_long, hmdb_id) {
   return(boxplot_object)
 }
 
-#' Make and save a boxplot of intensities to an Excel workbook
+#' Make and save a boxplot of intensities in png format and insert into an Excel workbook
+#' For the Helix Excel, the positive controls and SST mix samples are removed.
 #'
-#' For the Helix Excel the positive controls and SST mix samples are removed.
-#'
-#' @param excel_workbook: an openxlsx Workbook object
-#' @param sheetname: a string containing the sheetname where the plots are to be placed
-#' @param intensities_df: a dataframe containing intensities for controls and patients of a specific HMDB ID
-#' @param file_path: a string containing the filepath for the png
-#' @param hmdb_id: a string containing the HMDB ID that the intensities_df contains data for
-#' @param plot_width: an integer containing the plot width for the png
-#' @param col_width: an integer containing the width of the column that has the plots
-#' @param start_row_index: an integer containing the index of the row where the plot has to be placed
+#' @param excel_workbook: An openxlsx Workbook object (workbook object)
+#' @param sheetname: Name of the sheet where the plots are to be placed (string)
+#' @param intensities_df: Dataframe containing intensities for controls and patients of a specific HMDB ID (matrix)
+#' @param file_path: Filepath for the png (string)
+#' @param hmdb_id: HMDB ID corresponding to intensities_df (string) 
+#' @param plot_width: Plot width for the png (integer)
+#' @param col_width: Width of the column that has the plots (integer)
+#' @param start_row_index: Index of the row where the plot has to be placed (integer)
 save_plot_to_excel_workbook <- function(excel_workbook,
                                         sheetname,
                                         intensities_df,
@@ -256,15 +265,15 @@ save_plot_to_excel_workbook <- function(excel_workbook,
 #'
 #' @returns intensity_indices: indices of columns with intensities (vector of integers)
 get_intensity_col_index <- function(peakgroup_list, control_label = "C", case_label = "P") {
-  # remove Zscore columns first
+  # Remove Zscore columns first
   if (any(grep("_Zscore", colnames(peakgroup_list)))) {
     peakgroup_list <- peakgroup_list[, -grep("_Zscore", colnames(peakgroup_list))]
   }
-  # get indices for controls
+  # Get indices for controls
   control_col_ids <- grep(control_label, colnames(peakgroup_list), fixed = TRUE)
-  # get indices for patients
+  # Get indices for patients
   patient_col_ids <- grep(case_label, colnames(peakgroup_list), fixed = TRUE)
-  # combine
+  # Combine
   intensity_indices <- c(control_col_ids, patient_col_ids)
 
   return(intensity_indices)
@@ -278,7 +287,7 @@ get_intensity_col_index <- function(peakgroup_list, control_label = "C", case_la
 #' @param z_score: Boolean number indicating whether Z-scores should be calculated (integer)
 #' @param project: Name of dataset (string)
 create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", z_score = 0, project) {
-  # set up
+  # Set up
   if (prefix == "Drugs_") {
     plotdir <- "plots_drugs"
     sheetname <- "AllDrugs"
@@ -299,15 +308,15 @@ create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", 
   if (z_score == 1) {
     dir.create(plotdir, showWarnings = FALSE)
     row_helix <- 2 # start on row 2 because of header
-    # get intensity columns
+    # Get intensity columns
     intensities_df <- as.data.frame(peakgroup_list[ , intensity_col_ids])
     sample_names <- colnames(intensities_df)
     intensities_df$HMDB_key <- rownames(peakgroup_list)
-    # add a column for plots
+    # Add a column for plots
     peakgroup_list <- cbind(plots = NA, peakgroup_list)
 
     for (row_index in seq_len(nrow(intensities_df))) {
-      # get HMDB ID
+      # Get HMDB ID
       hmdb_id <- intensities_df %>%
         slice(row_index) %>%
         pull(HMDB_key)
@@ -315,7 +324,7 @@ create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", 
       # Transform dataframe to long format
       intensities_df_long <- intensities_df_to_long_format(intensities_df, row_index)
 
-      # set plot width to 40 times the number of samples
+      # Set plot width to 40 times the number of samples
       plot_width <- length(unique(intensities_df_long$Samples)) * 40
       col_width <- plot_width * 2
 
@@ -343,14 +352,14 @@ create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", 
       plots_present = TRUE
     )
 
-    # reorder outlist for Excel file
+    # Reorder outlist for Excel file
     peakgroup_list <- peakgroup_list %>%
       relocate(c(HMDB_code, HMDB_name_all, avg_ctrls, sd_ctrls), .after = plots) %>%
       relocate(all_of(grep("_Zscore", colnames(peakgroup_list))), .after = sd_ctrls) %>%
       relocate(all_of(sample_names), .after = last_col())
     if (prefix == "Helix_") {
       colnames(peakgroup_list) <- gsub("H_Name", "Name", colnames(peakgroup_list))
-      # remove intensity columns
+      # Remove intensity columns
       peakgroup_list <- peakgroup_list %>% select(-all_of(sample_names))
     }
   } else if (z_score == 0) {
@@ -371,7 +380,7 @@ create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", 
     colnames(peakgroup_list) <- gsub("H_Name", "Name", colnames(peakgroup_list))
   }
 
-  # write Excel file
+  # Write Excel file
   openxlsx::writeData(wb_intensities, sheet = 1, peakgroup_list, startCol = 1)
   openxlsx::saveWorkbook(wb_intensities, paste0(prefix, project, ".xlsx"), overwrite = TRUE)
   rm(wb_intensities)

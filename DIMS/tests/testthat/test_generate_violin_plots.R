@@ -1,4 +1,4 @@
-# unit tests for GenerateViolinPlots
+# Unit tests for GenerateViolinPlots
 
 suppressPackageStartupMessages(library("dplyr"))
 library(reshape2)
