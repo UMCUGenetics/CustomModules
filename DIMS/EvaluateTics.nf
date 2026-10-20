@@ -11,6 +11,8 @@ process EvaluateTics {
        path(highest_mz_file)
        path(trim_params_file)
        val(preprocessing_scripts_dir)
+       val(nr_replicates)
+       val(matrix)
 
     output:
        path('*_repl_pattern.RData'),        emit: pattern_files
