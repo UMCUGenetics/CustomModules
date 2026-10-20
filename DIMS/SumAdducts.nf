@@ -6,6 +6,7 @@ process SumAdducts {
     input:
        each path(collect_files)
        path(hmdbpart_main_file)
+       val(zscore)
        val(preprocessing_scripts_dir)
 
     output:
