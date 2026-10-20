@@ -7,6 +7,8 @@ process CollectFilled {
        path(filled_files)
        each path(replication_pattern)
        val(preprocessing_scripts_dir)
+       val(ppm)
+       val(zscore)
 
     output:
        path('outlist*.txt'), emit: filled_txtfiles
