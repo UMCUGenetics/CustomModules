@@ -6,6 +6,7 @@ process PeakFinding {
     input:
        path(rdata_file)
        each path(sample_techreps)
+       val(resolution)
        val(preprocessing_scripts_dir)
 
     output:
