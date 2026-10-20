@@ -6,6 +6,7 @@ process HMDBparts {
     input:
         path(hmdb_db_file)
         path(breaks_file)
+        val(standard_run)
         val(hmdb_parts_files)
 
     output:
