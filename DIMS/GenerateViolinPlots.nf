@@ -1,12 +1,13 @@
 process GenerateViolinPlots {
     tag "DIMS GenerateViolinPlots"
     label 'GenerateViolinPlots'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
     shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(outlist_zscores)
        val(analysis_id)
+       path(outlist_drugs)
 
     output:
        path('Diagnostics/*.pdf'), emit: diag_plot_files, optional: true
@@ -18,7 +19,8 @@ process GenerateViolinPlots {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R $analysis_id $params.export_scripts_dir \
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R $analysis_id \
+                                                                    $params.export_scripts_dir \
                                                                     $params.path_metabolite_groups \
                                                                     $params.file_ratios_metabolites \
                                                                     $params.file_expected_biomarkers_IEM \
