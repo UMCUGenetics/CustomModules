@@ -301,6 +301,12 @@ create_excel_output <- function(peakgroup_list, intensity_col_ids, prefix = "", 
     sheetname <- "BiologicallyRelevant"
     wb_intensities <- openxlsx::createWorkbook("AdductSums")
   }
+  
+  # Make sure the intensity columns are numeric
+  peakgroup_list[intensity_col_ids] <- lapply(peakgroup_list[intensity_col_ids], as.numeric)
+  # Round Z-scores to three decimals
+  zscore_cols <- grep("_Zscore", colnames(peakgroup_list))
+  peakgroup_list[zscore_cols] <- round(peakgroup_list[zscore_cols], 3)
 
   openxlsx::addWorksheet(wb_intensities, sheetname)
 
