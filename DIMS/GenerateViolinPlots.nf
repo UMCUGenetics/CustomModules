@@ -23,7 +23,7 @@ process GenerateViolinPlots {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R \
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateViolinPlots.R \
                 $analysis_id \
                 $export_scripts_dir \
                 $path_metabolite_groups \

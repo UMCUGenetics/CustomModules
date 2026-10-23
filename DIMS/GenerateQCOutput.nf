@@ -25,7 +25,7 @@ process GenerateQCOutput {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R \
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateQCOutput.R \
                 $init_file \
                 $analysis_id \
                 $matrix \

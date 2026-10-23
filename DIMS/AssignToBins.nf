@@ -13,7 +13,7 @@ process AssignToBins {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/AssignToBins.R \
+        Rscript ${projectDir}/CustomModules/DIMS/AssignToBins.R \
                 $mzML_file \
                 $breaks_file \
                 $trim_params_file \

@@ -22,7 +22,7 @@ process GenerateExcel {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R \
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateExcel.R \
                 $analysis_id \
                 $relevance_file \
                 $zscore \

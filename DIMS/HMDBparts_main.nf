@@ -13,7 +13,7 @@ process HMDBparts_main {
     script:
 
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts_main.R \
+        Rscript ${projectDir}/CustomModules/DIMS/HMDBparts_main.R \
                 $hmdb_db_file \
                 $breaks_file 
         """

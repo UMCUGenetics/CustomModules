@@ -24,7 +24,7 @@ process EvaluateTics {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/EvaluateTics.R \
+        Rscript ${projectDir}/CustomModules/DIMS/EvaluateTics.R \
                 $init_file \
                 $params.nr_replicates \
                 $analysis_id \

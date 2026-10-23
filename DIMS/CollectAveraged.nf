@@ -11,6 +11,6 @@ process CollectAveraged {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectAveraged.R
+        Rscript ${projectDir}/CustomModules/DIMS/CollectAveraged.R
         """
 }

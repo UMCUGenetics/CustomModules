@@ -16,7 +16,7 @@ process CollectFilled {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectFilled.R \
+        Rscript ${projectDir}/CustomModules/DIMS/CollectFilled.R \
                 $preprocessing_scripts_dir \
                 $params.ppm \
                 $params.zscore

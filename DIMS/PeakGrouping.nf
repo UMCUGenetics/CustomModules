@@ -15,7 +15,7 @@ process PeakGrouping {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/PeakGrouping.R \
+        Rscript ${projectDir}/CustomModules/DIMS/PeakGrouping.R \
                 $hmdbpart_file \
                 $preprocessing_scripts_dir \
                 $ppm

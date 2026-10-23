@@ -14,7 +14,7 @@ process SumAdducts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/SumAdducts.R \
+        Rscript ${projectDir}/CustomModules/DIMS/SumAdducts.R \
                 $hmdbpart_main_file \
                 $preprocessing_scripts_dir \
                 $zscore

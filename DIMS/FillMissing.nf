@@ -14,7 +14,7 @@ process FillMissing {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R \
+        Rscript ${projectDir}/CustomModules/DIMS/FillMissing.R \
                 $peakgrouplist_file \
                 $preprocessing_scripts_dir \
                 $threshold

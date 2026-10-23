@@ -16,7 +16,7 @@ process GenerateBreaks {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R \
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateBreaks.R \
                 $mzML_file \
                 $trim \
                 $resolution \
