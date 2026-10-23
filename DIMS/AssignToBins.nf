@@ -1,7 +1,7 @@
 process AssignToBins {
     tag "DIMS AssignToBins ${file_id}"
     label 'AssignToBins'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
        tuple(val(file_id), path(mzML_file), path(breaks_file), path(trim_params_file))

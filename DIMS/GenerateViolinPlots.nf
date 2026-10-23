@@ -1,10 +1,11 @@
 process GenerateViolinPlots {
     tag "DIMS GenerateViolinPlots"
     label 'GenerateViolinPlots'
-    container = 'docker://umcugenbioinf/dims:1.3'
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
        path(outlist_zscores)
+       path(outlist_drugs)
        val(analysis_id)
        val(export_scripts_dir)
        val(path_metabolite_groups)

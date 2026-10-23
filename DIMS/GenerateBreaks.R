@@ -1,7 +1,7 @@
-# load required package
+# Load required package
 suppressPackageStartupMessages(library("xcms"))
 
-# define parameters
+# Define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 filepath <- cmd_args[1]
@@ -12,14 +12,17 @@ preprocessing_scripts_dir <- cmd_args[4]
 # load in function script
 source(paste0(preprocessing_scripts_dir, "generate_breaks_functions.R"))
 
-# read in mzML file
+# Initialize
+options(digits = 16)
+
+# Read in mzML file
 raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 
-# get trim parameters and save them to file
+# Get trim parameters and save them to file
 get_trim_parameters(raw_data@scantime, raw_data@polarity, trim)
 
-# create breaks of bins for intensities. Bin size is a function of fwhm which is a function of m/z
-get_breaks_for_bins(raw_data@mzrange, resol)
+# Create breaks of bins for intensities. Bin size is a function of fwhm which is a function of m/z
+get_breaks_for_bins(raw_data$mzrange, resol)
 
 # Determine maximum m/z and save to file
 high_mz <- raw_data@mzrange[2]

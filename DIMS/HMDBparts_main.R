@@ -1,13 +1,18 @@
-# define parameters 
+# Define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 db_file <- cmd_args[1]
 breaks_file <- cmd_args[2]
 
+# Initialize
+options(digits = 16)
+
+# Load HMDB database file
 load(db_file)
+# Load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
 load(breaks_file)
 
-# get minimum and maximum m/z in dataset
+# Get minimum and maximum m/z in dataset
 min_mz <- round(breaks_fwhm[1])
 max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
 
@@ -22,21 +27,38 @@ for (scanmode in scanmodes) {
     HMDB_add_iso <- HMDB_add_iso.Pos
   }
 
-  # filter on mass range in dataset
+  # Filter on mass range in dataset
   HMDB_mzrange <- HMDB_add_iso[(HMDB_add_iso[, column_label] >= min_mz & HMDB_add_iso[, column_label] <= max_mz), ]
-  # remove adducts and isotopes, put internal standard at the beginning
+  # Remove adducts and isotopes, put internal standard at the beginning
   HMDB_add <- HMDB_mzrange[grep("HMDB", rownames(HMDB_mzrange), fixed = TRUE), ]
   HMDB_main <- HMDB_add[-grep("_", rownames(HMDB_add), fixed = TRUE), ]
-  # sort on m/z value
+  # Sort on m/z value
   HMDB_main <- HMDB_main[order(HMDB_main[, column_label]), ]
   
-  # generate hmdb parts of 1000 lines each
+  # Generate hmdb parts of 1000 lines each
   nr_parts <- ceiling(nrow(HMDB_main) / 1000)
   start_index <- 1
   for (part_index in 1:nr_parts) {
     end_index <- min((start_index + 999), nrow(HMDB_main))
     outlist_part <- HMDB_main[start_index:end_index, ]
     save(outlist_part, file = paste0(scanmode, "_hmdb_main.", part_index, ".RData"))
+    start_index = start_index + 1000
+  }
+
+  # add hmdb parts for drugs in ChEMBL database
+  CHEMBL_add <- HMDB_mzrange[grep("CHEMBL", rownames(HMDB_mzrange), fixed = TRUE), ]
+  # remove adducts
+  CHEMBL_main <- CHEMBL_add[-grep("_", rownames(CHEMBL_add), fixed = TRUE), ]
+  # sort on m/z value
+  CHEMBL_main <- CHEMBL_main[order(CHEMBL_main[, column_label]), ]
+
+  # generate hmdb parts of 1000 lines each for ChEMBL entries
+  nr_parts_chembl <- ceiling(nrow(CHEMBL_main) / 1000)
+  start_index <- 1
+  for (part_index in 1:nr_parts_chembl) {
+    end_index <- min((start_index + 999), nrow(CHEMBL_main))
+    outlist_part <- CHEMBL_main[start_index:end_index, ]
+    save(outlist_part, file = paste0(scanmode, "_hmdb_main.", part_index + nr_parts, ".RData"))
     start_index = start_index + 1000
   }
 }
