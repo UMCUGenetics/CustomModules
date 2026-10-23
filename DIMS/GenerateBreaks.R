@@ -10,7 +10,7 @@ resol <- as.numeric(cmd_args[3])
 preprocessing_scripts_dir <- cmd_args[4]
 
 # load in function script
-source(paste0(preprocessing_scripts_dir, "generate_breaks_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/generate_breaks_functions.R"))
 
 # Initialize
 options(digits = 16)

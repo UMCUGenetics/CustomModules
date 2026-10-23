@@ -9,7 +9,7 @@ resol <- as.numeric(cmd_args[2])
 preprocessing_scripts_dir <- cmd_args[3]
 
 # Source functions script
-source(paste0(preprocessing_scripts_dir, "peak_finding_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/peak_finding_functions.R"))
 
 # Initialize
 options(digits = 16)

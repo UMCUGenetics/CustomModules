@@ -6,7 +6,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 
 preprocessing_scripts_dir <- cmd_args[1]
 
-source(paste0(preprocessing_scripts_dir, "collect_sum_adducts_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/collect_sum_adducts_functions.R"))
 
 # Collect all AdductSums part files for each scanmode and save to RData file
 outlist_tot_pos <- combine_sum_adduct_parts("positive")

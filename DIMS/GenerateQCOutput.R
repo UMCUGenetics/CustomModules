@@ -14,7 +14,7 @@ sst_components_file <- cmd_args[4]
 export_scripts_dir <- cmd_args[5]
 
 # Load in function scripts
-source(paste0(export_scripts_dir, "generate_qc_output_functions.R"))
+source(paste0(export_scripts_dir, "/generate_qc_output_functions.R"))
 
 # Initialize
 options(digits = 16)

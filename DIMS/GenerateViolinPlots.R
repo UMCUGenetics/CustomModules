@@ -36,7 +36,7 @@ number_of_metabolites <- list(
 )
 
 # Load functions
-source(paste0(export_scripts_dir, "generate_violin_plots_functions.R"))
+source(paste0(export_scripts_dir, "/generate_violin_plots_functions.R"))
 
 # Load dataframe with intensities and Z-scores for all samples
 intensities_zscore_df <- get(load("outlist.RData"))
