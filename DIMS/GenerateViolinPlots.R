@@ -15,7 +15,8 @@ path_metabolite_groups <- cmd_args[3]
 file_ratios_metabolites <- cmd_args[4]
 file_expected_biomarkers_iem <- cmd_args[5]
 file_explanation <- cmd_args[6]
-file_drugs_in_dataset <- cmd_args[7]
+file_previous_runs <- cmd_args[7]
+file_drugs_in_dataset <- cmd_args[8]
 
 # Initialize
 options(digits = 16)
@@ -54,6 +55,7 @@ expected_biomarkers_df <- expected_biomarkers_df %>%
     HMDB_name = Metabolite
   )
 explanation_violin_plot <- readLines(file_explanation)
+data_previous_runs <- read.delim(file_previous_runs)
 
 control_ids <- get_colnames_by_prefix(intensities_zscore_df, "C")
 patient_ids <- get_colnames_by_prefix(intensities_zscore_df, "P")
@@ -92,6 +94,7 @@ make_and_save_violin_plot_pdfs(
   run_name,
   protocol_name,
   explanation_violin_plot,
+  data_previous_runs,
   number_of_metabolites
 )
 
