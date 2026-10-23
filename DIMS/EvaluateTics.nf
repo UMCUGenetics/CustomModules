@@ -2,7 +2,6 @@ process EvaluateTics {
     tag "DIMS EvaluateTics"
     label 'EvaluateTics'
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(rdata_file)
@@ -11,24 +10,27 @@ process EvaluateTics {
        val(analysis_id)
        path(highest_mz_file)
        path(trim_params_file)
+       val(preprocessing_scripts_dir)
+       val(nr_replicates)
+       val(matrix)
 
     output:
-       path('*_repl_pattern.RData'),      emit: pattern_files
-       path('replicates_per_sample.txt'), emit: sample_techreps
-       path('miss_infusions_negative.txt')
-       path('miss_infusions_positive.txt')
-       path('*_TICplots.pdf'),            emit: tic_plots_pdf
+       path('*_repl_pattern.RData'),        emit: pattern_files
+       path('replicates_per_sample.txt'),   emit: sample_techreps
+       path('miss_infusions_negative.txt'), emit: miss_inf_neg
+       path('miss_infusions_positive.txt'), emit: miss_inf_pos
+       path('*_TICplots.pdf'),              emit: tic_plots_pdf
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/EvaluateTics.R $init_file \
-                                                             $params.nr_replicates \
-                                                             $analysis_id \
-                                                             $params.matrix \
-                                                             $highest_mz_file \
-                                                             $trim_params_file \
-                                                             $params.preprocessing_scripts_dir
+        Rscript ${projectDir}/CustomModules/DIMS/EvaluateTics.R \
+                $init_file \
+                $nr_replicates \
+                $analysis_id \
+                $matrix \
+                $highest_mz_file \
+                $trim_params_file \
+                $preprocessing_scripts_dir
         """
 }
-
 

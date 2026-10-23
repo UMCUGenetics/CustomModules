@@ -2,10 +2,10 @@ process CollectSumAdducts {
     tag "DIMS CollectSumAdducts"
     label 'CollectSumAdducts'
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(collect_files)
+       val(preprocessing_scripts_dir)
 
     output:
        path('AdductSums_combined.RData'), emit: adductsums_combined
@@ -13,6 +13,7 @@ process CollectSumAdducts {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectSumAdducts.R $params.preprocessing_scripts_dir
+        Rscript ${projectDir}/CustomModules/DIMS/CollectSumAdducts.R \
+                $preprocessing_scripts_dir
         """
 }

@@ -4,7 +4,7 @@ cmd_args <- commandArgs(trailingOnly = TRUE)
 preprocessing_scripts_dir <- cmd_args[1]
 z_score <- as.numeric(cmd_args[2])
 
-source(paste0(preprocessing_scripts_dir, "collect_filled_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/collect_filled_functions.R"))
 
 # Initialize
 options(digits = 16)

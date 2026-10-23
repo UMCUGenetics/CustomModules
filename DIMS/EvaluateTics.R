@@ -16,7 +16,7 @@ thresh2remove <- 1000000000
 preprocessing_scripts_dir <- cmd_args[7]
 
 # Load functions
-source(paste0(preprocessing_scripts_dir, "evaluate_tics_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/evaluate_tics_functions.R"))
 
 # Initialize
 options(digits = 16)

@@ -16,7 +16,7 @@ export_scripts_dir <- cmd_args[4]
 path_metabolite_groups <- cmd_args[5]
 
 # Load in function scripts
-source(paste0(export_scripts_dir, "generate_excel_functions.R"))
+source(paste0(export_scripts_dir, "/generate_excel_functions.R"))
 
 # Initialize
 options(digits = 16)

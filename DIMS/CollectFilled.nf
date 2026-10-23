@@ -2,11 +2,13 @@ process CollectFilled {
     tag "DIMS CollectFilled"
     label 'CollectFilled'
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(filled_files)
        each path(replication_pattern)
+       val(preprocessing_scripts_dir)
+       val(ppm)
+       val(zscore)
 
     output:
        path('peakgroup_list*.txt')
@@ -14,6 +16,9 @@ process CollectFilled {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectFilled.R $params.preprocessing_scripts_dir $params.zscore
+        Rscript ${projectDir}/CustomModules/DIMS/CollectFilled.R \
+                $preprocessing_scripts_dir \
+                $ppm \
+                $zscore
         """
 }

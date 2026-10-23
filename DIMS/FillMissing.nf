@@ -2,17 +2,21 @@ process FillMissing {
     tag "DIMS FillMissing ${peakgrouplist_file}"
     label 'FillMissing'
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(peakgrouplist_file)
        each path(replication_pattern)
+       val(preprocessing_scripts_dir)
+       val(threshold)
 
     output:
-       path('*_filled.RData')
+       path('*_filled.RData'), emit: filled_data
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/FillMissing.R $peakgrouplist_file $params.preprocessing_scripts_dir $params.thresh
+        Rscript ${projectDir}/CustomModules/DIMS/FillMissing.R \
+                $peakgrouplist_file \
+                $preprocessing_scripts_dir \
+                $threshold
         """
 }

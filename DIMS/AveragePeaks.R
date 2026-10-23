@@ -11,7 +11,7 @@ preprocessing_scripts_dir <- cmd_args[4]
 tech_reps <- strsplit(techreps, ";")[[1]]
 
 # Load in function scripts
-source(paste0(preprocessing_scripts_dir, "average_peaks_functions.R"))
+source(paste0(preprocessing_scripts_dir, "/average_peaks_functions.R"))
 
 # Initialize
 options(digits = 16)
