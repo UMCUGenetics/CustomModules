@@ -2,7 +2,6 @@ process EvaluateTics {
     tag "DIMS EvaluateTics"
     label 'EvaluateTics'
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(rdata_file)
@@ -26,9 +25,9 @@ process EvaluateTics {
         """
         Rscript ${projectDir}/CustomModules/DIMS/EvaluateTics.R \
                 $init_file \
-                $params.nr_replicates \
+                $nr_replicates \
                 $analysis_id \
-                $params.matrix \
+                $matrix \
                 $highest_mz_file \
                 $trim_params_file \
                 $preprocessing_scripts_dir
