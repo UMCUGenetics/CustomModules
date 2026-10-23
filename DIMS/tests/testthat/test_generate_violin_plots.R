@@ -553,6 +553,7 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
     `Z-score` = c("", "2.45", "", "-1.51")
   )
   
+  test_data_previous_runs <- NULL
   test_top_drugs_patient <- NULL
 
   expect_silent(create_pdf_violin_plots(
@@ -561,7 +562,8 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
     test_metab_perpage,
     test_top_metab_pt,
     test_top_drugs_patient,
-    test_explanation
+    test_explanation,
+    test_data_previous_runs
   ))
 
   out_pdf_violinplots <- file.path(test_pdf_dir, "R_P2025M1.pdf")
@@ -823,11 +825,12 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
   )
   test_run_name <- "unit_test"
   test_protocol_name <- "UNIT_TEST_PROTOCOL"
-  test_explanation_violin_plot <- "Unit test violin plot pdfs"
+  test_explanation <- "Unit test violin plot pdfs"
   test_number_of_metabolites <- list(
     highest = 2,
     lowest = 1
   )
+  test_data_previous_runs <- NULL
   test_zscore_pat_drugs_df <- test_zscore_patients_df
   test_zscore_pat_drugs_df$HMDB_code <- gsub("HMDB", "CHEMBL", test_zscore_pat_drugs_df$HMDB_code)
 
@@ -840,7 +843,8 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     test_number_of_samples,
     test_run_name,
     test_protocol_name,
-    test_explanation_violin_plot,
+    test_explanation,
+    test_data_previous_runs,
     test_number_of_metabolites
   ))
 
@@ -921,7 +925,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     top_number_iem_diseases = 5,
     threshold_iem = 5
   )
-  test_explanation_violin_plot <- "Unit test violin plot pdfs"
+  test_explanation <- "Unit test violin plot pdfs"
 
   expect_silent(make_and_save_diem_plots(
     test_diem_probability_score,
@@ -933,7 +937,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_number_of_samples,
     test_number_of_metabolites,
     test_iem_variables,
-    test_explanation_violin_plot
+    test_explanation
   ))
   unlink("dIEM_plots/", recursive = TRUE)
 
@@ -947,7 +951,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_number_of_samples,
     test_number_of_metabolites,
     test_iem_variables,
-    test_explanation_violin_plot
+    test_explanation
   ), "P2025M3")
 
   expect_true(file.exists("dIEM_plots/IEM_P2025M1.pdf"))
@@ -1003,3 +1007,16 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   expect_snapshot_file("missing_probability_scores.txt")
   file.remove("missing_probability_scores.txt")
 })
+
+testthat::test_that("add_previous_runs: Information for metabolites from previous runs is correctly added", {
+  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
+  test_patient_id <- "P2025M1"
+  test_patient_zscore_df <- test_acyl_carnitines_df %>% filter(Sample == test_patient_id)
+  test_data_previous_runs <- data.frame(matrix(1:12, ncol = 6, nrow = 2))
+  colnames(test_data_previous_runs) <- c("common_name", "average_patients", "min95", "max95", "min", "max")
+  test_data_previous_runs[, "common_name"] <- c("metab1", "metab3")
+  
+  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$min95[1], 5)
+  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$max95[2], 8)
+})
+

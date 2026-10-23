@@ -45,14 +45,14 @@ for (scanmode in scanmodes) {
     start_index = start_index + 1000
   }
 
-  # add hmdb parts for drugs in ChEMBL database
+  # Add hmdb parts for drugs in ChEMBL database
   CHEMBL_add <- HMDB_mzrange[grep("CHEMBL", rownames(HMDB_mzrange), fixed = TRUE), ]
-  # remove adducts
+  # Remove adducts
   CHEMBL_main <- CHEMBL_add[-grep("_", rownames(CHEMBL_add), fixed = TRUE), ]
-  # sort on m/z value
+  # Sort on m/z value
   CHEMBL_main <- CHEMBL_main[order(CHEMBL_main[, column_label]), ]
 
-  # generate hmdb parts of 1000 lines each for ChEMBL entries
+  # Generate hmdb parts of 1000 lines each for ChEMBL entries
   nr_parts_chembl <- ceiling(nrow(CHEMBL_main) / 1000)
   start_index <- 1
   for (part_index in 1:nr_parts_chembl) {

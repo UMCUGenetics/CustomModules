@@ -141,6 +141,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
 #' @param run_name: Run name (string)
 #' @param protocol_name: Protocol name (string)
 #' @param explanation_violin_plot: Explanation of the violin plots (vector of strings)
+#' @param data_previous_runs: Data from previous DIMS runs (matrix)
 #' @param number_of_metabolites: Number of metabolites for the top and lowest table (list of integers)
 make_and_save_violin_plot_pdfs <- function(
     zscore_patients_df,
@@ -152,6 +153,7 @@ make_and_save_violin_plot_pdfs <- function(
     run_name,
     protocol_name,
     explanation_violin_plot,
+    data_previous_runs,
     number_of_metabolites) {
   # Get all patient IDs
   patient_col_names <- remove_suffix_from_items(get_colnames_by_prefix(zscore_patients_df, "P"), "_Zscore")
@@ -194,7 +196,7 @@ make_and_save_violin_plot_pdfs <- function(
       if (grepl("Diagnost", pdf_dir)) {
         # Make list of metabolites that exceed alarm values for this patient
         top_metabs_patient <- get_top_metabolites_df(patient_id, dims_helix_table)
-        # for drugs: make list of top highest and lowest Z-scores for this patient
+        # For drugs: make list of top highest and lowest Z-scores for this patient
         top_drugs_patient <- prepare_toplist(
           patient_id,
           zscore_pat_drugs_df,
@@ -209,7 +211,7 @@ make_and_save_violin_plot_pdfs <- function(
           number_of_metabolites$highest,
           number_of_metabolites$lowest
         )
-        # for drugs: make list of top highest and lowest Z-scores for this patient
+        # For drugs: make list of top highest and lowest Z-scores for this patient
         top_drugs_patient <- prepare_toplist(
           patient_id,
           zscore_pat_drugs_df,
@@ -218,7 +220,14 @@ make_and_save_violin_plot_pdfs <- function(
         )
       }
       # Generate normal violin plots
-      create_pdf_violin_plots(pdf_dir, patient_id, metab_perpage, top_metabs_patient, top_drugs_patient, explanation_violin_plot)
+      create_pdf_violin_plots(
+        pdf_dir,
+        patient_id,
+        metab_perpage,
+        top_metabs_patient,
+        explanation_violin_plot,
+        data_previous_runs
+      )
     }
   }
 }
@@ -638,21 +647,21 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
     patient_zscore_df$HMDB_name,
     levels = rev(patient_zscore_df$HMDB_name)
   )
-  # add class for legend
+  # Add class for legend
   patient_zscore_df$class <- "amino_acids"
   patient_zscore_df$class[grep("nitine", patient_zscore_df$HMDB_name)] <- "acyl_carnitines"
   patient_zscore_df$class[grep("Crea", patient_zscore_df$HMDB_name)] <- "crea_gua"
   patient_zscore_df$class[grep("Gua", patient_zscore_df$HMDB_name)] <- "crea_gua"
 
   gglolli <- ggplot(patient_zscore_df, aes(x = Z_score_capped, y = HMDB_name, color = class)) +
-    # lollipop stems
+    # Lollipop stems
     geom_segment(
       aes(x = 0, xend = Z_score_capped, y = HMDB_name, yend = HMDB_name),
       linewidth = 1
     ) +
-    # points
+    # Points
     geom_point(size = 2) +
-    # label extreme values
+    # Label extreme values
     geom_text(
       data = subset(patient_zscore_df, Z_score_capped == 20 | Z_score_capped == -5),
       aes(label = round(Z_score, 2)),
@@ -717,6 +726,28 @@ add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = 
   }
 }
 
+#' Add data from previous runs (min, max, 5%, 95%) to patient_zscore_df
+#'
+#' @param patient_zscore_df: dataframe with metabolite Z-scores per patient (dataframe)
+#' @param data_previous_runs: data from previous DIMS runs (matrix)
+#'
+#' @return patient_zscore_df: dataframe with metabolite Z-scores and info from previous runs (dataframe)
+add_previous_runs <- function(patient_zscore_df, data_previous_runs) {
+  data_previous_runs <- as.data.frame(data_previous_runs)
+  for (row_nr in 1:nrow(patient_zscore_df)) {
+    # Match data from previous run to data from current run based on common name
+    common_name <- trimws(patient_zscore_df$HMDB_name[row_nr])
+    find_rownr <- which(data_previous_runs$common_name == common_name)
+    # Add mean, min, max and 5-95% interval of data from previous runs
+    if (length(find_rownr) == 1) {
+      patient_zscore_df[row_nr, c("mean", "min", "max", "min95", "max95")] <-
+        data_previous_runs[find_rownr, c("average_patients", "min", "max", "min95", "max95")]
+    }
+  }
+
+  return(patient_zscore_df)
+}
+
 #' Create a pdf with table with metabolites and violin plots
 #'
 #' @param pdf_dir: Location for saving the pdf file (string)
@@ -724,7 +755,8 @@ add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = 
 #' @param metab_perpage: List of dataframes, each dataframe contains data for a page in de pdf (list)
 #' @param top_metab_patient: Dataframe with increased and decreased metabolites for this patient (matrix)
 #' @param explanation_violin_plot: Text that explains the violin plots and the pipeline version (vector of strings)
-create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, top_drugs_patient, explanation_violin_plot) {
+#' @param data_previous_runs: Data from previous DIMS runs, not used for dIEM plots (matrix)
+create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, top_drugs_patient, explanation_violin_plot, data_previous_runs = NULL) {
   # Set parameters for plots
   plot_height <- 9.6
   plot_width <- 6
@@ -800,10 +832,14 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
       # Cap Z-scores under -5 to -5 and above 20 to 20
       metab_zscores_df <- metab_zscores_df %>%
         mutate(Z_score_capped = pmin(pmax(Z_score_capped, -5), 20))
-
+      
       # Extract original data for patient of interest (pt_name)
       patient_zscore_df <- metab_zscores_df %>%
         filter(Sample == patient_id)
+      # Add information for 5-95% interval of data from previous runs
+      if (!is.null(data_previous_runs)) {
+        patient_zscore_df <- add_previous_runs(patient_zscore_df, data_previous_runs)
+      }
       patient_allmetabs_df <- rbind(patient_allmetabs_df, patient_zscore_df)
 
       # Remove patient of interest and retain only other patient data
@@ -815,7 +851,6 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
       # For IEM plots, put subtitle on two lines
       sub_perpage <- gsub("probability", "\nprobability", sub_perpage)
 
-      # Store violin plot in a list
       ggplot_object <- create_violin_plot(metab_zscores_df, patient_zscore_df, sub_perpage, patient_id)
       violinplot_list <- append(violinplot_list, list(ggplot_object))
     }
@@ -867,7 +902,34 @@ create_violin_plot <- function(metab_zscores_df, patient_zscore_df, sub_perpage,
     mutate(HMDB_name = factor(HMDB_name, levels = y_order)) %>%
     arrange(HMDB_name)
   
-  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score_capped, y = HMDB_name)) +
+  # Find y-axis values for each metabolite
+  if (any(grepl("min95", colnames(patient_zscore_df)))) {
+    rectange_df <- patient_zscore_df |>
+      dplyr::distinct(HMDB_name, min95, max95) |>
+      dplyr::mutate(
+        y = match(HMDB_name, y_order),
+        ymin = y - 0.4,
+        ymax = y + 0.4
+      )
+  } else {
+    rectange_df <- patient_zscore_df
+    rectange_df[c("min95", "max95", "y", "ymin", "ymax")] <- 0
+  }
+
+  ggplot_object <- ggplot(metab_zscores_df, aes(x = Z_score, y = HMDB_name)) +
+    geom_rect(
+      data = rectange_df,
+      aes(
+        xmin = min95,
+        xmax = max95,
+        ymin = ymin,
+        ymax = ymax
+      ),
+      inherit.aes = FALSE,
+      fill = "blue",
+      alpha = 0.15,
+      colour = NA
+    ) +
     # Make violin plots
     geom_violin(scale = "width", na.rm = TRUE) +
     # Add Z-score for the selected patient, shape=22 gives square for patient of interest
