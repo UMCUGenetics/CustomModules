@@ -31,11 +31,15 @@ testthat::test_that("adduct sums per class are correctly calculated", {
   test_hmdb_main_part[, 1] <- c("HMDB1234567;HMDB0000567", "HMDB7654321;HMDB0000321")
   test_hmdb_main_part[, "CompoundName"] <- c("metab_1", "metab_2")
   test_hmdb_main_part[, "adducts"] <- c("1,2", "1,7")
+  test_colname <- "adducts"
  
-  expect_type(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1), "character")
-  expect_equal(rownames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1))[1], "HMDB1234567")
-  expect_equal(colnames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1)), 
-               c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"))
-  expect_equal(as.vector(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1)[1, c(1:4)]), 
-               c("6000", "18000", "60000", "180000"))
+  expect_type(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1, test_colname), "character")
+  expect_equal(
+    rownames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1, test_colname))[1], 
+    "HMDB1234567")
+  expect_equal(colnames(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1, test_colname)), 
+    c("C101.1", "C102.1", "P2.1", "P3.1", "HMDB_name", "HMDB_ID_all", "sec_HMDB_ID", "HMDB_name_all"))
+  expect_equal(
+    as.vector(sum_intensities_adducts_perclass(test_peakgroup_list, test_hmdb_main_part, 1, test_colname)[1, c(1:4)]), 
+    c("6000", "18000", "60000", "180000"))
 })

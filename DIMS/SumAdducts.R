@@ -13,8 +13,10 @@ source(paste0(scripts_dir, "/sum_intensities_adducts.R"))
 
 if (grepl("positive_hmdb", hmdbpart_main_file)) {
   scanmode <- "positive"
+  adducts_colname <- "adducts_pos"
 } else if (grepl("negative_hmdb", hmdbpart_main_file)) {
   scanmode <- "negative"
+  adducts_colname <- "adducts_neg"
 }
 
 # Load input files
@@ -26,5 +28,5 @@ hmdb_main_part <- get(load(hmdbpart_main_file))
 batch_number <- strsplit(basename(hmdbpart_main_file), ".", fixed = TRUE)[[1]][2]
 
 # Sum adducts and save output
-adductsum <- sum_intensities_adducts_perclass(peakgroup_list, hmdb_main_part, z_score)
+adductsum <- sum_intensities_adducts_perclass(peakgroup_list, hmdb_main_part, z_score, adducts_colname)
 save(adductsum, file = paste(scanmode, "_", batch_number, "_SummedAdducts.RData", sep = ""))
