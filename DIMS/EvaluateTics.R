@@ -1,8 +1,8 @@
-# Load required packages
+# load packages
 library("ggplot2")
 library("gridExtra")
 
-# Define parameters
+# define parameters
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 init_file <- cmd_args[1]
@@ -15,23 +15,20 @@ trim_params_filepath <- cmd_args[6]
 thresh2remove <- 1000000000
 preprocessing_scripts_dir <- cmd_args[7]
 
-# Load functions
-source(paste0(preprocessing_scripts_dir, "/evaluate_tics_functions.R"))
+# load functions
+source(paste0(preprocessing_scripts_dir, "evaluate_tics_functions.R"))
 
-# Initialize
-options(digits = 16)
-
-# Load init_file: contains repl_pattern
+# load init_file: contains repl_pattern
 load(init_file)
 
-# Load trim_params_file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
+# load trim_params_file: contains trim_left_neg, trim_left_pos, trim_right_neg & trim_right_pos
 load(trim_params_filepath)
 
-# Lower the threshold for non Plasma matrices
+# lower the threshold for non Plasma matrices
 if (dims_matrix != "Plasma") {
   thresh2remove <- 1000000000
 }
-# Lower the threshold for DBS or high m/z specific
+# lower the threshold for DBS or high m/z specific
 if (dims_matrix == "DBS") {
   thresh2remove <- 500000000
 }
@@ -39,25 +36,25 @@ if (highest_mz > 700) {
   thresh2remove <- 1000000
 }
 
-# Find out which technical replicates are below the threshold
+# find out which technical replicates are below the threshold
 remove_tech_reps <- find_bad_replicates(repl_pattern, thresh2remove)
 print(remove_tech_reps)
 
-# Negative scan mode
+# negative scan mode
 remove_neg <- remove_tech_reps$neg
 repl_pattern_filtered <- remove_from_repl_pattern(remove_neg, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "negative_repl_pattern.RData")
-# Get an overview of suitable technical replicates for negative scan mode
+# get an overview of suitable technical replicates for both negative mode
 allsamples_techreps_neg <- get_overview_tech_reps(repl_pattern_filtered, "negative")
 
-# Positive scan mode
+# positive scan mode
 remove_pos <- remove_tech_reps$pos
 repl_pattern_filtered <- remove_from_repl_pattern(remove_pos, repl_pattern, nr_replicates)
 save(repl_pattern_filtered, file = "positive_repl_pattern.RData")
-# Get an overview of suitable technical replicates for positive scan mode
+# get an overview of suitable technical replicates for positive scan mode
 allsamples_techreps_pos <- get_overview_tech_reps(repl_pattern_filtered, "positive")
 
-# Get an overview of suitable technical replicates for both scan modes and save to file
+# get an overview of suitable technical replicates for both scan modes and save to file
 allsamples_techreps_both_scanmodes <- rbind(allsamples_techreps_pos, allsamples_techreps_neg)
 write.table(allsamples_techreps_both_scanmodes,
             file = "replicates_per_sample.txt",
@@ -66,11 +63,12 @@ write.table(allsamples_techreps_both_scanmodes,
             sep = ","
 )
 
-# Generate TIC plots using all tic files
-tic_files <- list.files("./", full.names = TRUE, pattern = "*TIC.txt")
-all_samps <- sub("_TIC\\..*$", "", basename(tic_files))
 
-# Determine maximum intensity
+## generate TIC plots
+# get all txt files
+tic_files <- list.files("./", full.names = TRUE, pattern = "*TIC.txt")
+
+# determine maximum intensity
 highest_tic_max <- 0
 for (file in tic_files) {
   tic <- read.table(file)
@@ -81,20 +79,22 @@ for (file in tic_files) {
   }
 }
 
-# Create a list with information for all TIC plots
+# create a list with information for all TIC plots
 tic_plot_list <- list()
+# Empty plot
+blank_plot <- ggplot() + theme_void()
 plot_nr <-  0
 for (sample_nr in c(1:length(repl_pattern))) {
   tech_reps <- as.vector(unlist(repl_pattern[sample_nr]))
   sample_name <- names(repl_pattern)[sample_nr]
   for (file_nr in 1:length(tech_reps)) {
     plot_nr <- plot_nr + 1
-    # Read file with retention time, intensity and dims_threshold values
+    # read file with retention time, intensity and dims_threshold values
     repl1_nr <- read.table(paste0(tech_reps[file_nr], "_TIC.txt"))
-    # Get threshold values per technical replicate
+    # get threshold values per technical replicate
     dims_thresh_pos <- repl1_nr[1, "threshold"]
     dims_thresh_neg <- repl1_nr[nrow(repl1_nr), "threshold"]
-    # For replicates with bad TIC, determine what color the border of the plot should be
+    # for replicates with bad TIC, determine what color the border of the plot should be
     bad_color_pos <- tech_reps[file_nr] %in% remove_pos
     bad_color_neg <- tech_reps[file_nr] %in% remove_neg
     if (bad_color_neg & bad_color_pos) {
@@ -122,11 +122,18 @@ for (sample_nr in c(1:length(repl_pattern))) {
             plot.title = element_text(size = 6))
     tic_plot_list[[plot_nr]] <- tic_plot
   }
+  # If only one replicate, add blank plot in second column
+  if (length(tech_reps) < nr_replicates) {
+    for (nr_empty in 1:(nr_replicates - length(tech_reps))) {
+      plot_nr <- plot_nr + 1
+      tic_plot_list[[plot_nr]] <- blank_plot
+    }
+  }
 }
 
-# Create a layout matrix dependent on number of replicates
+# create a layout matrix dependent on number of replicates
 layout <- matrix(1:(10 * nr_replicates), 10, nr_replicates, TRUE)
-# Put TIC plots in matrix
+# put TIC plots in matrix
 tic_plot_pdf <- marrangeGrob(
   grobs = tic_plot_list,
   nrow = 10, ncol = nr_replicates,
@@ -138,7 +145,8 @@ tic_plot_pdf <- marrangeGrob(
   ))
 )
 
-# Save to file
+# save to file
 ggsave(filename = paste0(run_name, "_TICplots.pdf"),
        tic_plot_pdf, width = 21, height = 29.7, units = "cm")
+
 
