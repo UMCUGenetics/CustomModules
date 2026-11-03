@@ -5,12 +5,13 @@
 #' @param peakgroup_list: Peak group list (matrix)
 #' @param hmdb_part: Matrix of metabolites , part of the HMDB (matrix)
 #' @param z_score: Value indicating whether Z-scores have been calculated (integer)
+#' @param adducts_colname: Column name for column containing adduct information (string)
 #'
 #' @return adductsum: peak group list with summed intensities (matrix)
-sum_intensities_adducts_perclass <- function(peakgroup_list, hmdb_part, z_score) {
+sum_intensities_adducts_perclass <- function(peakgroup_list, hmdb_part, z_score, adducts_colname) {
   hmdb_part_info <- cbind(HMDB_id = rownames(hmdb_part), 
                           CompoundName = hmdb_part[, "CompoundName"],
-                          adducts = hmdb_part[, "adducts"])
+                          adducts = hmdb_part[, adducts_colname])
 
   # Create overview of row indices for each metabolite_adduct combination in peaklist
   # Split the all_hmdb_ids column into list with each id as a value

@@ -12,6 +12,7 @@ process GenerateViolinPlots {
        val(file_ratios_metabolites)
        val(file_expected_biomarkers_IEM)
        val(file_explanation)
+       val(file_previous_runs)
 
     output:
        path('Diagnostics/*.pdf'), emit: diag_plot_files, optional: true
@@ -29,6 +30,7 @@ process GenerateViolinPlots {
                 $path_metabolite_groups \
                 $file_ratios_metabolites \
                 $file_expected_biomarkers_IEM \
-                $file_explanation
+                $file_explanation \
+                $file_previous_runs
         """
 }

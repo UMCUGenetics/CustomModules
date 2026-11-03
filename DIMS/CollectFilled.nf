@@ -7,7 +7,6 @@ process CollectFilled {
        path(filled_files)
        each path(replication_pattern)
        val(preprocessing_scripts_dir)
-       val(ppm)
        val(zscore)
 
     output:
@@ -18,7 +17,6 @@ process CollectFilled {
         """
         Rscript ${projectDir}/CustomModules/DIMS/CollectFilled.R \
                 $preprocessing_scripts_dir \
-                $ppm \
                 $zscore
         """
 }

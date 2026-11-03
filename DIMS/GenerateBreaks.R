@@ -22,7 +22,7 @@ raw_data <- suppressMessages(xcms::xcmsRaw(filepath))
 get_trim_parameters(raw_data@scantime, raw_data@polarity, trim)
 
 # Create breaks of bins for intensities. Bin size is a function of fwhm which is a function of m/z
-get_breaks_for_bins(raw_data$mzrange, resol)
+get_breaks_for_bins(raw_data@mzrange, resol)
 
 # Determine maximum m/z and save to file
 high_mz <- raw_data@mzrange[2]

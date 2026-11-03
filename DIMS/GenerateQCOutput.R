@@ -26,17 +26,17 @@ dir.create("plots", showWarnings = FALSE)
 
 # Load init files
 load(init_file)
-# Load outlist from GenerateExcel
+# Load outlist_filtered_zscores from GenerateExcel
 load("outlist.RData")
 # Load combined adducts for each scan mode
 load("AdductSums_positive.RData")
 load("AdductSums_negative.RData")
 
 # Check number of controls
-if (any(grepl("nr_ctrls", colnames(outlist)))) {
+if (any(grepl("nr_ctrls", colnames(outlist_filtered_zscores)))) {
   file_name <- "Check_number_of_controls.txt"
   min_num_controls <- 25
-  check_number_of_controls(outlist, min_num_controls, file_name)
+  check_number_of_controls(outlist_filtered_zscores, min_num_controls, file_name)
 }
 
 # Internal standards
