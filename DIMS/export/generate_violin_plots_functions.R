@@ -138,6 +138,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
   }
 
   # Calculate Zscores for the ratios
+  intensity_ratios_df <- zscore_ratios_df[, intensity_col_names]
   zscore_ratios_df[, samples_zscore_columns] <- (intensity_ratios_df - mean_ratios_controls) / sd_ratios_controls
 
   return(zscore_ratios_df)
