@@ -93,7 +93,15 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
   zscore_ratios_df$HMDB_code <- metabolites_ratios_df$HMDB.code
   zscore_ratios_df$HMDB_name <- metabolites_ratios_df$Ratio_name
 
+  # get the right column indices
   intensity_cols_index <- which(colnames(zscore_ratios_df) %in% intensity_col_names)
+  control_intensities_cols_index <- grep("^C[^_]*$", colnames(intensities_zscores_df), perl = TRUE)
+  samples_zscore_columns <- get_sample_ids_with_zscores(colnames(intensities_zscores_df), intensity_col_names)
+  
+  # Initialize
+  mean_ratios_controls <- rep(0, nrow(metabolites_ratios_df))
+  sd_ratios_controls <- rep(0, nrow(metabolites_ratios_df))
+  
   for (row_index in seq_len(nrow(metabolites_ratios_df))) {
     # Get a list of intensities for the numerator
     numerator_intensities <- get_intensities_fraction_side(
@@ -113,19 +121,24 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
     )
     # Calculate the intensity ratio for each sample
     zscore_ratios_df[row_index, intensity_cols_index] <- numerator_intensities / denominator_intensities
+    # remove outliers in ratios
+    control_ratios <- zscore_ratios_df[row_index, control_intensities_cols_index]
+    mean_permetabolite <- mean(as.numeric(control_ratios))
+    stdev_permetabolite <- sd(as.numeric(control_ratios))
+    zscores_controls_permetabolite <- (control_ratios - mean_permetabolite) / stdev_permetabolite
+    # Remove ratios in controls with a Z-score greater than 2 or less than -2
+    if (sum(zscores_controls_permetabolite > 2 | zscores_controls_permetabolite < -2) > 0) {
+      trimmed_control_intensities <- control_ratios[-which(zscores_controls_permetabolite > 2 |
+                                                           zscores_controls_permetabolite < -2)]
+    } else {
+      trimmed_control_intensities <- control_ratios
+    }
+    mean_ratios_controls[row_index] <- mean(as.numeric(trimmed_control_intensities))
+    sd_ratios_controls[row_index] <- sd(as.numeric(trimmed_control_intensities))
   }
 
-  control_intensities_cols_index <- grep("^C[^_]*$", colnames(intensities_zscores_df), perl = TRUE)
-  # Calculate means and SD's of the calculated ratios for Controls
-  zscore_ratios_df[, "mean_controls"] <- apply(zscore_ratios_df[, control_intensities_cols_index], 1, mean)
-  zscore_ratios_df[, "sd_controls"] <- apply(zscore_ratios_df[, control_intensities_cols_index], 1, sd)
-
   # Calculate Zscores for the ratios
-  samples_zscore_columns <- get_sample_ids_with_zscores(colnames(intensities_zscores_df), intensity_col_names)
   intensity_ratios_df <- zscore_ratios_df[, intensity_col_names]
-  mean_ratios_controls <- zscore_ratios_df[, "mean_controls"]
-  sd_ratios_controls <- zscore_ratios_df[, "sd_controls"]
-
   zscore_ratios_df[, samples_zscore_columns] <- (intensity_ratios_df - mean_ratios_controls) / sd_ratios_controls
 
   return(zscore_ratios_df)

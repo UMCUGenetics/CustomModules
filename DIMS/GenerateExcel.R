@@ -54,6 +54,8 @@ if (nrow(outlist_drugdb) > 0) {
     intensity_col_ids <- get_intensity_col_index(outlist_drugdb_zscores, control_label, case_label)
     # Create Excel for drugs
     create_excel_output(outlist_drugdb_zscores, intensity_col_ids, "Drugs_", z_score, project)
+    # save to RData file
+    save(outlist_drugdb_zscores, file = "Drugs_in_dataset.RData")
   } else if (z_score == 0) {
     # Get indices for intensity columns; all columns except those containing HMDB in the name
     intensity_col_ids <- 1:ncol(outlist_drugdb)
