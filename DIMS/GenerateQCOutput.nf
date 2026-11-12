@@ -4,7 +4,7 @@ process GenerateQCOutput {
     container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
-       path(outlist_zscores)
+       path(peakgrouplist_zscores)
        path(adductsums_scanmodes)
        path(identified_files)
        path(init_file) 
