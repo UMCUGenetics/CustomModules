@@ -40,8 +40,7 @@ number_of_metabolites <- list(
 source(paste0(export_scripts_dir, "/generate_violin_plots_functions.R"))
 
 # Load dataframe with intensities and Z-scores for all samples
-intensities_zscore_df <- get(load("outlist.RData"))
-rm(outlist_filtered_zscores)
+intensities_zscore_df <- get(load("peakgrouplist.RData"))
 
 # Load dataframe with intensities and Z-scores for drug metabolites
 intensities_zscore_drugs_df <- get(load("Drugs_in_dataset.RData"))
@@ -69,7 +68,7 @@ number_of_samples <- list(
 # Add Z-scores for ratios to intensities_zscore_df dataframe
 intensities_zscore_ratios_df <- add_zscores_ratios_to_df(intensities_zscore_df, metabolites_ratios_df, all_sample_ids)
 # Save ratios to file:
-save(intensities_zscore_ratios_df, file = "./outlist_with_ratios.RData")
+save(intensities_zscore_ratios_df, file = "./peakgrouplist_with_ratios.RData")
 
 # Select only the cols with zscores of the patients
 zscore_patients_df <- intensities_zscore_ratios_df %>%
