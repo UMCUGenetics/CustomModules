@@ -12,13 +12,13 @@ process GenerateExcel {
        val(zscore)
 
     output:
-       path("outlist.RData"), emit: outlist_zscores
+       path("peakgrouplist.RData"), emit: peakgrouplist_zscores
        tuple path("AdductSums_filtered_Zscores.RData"), path("AdductSums_filtered_robustZ.RData"), path("AdductSums_filtered_outliersremovedZ.RData"), optional: true
        tuple path("AdductSums_filtered_Zscores.txt"), path("AdductSums_filtered_robustZ.txt"), path("AdductSums_filtered_outliersremovedZ.txt"), optional: true
        path("${analysis_id}.xlsx"), emit: project_excel
        path("Helix_${analysis_id}.xlsx"), optional: true
        path("Drugs_${analysis_id}.xlsx"), optional: true
-       path("Drugs_in_dataset.RData"), emit: outlist_drugs, optional: true
+       path("Drugs_in_dataset.RData"), emit: peakgrouplist_drugs, optional: true
 
     script:
         """

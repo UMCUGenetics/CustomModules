@@ -32,81 +32,81 @@ outlier_threshold <- 2
 # Load HMDB rlvnc table
 load(hmdb_rlvc_file)
 
-# Load outlist object
-load("AdductSums_combined.RData")
+# Load peakgroup_list object
+peakgroup_list <- get(load("AdductSums_combined.RData"))
 
 ## DrugDB output
 # Filter out drugs and other metabolites with CHEMBL annotation
-outlist_drugdb <- outlist[grep("CHEMBL", outlist$HMDB_ID_all), ]
-if (nrow(outlist_drugdb) > 0) {
+peakgroup_list_drugdb <- peakgroup_list[grep("CHEMBL", peakgroup_list$HMDB_ID_all), ]
+if (nrow(peakgroup_list_drugdb) > 0) {
   # Add HMDB_code column with all the CHEMBL ID and an empty description column
-  outlist_drugdb <- cbind(outlist_drugdb, HMDB_code = rownames(outlist_drugdb), descr = NA)
+  peakgroup_list_drugdb <- cbind(peakgroup_list_drugdb, HMDB_code = rownames(peakgroup_list_drugdb), descr = NA)
   # Sort on CHEMBL ID
-  outlist_drugdb <- outlist_drugdb[order(outlist_drugdb[, "HMDB_code"]), ]
+  peakgroup_list_drugdb <- peakgroup_list_drugdb[order(peakgroup_list_drugdb[, "HMDB_code"]), ]
   
   if (z_score == 1) {
     # Calculate Z-scores with outliers removed
-    outlist_drugdb_zscores <- calculate_zscores(
-      outlist_drugdb, "_OutlierRemovedZscore", outlier_threshold,
+    peakgroup_list_drugdb_zscores <- calculate_zscores(
+      peakgroup_list_drugdb, "_OutlierRemovedZscore", outlier_threshold,
       control_label, case_label
     )
     # Get indices for intensity columns based on control_label and case_label
-    intensity_col_ids <- get_intensity_col_index(outlist_drugdb_zscores, control_label, case_label)
+    intensity_col_ids <- get_intensity_col_index(peakgroup_list_drugdb_zscores, control_label, case_label)
     # Create Excel for drugs
-    create_excel_output(outlist_drugdb_zscores, intensity_col_ids, "Drugs_", z_score, project)
+    create_excel_output(peakgroup_list_drugdb_zscores, intensity_col_ids, "Drugs_", z_score, project)
     # save to RData file
-    save(outlist_drugdb_zscores, file = "Drugs_in_dataset.RData")
+    save(peakgroup_list_drugdb_zscores, file = "Drugs_in_dataset.RData")
   } else if (z_score == 0) {
     # Get indices for intensity columns; all columns except those containing HMDB in the name
-    intensity_col_ids <- 1:ncol(outlist_drugdb)
-    intensity_col_ids <- intensity_col_ids[-grep("HMDB", colnames(outlist_drugdb))]
+    intensity_col_ids <- 1:ncol(peakgroup_list_drugdb)
+    intensity_col_ids <- intensity_col_ids[-grep("HMDB", colnames(peakgroup_list_drugdb))]
     # Create Excel for drugs
-    create_excel_output(outlist_drugdb, intensity_col_ids, "Drugs_", z_score, project)
+    create_excel_output(peakgroup_list_drugdb, intensity_col_ids, "Drugs_", z_score, project)
   }
 }
 
 ## Filtered metabolite output
 # Filter for biological relevance
-peaks_in_list <- which(rownames(outlist) %in% rlvnc$HMDB_key)
-outlist_subset <- outlist[peaks_in_list, ]
-outlist_subset$HMDB_code <- rownames(outlist_subset)
-outlist_subset$HMDB_key <- rownames(outlist_subset)
-outlist_filtered <- outlist_subset %>%
+peaks_in_list <- which(rownames(peakgroup_list) %in% rlvnc$HMDB_key)
+peakgroup_list_subset <- peakgroup_list[peaks_in_list, ]
+peakgroup_list_subset$HMDB_code <- rownames(peakgroup_list_subset)
+peakgroup_list_subset$HMDB_key <- rownames(peakgroup_list_subset)
+peakgroup_list_filtered <- peakgroup_list_subset %>%
   left_join(rlvnc %>% rename(sec_HMDB_ID_rlvnc = sec_HMDB_ID), by = "HMDB_key")
-rownames(outlist_filtered) <- outlist_filtered$HMDB_key
+rownames(peakgroup_list_filtered) <- peakgroup_list_filtered$HMDB_key
 # Filter out all irrelevant HMDBs
-outlist_filtered <- outlist_filtered %>%
+peakgroup_list_filtered <- peakgroup_list_filtered %>%
   tibble::rownames_to_column("rowname") %>%
   filter(grepl("relevant|Onbekend|Internal", relevance)) %>%
   tibble::column_to_rownames("rowname")
 # Sort on HMDB_key
-outlist_filtered <- outlist_filtered[order(outlist_filtered[, "HMDB_key"]), ]
+peakgroup_list_filtered <- peakgroup_list_filtered[order(peakgroup_list_filtered[, "HMDB_key"]), ]
 
 if (z_score == 1) {
   # Calculate Z-scores with outliers removed
-  outlist_filtered_zscores <- calculate_zscores(
-    outlist_filtered, "_OutlierRemovedZscore", outlier_threshold,
+  peakgroup_list_filtered_zscores <- calculate_zscores(
+    peakgroup_list_filtered, "_OutlierRemovedZscore", outlier_threshold,
     control_label, case_label
   )
   # Get indices for intensity columns
-  intensity_col_ids <- get_intensity_col_index(outlist_filtered_zscores, control_label, case_label)
-  control_col_idx <- get_intensity_col_index(outlist_filtered_zscores, control_label, "none")
+  intensity_col_ids <- get_intensity_col_index(peakgroup_list_filtered_zscores, control_label, case_label)
+  control_col_idx <- get_intensity_col_index(peakgroup_list_filtered_zscores, control_label, "none")
   # Create Excel for biologically relevant metabolites
-  create_excel_output(outlist_filtered_zscores, intensity_col_ids, "", z_score, project)
-  # Save outlist for GenerateQC step
-  save(outlist_filtered_zscores, file = "outlist.RData")
+  create_excel_output(peakgroup_list_filtered_zscores, intensity_col_ids, "", z_score, project)
+  # Save peakgroup_list for GenerateQC step
+  save(peakgroup_list_filtered_zscores, file = "peakgrouplist.RData")
   # Output filtered metabolites after removal of outliers
-  save_to_rdata_and_txt(outlist_filtered_zscores, "AdductSums_filtered_outliersremovedZ")
+  save_to_rdata_and_txt(peakgroup_list_filtered_zscores, "AdductSums_filtered_outliersremovedZ")
   # Calculate robust Z-scores
-  outlist_robust_zscore <- calculate_zscores(outlist_filtered, "_RobustZscore", perc, control_label, case_label)
+  peakgroup_list_robust_zscores <- calculate_zscores(peakgroup_list_filtered, "_RobustZscore", perc, control_label, case_label)
   # Output filtered metabolites with robust scaled Zscores
-  save_to_rdata_and_txt(outlist_robust_zscore, "AdductSums_filtered_robustZ")
+  save_to_rdata_and_txt(peakgroup_list_robust_zscores, "AdductSums_filtered_robustZ")
   # Calculate Z-scores without outlier removal
-  outlist <- calculate_zscores(outlist_filtered, "_Zscore", NULL, control_label, case_label)
+  peakgroup_list_zscores <- calculate_zscores(peakgroup_list_filtered, "_Zscore", NULL, control_label, case_label)
   # Output metabolites filtered on relevance
-  save_to_rdata_and_txt(outlist, "AdductSums_filtered_Zscores")
+  save_to_rdata_and_txt(peakgroup_list_zscores, "AdductSums_filtered_Zscores")
 } else if (z_score == 0) {
-  create_excel_output(outlist_filtered, intensity_col_ids, "", z_score, project)
+  create_excel_output(peakgroup_list_filtered, intensity_col_ids, "", z_score, project)
 }
 
 ## Helix output
@@ -133,7 +133,7 @@ metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
 
 if (z_score == 1) {
   # Get intensities for Helix metabolites from dataset
-  outlist_helix <- outlist_filtered_zscores %>%
+  peakgroup_list_helix <- peakgroup_list_filtered_zscores %>%
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
@@ -141,7 +141,7 @@ if (z_score == 1) {
     ) 
 } else if (z_score == 0) {
   # Get intensities for Helix metabolites from dataset
-  outlist_helix <- outlist_filtered %>%
+  peakgroup_list_helix <- peakgroup_list_filtered %>%
     filter(HMDB_key %in% metab_list_helix) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
@@ -150,4 +150,4 @@ if (z_score == 1) {
 }
 
 # Create Excel for Helix
-create_excel_output(outlist_helix, intensity_col_ids, "Helix_", z_score, project)
+create_excel_output(peakgroup_list_helix, intensity_col_ids, "Helix_", z_score, project)
