@@ -148,6 +148,7 @@ calculate_zscore_ratios <- function(metabolites_ratios_df, intensities_zscores_d
 #'
 #' @param zscore_patients_df: Dataframe with Z-scores for all patient samples (matrix)
 #' @param zscore_controls_df: Dataframe with Z-scores for all control samples (matrix)
+#' @param zscore_pat_drugs_df: Dataframe with Z-scores for all patient samples for drug metabolites (matrix)
 #' @param path_metabolite_groups: Path for the metabolite groups directories (string)
 #' @param nr_plots_perpage: Number of metabolites on a plot per page (integer)
 #' @param number_of_samples: Number of patient and control samples (list of integers)
@@ -238,6 +239,7 @@ make_and_save_violin_plot_pdfs <- function(
         patient_id,
         metab_perpage,
         top_metabs_patient,
+        top_drugs_patient,
         explanation_violin_plot,
         data_previous_runs
       )
@@ -711,19 +713,19 @@ create_overview_plot <- function(patient_zscore_df, patient_id) {
 
 #' Add a table with top deviating metabolites for a patient to pdf
 #'
-#' @param top_metab_pt: dataframe with metabolites and Z-scores for a patient (dataframe)
+#' @param top_metab_patient: dataframe with metabolites and Z-scores for a patient (dataframe)
 #' @param patient_id: patient code (string)
 #' @param table_theme: lay-out for table (list)
 #' @param list_type: label indicating whether the table lists metabolites or drugs (string)
-add_table_to_pdf <- function(top_metab_pt, patient_id, table_theme, list_type = "metab") {
+add_table_to_pdf <- function(top_metab_patient, patient_id, table_theme, list_type = "metab") {
   max_rows_per_page <- 35
-  total_rows <- nrow(top_metab_pt)
+  total_rows <- nrow(top_metab_patient)
   number_of_pages <- ceiling(total_rows / max_rows_per_page)
   
   for (page in seq(number_of_pages)) {
     start_row <- (page - 1) * max_rows_per_page + 1
     end_row <- min(page * max_rows_per_page, total_rows)
-    page_data <- top_metab_pt[start_row:end_row, ]
+    page_data <- top_metab_patient[start_row:end_row, ]
     
     table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
     if (list_type == "drug") {
@@ -767,6 +769,7 @@ add_previous_runs <- function(patient_zscore_df, data_previous_runs) {
 #' @param patient_id: Patient name (string)
 #' @param metab_perpage: List of dataframes, each dataframe contains data for a page in de pdf (list)
 #' @param top_metab_patient: Dataframe with increased and decreased metabolites for this patient (matrix)
+#' @param top_drugs_patient: Dataframe with increased and decreased drug metabolites for this patient (matrix)
 #' @param explanation_violin_plot: Text that explains the violin plots and the pipeline version (vector of strings)
 #' @param data_previous_runs: Data from previous DIMS runs, not used for dIEM plots (matrix)
 create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_metab_patient, top_drugs_patient, explanation_violin_plot, data_previous_runs = NULL) {
@@ -808,28 +811,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # Put table into PDF file, if not empty
   if (!is.null(dim(top_metab_patient))) {
-    max_rows_per_page <- 35
-    total_rows <- nrow(top_metab_patient)
-    number_of_pages <- ceiling(total_rows / max_rows_per_page)
-
-    # Get the names and numbers in the table aligned
-    table_theme <- ttheme_default(
-      core = list(fg_params = list(hjust = 0, x = 0.05, fontsize = 6)),
-      colhead = list(fg_params = list(fontsize = 8, fontface = "bold"))
-    )
-
-    for (page in seq(number_of_pages)) {
-      start_row <- (page - 1) * max_rows_per_page + 1
-      end_row <- min(page * max_rows_per_page, total_rows)
-      page_data <- top_metab_patient[start_row:end_row, ]
-
-      table_grob <- tableGrob(page_data, theme = table_theme, rows = NULL)
-
-      grid.arrange(
-        table_grob,
-        top = paste0("Top deviating metabolites for patient: ", patient_id)
-      )
-    }
+    add_table_to_pdf(top_metab_patient, patient_id_sub, table_theme)
   }
 
   # If Diagnostics, then plot lollipop plot first, then violin plots.
@@ -871,10 +853,16 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
     # Put plots into PDF
     lollipop_plot <- create_overview_plot(patient_allmetabs_df, patient_id)
     print(lollipop_plot)
+
     # Add violin plots
     for (plot_index in 1:length(violinplot_list)) {
       print(violinplot_list[[plot_index]])
     }
+  }
+
+  # put table of drugs into PDF file, if not empty
+  if (!is.null(top_drugs_patient) && nrow(top_drugs_patient) > 0) {
+    add_table_to_pdf(top_drugs_patient, patient_id_sub, table_theme, "drug")
   }
 
   # Add explanation_violin_plot of violin plots, version number etc.
