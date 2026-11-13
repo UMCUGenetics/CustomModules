@@ -200,11 +200,11 @@ calc_coefficient_of_variation <- function(intensity_list) {
 #' @param scanmode: Scan mode, positive or negative (string)
 #'
 #' @return results_mz_missing: Either the missing mz values or a message that no values are missing (string)
-check_missing_mz <- function(mzmed_pgrp_ident, scanmode) {
+check_missing_mz <- function(mzmed_pgrp_ident, scanmode, highest_mz) {
   # Retrieve all unique m/z values in whole numbers and check if all are available
   mzmed_pgrp_ident <- unique(round(mzmed_pgrp_ident, digits = 0))
   # The m/z range for a standard run = 70-600
-  mz_range <- seq(70, 599, by = 1)
+  mz_range <- seq(70, highest_mz, by = 1)
   mz_missing <- setdiff(mz_range, mzmed_pgrp_ident)
   # Check if m/z are missing
   mz_missing_group <- cumsum(c(1, diff(mz_missing) != 1))
