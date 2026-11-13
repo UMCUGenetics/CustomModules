@@ -190,16 +190,17 @@ testthat::test_that("Get internal standard intensities", {
 })
 
 testthat::test_that("Check missing mz values", {
-  test_mz_pgrp <- seq(70, 599, by = 1)
+  test_mz_pgrp <- seq(70, 600, by = 1)
+  test_highest_mz <- 600
 
-  expect_identical(check_missing_mz(test_mz_pgrp, "Test"),
+  expect_identical(check_missing_mz(test_mz_pgrp, "Test", test_highest_mz),
                    "Test mode did not have missing mz values")
 
   test_mz_pgrp <- test_mz_pgrp[! test_mz_pgrp %in% seq(550, 560, by = 1)]
 
-  expect_identical(check_missing_mz(test_mz_pgrp, "Test")[[1]],
+  expect_identical(check_missing_mz(test_mz_pgrp, "Test", test_highest_mz)[[1]],
                    "Missing m/z values Test mode")
-  expect_identical(check_missing_mz(test_mz_pgrp, "Test")$`1`,
+  expect_identical(check_missing_mz(test_mz_pgrp, "Test", test_highest_mz)$`1`,
                    c(550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560))
 })
 
