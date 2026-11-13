@@ -16,7 +16,6 @@ file_ratios_metabolites <- cmd_args[4]
 file_expected_biomarkers_iem <- cmd_args[5]
 file_explanation <- cmd_args[6]
 file_previous_runs <- cmd_args[7]
-file_drugs_in_dataset <- cmd_args[8]
 
 # Initialize
 options(digits = 16)
