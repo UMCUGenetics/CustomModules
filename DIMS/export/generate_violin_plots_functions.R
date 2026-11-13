@@ -239,7 +239,7 @@ make_and_save_violin_plot_pdfs <- function(
         patient_id,
         metab_perpage,
         top_metabs_patient,
-	top_drugs_patient,
+        top_drugs_patient,
         explanation_violin_plot,
         data_previous_runs
       )
