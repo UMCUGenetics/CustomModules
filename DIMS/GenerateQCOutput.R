@@ -12,7 +12,8 @@ project <- cmd_args[2]
 dims_matrix <- cmd_args[3]
 sst_components_file <- cmd_args[4]
 export_scripts_dir <- cmd_args[5]
-highest_mz <- as.numeric(cmd_args[6])
+highest_mz_file <- cmd_args[6]
+highest_mz <- get(load(highest_mz_file))
 
 # Load in function scripts
 source(paste0(export_scripts_dir, "/generate_qc_output_functions.R"))
@@ -420,6 +421,7 @@ mzmed_pgrp_ident_pos <- peakgroup_list_ident$mzmed.pgrp
 rm(peakgroup_list_ident)
 
 # Check for missing mz values, if present returned with vector of missing mz values
+highest_mz <- as.numeric(highest_mz)
 mz_missing_neg <- check_missing_mz(mzmed_pgrp_ident_neg, "Negative", highest_mz)
 mz_missing_pos <- check_missing_mz(mzmed_pgrp_ident_pos, "Positive", highest_mz)
 

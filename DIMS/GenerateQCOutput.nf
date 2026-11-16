@@ -13,7 +13,7 @@ process GenerateQCOutput {
        val(export_scripts_dir)
        val(zscore)
        val(matrix)
-       val(highest_mz)
+       path(highest_mz_file)
 
     output:
        tuple path('*_IS_results.RData'), path('*_positive_control.RData'), optional: true
@@ -32,6 +32,6 @@ process GenerateQCOutput {
                 $matrix \
                 $sst_components_file \
                 $export_scripts_dir \
-                $highest_mz
+                $highest_mz_file
         """
 }
