@@ -1,8 +1,7 @@
 process HMDBparts_main {
     tag "DIMS HMDBparts_main"
     label 'HMDBparts_main'
-    container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
         path(hmdb_db_file)
@@ -14,6 +13,8 @@ process HMDBparts_main {
     script:
 
         """
-        Rscript ${baseDir}/CustomModules/DIMS/HMDBparts_main.R $hmdb_db_file $breaks_file 
+        Rscript ${projectDir}/CustomModules/DIMS/HMDBparts_main.R \
+                $hmdb_db_file \
+                $breaks_file 
         """
 }

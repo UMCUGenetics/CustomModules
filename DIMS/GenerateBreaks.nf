@@ -1,12 +1,13 @@
 process GenerateBreaks {
     tag "DIMS GenerateBreaks"
     label 'GenerateBreaks'
-    container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
        tuple(val(file_id), path(mzML_file))
-
+       val(trim)
+       val(resolution)
+       val(preprocessing_scripts_dir)
 
     output:
        path('breaks.fwhm.RData'), emit: breaks
@@ -15,6 +16,10 @@ process GenerateBreaks {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateBreaks.R $mzML_file ./ $params.trim $params.resolution 
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateBreaks.R \
+                $mzML_file \
+                $trim \
+                $resolution \
+                $preprocessing_scripts_dir
         """
 }
