@@ -1,8 +1,7 @@
-# unit tests for CollectSumAdducts
-# functions: combine_sum_adduct_parts, combine_scanmodes_intensities
+# Unit tests for CollectSumAdducts
+# Functions: combine_sum_adduct_parts, combine_scanmodes_intensities
 suppressMessages(library("dplyr"))
 source("../../preprocessing/collect_sum_adducts_functions.R")
-
 
 testthat::test_that("Combining summed adduct parts", {
   # It's necessary to copy/symlink the files to the current location for the combine_sum_adducts_parts function

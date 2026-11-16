@@ -1,8 +1,7 @@
 process CollectAveraged {
     tag "DIMS CollectAveraged"
     label 'CollectAveraged'
-    container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
        path(averaged_files)
@@ -12,6 +11,6 @@ process CollectAveraged {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/CollectAveraged.R
+        Rscript ${projectDir}/CustomModules/DIMS/CollectAveraged.R
         """
 }
