@@ -42,7 +42,7 @@ top_number_iem_diseases <- 5 # number of diseases that score highest in algorith
 threshold_iem <- 5 # probability score cut-off for plotting the top diseases
 nr_plots_perpage <- 20 # number of violin plots per page in PDF
 zscore_cutoff <- 5
-protocol_name <- "DIMS_PL_DIAG"
+protocol_name <- "DIMS_DIAGP"
 number_of_metabolites <- list(
   highest = 20,
   lowest = 10
