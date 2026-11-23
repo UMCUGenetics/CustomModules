@@ -14,7 +14,7 @@ process GenerateExcel {
        tuple path("AdductSums_filtered_Zscores.RData"), path("AdductSums_filtered_robustZ.RData"), path("AdductSums_filtered_outliersremovedZ.RData"), optional: true
        tuple path("AdductSums_filtered_Zscores.txt"), path("AdductSums_filtered_robustZ.txt"), path("AdductSums_filtered_outliersremovedZ.txt"), optional: true
        path("${analysis_id}.xlsx"), emit: project_excel
-       path("Helix_${analysis_id}.xlsx"), optional: true
+       path("LIMS_${analysis_id}.xlsx"), optional: true
 
     script:
         """
