@@ -1,15 +1,19 @@
 process GenerateQCOutput {
     tag "DIMS GenerateQCOutput"
     label 'GenerateQCOutput'
-    container = 'docker://umcugenbioinf/dims:1.3'
-    shell = ['/bin/bash', '-euo', 'pipefail']
+    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
 
     input:
-       path(outlist_zscores)
+       path(peakgrouplist_zscores)
        path(adductsums_scanmodes)
        path(identified_files)
        path(init_file) 
        val(analysis_id)
+       val(sst_components_file)
+       val(export_scripts_dir)
+       val(zscore)
+       val(matrix)
+       path(highest_mz_file)
 
     output:
        tuple path('*_IS_results.RData'), path('*_positive_control.RData'), optional: true
@@ -22,10 +26,12 @@ process GenerateQCOutput {
 
     script:
         """
-        Rscript ${baseDir}/CustomModules/DIMS/GenerateQCOutput.R $init_file \
-                                                                 $analysis_id \
-                                                                 $params.matrix \
-                                                                 $params.sst_components_file \
-                                                                 $params.export_scripts_dir
+        Rscript ${projectDir}/CustomModules/DIMS/GenerateQCOutput.R \
+                $init_file \
+                $analysis_id \
+                $matrix \
+                $sst_components_file \
+                $export_scripts_dir \
+                $highest_mz_file
         """
 }
