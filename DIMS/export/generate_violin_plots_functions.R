@@ -171,7 +171,7 @@ make_and_save_violin_plot_pdfs <- function(
         # transform dataframe for Helix output
         output_helix <- transform_metab_df_to_glims_df(protocol_name, dims_lims_table)
         # save the DIMS Helix dataframe
-        path_lims_file <- paste0("./output_Helix_", run_name, ".csv")
+        path_lims_file <- paste0("./output_GLIMS_", run_name, ".csv")
         write.csv(output_helix, path_lims_file, quote = FALSE, row.names = FALSE)
       }
     }
@@ -305,7 +305,7 @@ get_data_per_metabolite_class <- function(
 #' @param list_dfs_metab_classes_zscores: list of dataframes with metabolite Z-scores for each sample/patient (list)
 #' @param list_metabolite_classes: list of tables with metabolites for LIMS and violin plots (list)
 #'
-#' @return df_zscores_to_glims: dataframe with patient data with only metabolites for LIMS and violin plots
+#' @return df_zscores_to_lims: dataframe with patient data with only metabolites for LIMS and violin plots
 #'          with LIMS name, high/low Z-score cutoffs
 prepare_lims_patient_data <- function(list_dfs_metab_classes_zscores, list_metabolite_classes) {
   # Combine Z-scores of metab groups together
@@ -514,7 +514,7 @@ transform_metab_df_to_glims_df <- function(protocol_name, df_metabs_lims) {
 
 #' Adding labnummer and Onderzoeksnummer to a dataframe
 #'
-#' @param df_metabs_helix: dataframe with patient data to be uploaded to Helix
+#' @param df_metabs_lims: dataframe with patient data to be uploaded to Helix
 #'
 #' @return: dataframe with added labnummer and Onderzoeksnummer columns
 add_lab_id_and_onderzoeksnr <- function(df_metabs_lims) {
@@ -531,7 +531,7 @@ add_lab_id_and_onderzoeksnr <- function(df_metabs_lims) {
 #' Create a dataframe with all metabolites that exceed the min and max Z-score cutoffs
 #'
 #' @param patient_name: patient code (string)
-#' @param dims_helix_table: dataframe with metabolite Z-scores for each patient and Helix info (dataframe)
+#' @param dims_lims_table: dataframe with metabolite Z-scores for each patient and Helix info (dataframe)
 #'
 #' @return: dataframe with metabolites that exceed the min and max Z-score cutoffs for the selected patient
 get_top_metabolites_df <- function(patient_name, dims_lims_table) {
