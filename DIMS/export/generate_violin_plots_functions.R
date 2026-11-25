@@ -165,14 +165,14 @@ make_and_save_violin_plot_pdfs <- function(
     # for Diagnostics metabolites to be saved in Helix
     if (grepl("Diagnost", pdf_dir)) {
       # get table that combines DIMS results with metabolite classes/Helix table
-      dims_helix_table <- prepare_helix_patient_data(metab_interest_patients, metab_list_all)
+      dims_lims_table <- prepare_lims_patient_data(metab_interest_patients, metab_list_all)
       # check if run contains diagnostic patients (e.g. "P2024M")
-      if (any(is_diagnostic_patients(dims_helix_table$Sample))) {
+      if (any(is_diagnostic_patients(dims_lims_table$Sample))) {
         # transform dataframe for Helix output
-        output_helix <- transform_metab_df_to_helix_df(protocol_name, dims_helix_table)
+        output_helix <- transform_metab_df_to_glims_df(protocol_name, dims_lims_table)
         # save the DIMS Helix dataframe
-        path_helixfile <- paste0("./output_Helix_", run_name, ".csv")
-        write.csv(output_helix, path_helixfile, quote = FALSE, row.names = FALSE)
+        path_lims_file <- paste0("./output_Helix_", run_name, ".csv")
+        write.csv(output_helix, path_lims_file, quote = FALSE, row.names = FALSE)
       }
     }
 
@@ -180,7 +180,7 @@ make_and_save_violin_plot_pdfs <- function(
     for (patient_id in patient_col_names) {
       if (grepl("Diagnost", pdf_dir)) {
         # make list of metabolites that exceed alarm values for this patient
-        top_metabs_patient <- get_top_metabolites_df(patient_id, dims_helix_table)
+        top_metabs_patient <- get_top_metabolites_df(patient_id, dims_lims_table)
       } else {
         # make list of top highest and lowest Z-scores for this patient
         top_metabs_patient <- prepare_toplist(
@@ -300,14 +300,14 @@ get_data_per_metabolite_class <- function(
   return(list_metabolite_df_per_page)
 }
 
-#' Get patient data to be uploaded to Helix
+#' Get patient data to be uploaded to LIMS
 #'
 #' @param list_dfs_metab_classes_zscores: list of dataframes with metabolite Z-scores for each sample/patient (list)
-#' @param list_metabolite_classes: list of tables with metabolites for Helix and violin plots (list)
+#' @param list_metabolite_classes: list of tables with metabolites for LIMS and violin plots (list)
 #'
-#' @return df_zscores_to_helix: dataframe with patient data with only metabolites for Helix and violin plots
-#'          with Helix name, high/low Z-score cutoffs
-prepare_helix_patient_data <- function(list_dfs_metab_classes_zscores, list_metabolite_classes) {
+#' @return df_zscores_to_glims: dataframe with patient data with only metabolites for LIMS and violin plots
+#'          with LIMS name, high/low Z-score cutoffs
+prepare_lims_patient_data <- function(list_dfs_metab_classes_zscores, list_metabolite_classes) {
   # Combine Z-scores of metab groups together
   metabolite_zscore_dataframe <- bind_rows(list_dfs_metab_classes_zscores)
 
@@ -320,21 +320,21 @@ prepare_helix_patient_data <- function(list_dfs_metab_classes_zscores, list_meta
     )
 
   # Combine metabolite classes
-  dims_helix_metabolite_df <- bind_rows(list_metabolite_classes)
+  dims_lims_metabolite_df <- bind_rows(list_metabolite_classes)
 
-  # Filter for Helix metabolites and split HMDB_name column for matching with metabolite_zscore_dataframe
-  dims_helix_metabolite_df <- dims_helix_metabolite_df %>%
+  # Filter for LIMS metabolites and split HMDB_name column for matching with metabolite_zscore_dataframe
+  dims_lims_metabolite_df <- dims_lims_metabolite_df %>%
     filter(Helix == "ja") %>%
     mutate(HMDB_name_split = str_split_fixed(HMDB_name, "nitine;", 2)[, 1]) %>%
     select(HMDB_name_split, Helix_naam, high_zscore, low_zscore)
 
   # Filter DIMS results for metabolites for Helix and combine Helix info
-  df_zscores_to_helix <- metabolite_zscore_dataframe %>%
-    filter(HMDB_name_split %in% dims_helix_metabolite_df$HMDB_name_split) %>%
-    left_join(dims_helix_metabolite_df, by = join_by(HMDB_name_split)) %>%
+  df_zscores_to_lims <- metabolite_zscore_dataframe %>%
+    filter(HMDB_name_split %in% dims_lims_metabolite_df$HMDB_name_split) %>%
+    left_join(dims_lims_metabolite_df, by = join_by(HMDB_name_split)) %>%
     select(HMDB_name, Sample, Z_score, Helix_naam, high_zscore, low_zscore)
 
-  return(df_zscores_to_helix)
+  return(df_zscores_to_lims)
 }
 
 #' Getting the intensities for calculating ratio Z-scores
@@ -459,54 +459,57 @@ make_metabolite_order <- function(number_of_plots_per_page, metabolite_names_chu
   return(metabolite_order)
 }
 
-#' Check for Diagnostics patients with correct patient number (e.g. starting with "P2024M")
+#' Check for Diagnostics patients with correct patient number starting with P and 12 numbers
 #'
 #' @param patient_column: a column from dataframe with IDs (character vector)
 #'
 #' @return: a logical vector with TRUE or FALSE for each element (vector)
 is_diagnostic_patients <- function(patient_column) {
-  diagnostic_patients <- grepl("^P[0-9]{4}M", patient_column)
+  diagnostic_patients <- grepl("^P[0-9]{12}", patient_column)
 
   return(diagnostic_patients)
 }
 
-#' Get the output dataframe for Helix
+#' Get the output dataframe for GLIMS
 #'
 #' @param protocol_name: protocol name (string)
-#' @param df_metabs_helix: dataframe with metabolite Z-scores for patients (dataframe)
+#' @param df_metabs_lims: dataframe with metabolite Z-scores for patients (dataframe)
 #'
-#' @return: dataframe with patient metabolite Z-scores in correct format for Helix
-transform_metab_df_to_helix_df <- function(protocol_name, df_metabs_helix) {
+#' @return: dataframe with patient metabolite Z-scores in correct format for GLIMS
+transform_metab_df_to_glims_df <- function(protocol_name, df_metabs_lims) {
   # Remove positive controls
-  df_metabs_helix <- df_metabs_helix %>% filter(is_diagnostic_patients(Sample))
+  df_metabs_lims <- df_metabs_lims %>% filter(is_diagnostic_patients(Sample))
 
   # Add 'Vial' column, each patient has unique ID
-  df_metabs_helix <- df_metabs_helix %>%
+  df_metabs_lims <- df_metabs_lims %>%
     group_by(Sample) %>%
     mutate(Vial = cur_group_id()) %>%
     ungroup()
 
   # Split patient number into labnummer and Onderzoeksnummer
-  df_metabs_helix <- add_lab_id_and_onderzoeksnr(df_metabs_helix)
+  df_metabs_lims <- add_lab_id_and_onderzoeksnr(df_metabs_lims)
 
   # Add column with protocol name
-  df_metabs_helix$Protocol <- protocol_name
+  df_metabs_lims$Protocol <- protocol_name
 
   # Change name Z_score and Helix_naam columns to Amount and Name
   change_columns <- c(Amount = "Z_score", Name = "Helix_naam")
-  df_metabs_helix <- df_metabs_helix %>% rename(all_of(change_columns))
+  df_metabs_lims <- df_metabs_lims %>% rename(all_of(change_columns))
 
   # Select only necessary columns and set them in correct order
-  df_metabs_helix <- df_metabs_helix %>%
-    select(c(Vial, labnummer, Onderzoeksnummer, Protocol, Name, Amount))
+  df_metabs_lims <- df_metabs_lims %>%
+    select(c(Vial, labnummer, Onderzoeksnummer, Protocol, Name, Amount)) %>%
+    mutate(
+      Amount = round(Amount, digits = 2)
+    )
 
   # Remove duplicate patient-metabolite combinations ("leucine + isoleucine + allo-isoleucin_Z-score" is added 3 times)
-  df_metabs_helix <- df_metabs_helix %>%
+  df_metabs_lims <- df_metabs_lims %>%
     group_by(Onderzoeksnummer, Name) %>%
     distinct() %>%
     ungroup()
 
-  return(df_metabs_helix)
+  return(df_metabs_lims)
 }
 
 #' Adding labnummer and Onderzoeksnummer to a dataframe
@@ -514,14 +517,15 @@ transform_metab_df_to_helix_df <- function(protocol_name, df_metabs_helix) {
 #' @param df_metabs_helix: dataframe with patient data to be uploaded to Helix
 #'
 #' @return: dataframe with added labnummer and Onderzoeksnummer columns
-add_lab_id_and_onderzoeksnr <- function(df_metabs_helix) {
-  # Split patient number into labnummer and Onderzoeksnummer
-  for (row in seq_len(nrow(df_metabs_helix))) {
-    df_metabs_helix[row, "labnummer"] <- gsub("^P|\\.[0-9]*", "", df_metabs_helix[row, "Sample"])
-    labnummer_split <- strsplit(as.character(df_metabs_helix[row, "labnummer"]), "M")[[1]]
-    df_metabs_helix[row, "Onderzoeksnummer"] <- paste0("MB", labnummer_split[1], "/", labnummer_split[2])
-  }
-  return(df_metabs_helix)
+add_lab_id_and_onderzoeksnr <- function(df_metabs_lims) {
+  # Remove "P" and ".1" from the Sample id
+  df_metabs_lims <- df_metabs_lims %>%
+    mutate(
+      labnummer = str_remove_all(Sample, "^P|\\.[0-9]*"),
+      Onderzoeksnummer = labnummer
+    )
+
+  return(df_metabs_lims)
 }
 
 #' Create a dataframe with all metabolites that exceed the min and max Z-score cutoffs
@@ -530,9 +534,9 @@ add_lab_id_and_onderzoeksnr <- function(df_metabs_helix) {
 #' @param dims_helix_table: dataframe with metabolite Z-scores for each patient and Helix info (dataframe)
 #'
 #' @return: dataframe with metabolites that exceed the min and max Z-score cutoffs for the selected patient
-get_top_metabolites_df <- function(patient_name, dims_helix_table) {
+get_top_metabolites_df <- function(patient_name, dims_lims_table) {
   # extract data for patient of interest (patient_name)
-  patient_metabs_helix <- dims_helix_table %>%
+  patient_metabs_helix <- dims_lims_table %>%
     filter(Sample == patient_name) %>%
     mutate(Z_score = round(Z_score, 2))
 
@@ -617,13 +621,12 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
 
   # patient plots, create the PDF device
   patient_id_sub <- patient_id
+  prefix <- ""
   suffix <- ""
   if (grepl("Diagnostics", pdf_dir) && is_diagnostic_patients(patient_id)) {
-    prefix <- "MB"
-    suffix <- "_DIMS_PL_DIAG"
+    suffix <- "_DIMS_DIAGP"
     # substitute P and M in P2020M00001 into right format for Helix
-    patient_id_sub <- gsub("[PM]", "", patient_id)
-    patient_id_sub <- gsub("\\..*", "", patient_id_sub)
+    patient_id_sub <- str_remove_all(patient_id, "^P|\\.[0-9]*")
   } else if (grepl("Diagnostics", pdf_dir)) {
     prefix <- "Dx_"
   } else if (grepl("IEM", pdf_dir)) {
