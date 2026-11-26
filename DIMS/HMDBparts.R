@@ -1,31 +1,30 @@
-# Define parameters 
+# define parameters 
 cmd_args <- commandArgs(trailingOnly = TRUE)
 
 db_file <- cmd_args[1] 
 breaks_file <- cmd_args[2] 
 standard_run <- cmd_args[3] 
 
-# Load breaks_file: contains breaks_fwhm & breaks_fwhm_avg
+# load file with binning breaks 
 load(breaks_file)
-# Determine minimum and maximum m/z values
 min_mz <- round(breaks_fwhm[1])
 max_mz <- round(breaks_fwhm[length(breaks_fwhm)])
 
 # In case of a standard run use external HMDB parts
-# The m/z range is approximately 70 to 600: set limits between 68-71 for min and 599-610 for max
+# m/z is approximately 70 to 600: set limits between 68-71 for min and 599-610 for max
 if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 610) {
-  # Skip generating HMDB parts; copy them from hmdb_parts_path
+  # skip generating HMDB parts; copy them from hmdb_parts_path
   hmdb_parts_path <- cmd_args[4] 
-  # Find all files containing hmdb in file name
+  # find all files containing hmdb in file name
   hmdb_parts <- list.files(hmdb_parts_path, pattern = "hmdb") 
   for (hmdb_file in hmdb_parts) {
     file.copy(paste(hmdb_parts_path, hmdb_file, sep = "/"), "./", recursive = TRUE)
   }
 } else { 
-  # Generate HMDB parts in case of non-standard mz range
+  # generate HMDB parts in case of non-standard mz range
   load(db_file)
 
-  # Determine segments of m/z for HMDB parts; smaller parts for m/z < 100
+  # determine segments of m/z for HMDB parts; smaller parts for m/z < 100
   mz_segments <- c()
   segment_start <- min_mz
   segment_end <- min_mz + 5
@@ -39,7 +38,7 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
     segment_start <- segment_start + segment_size
     segment_end <- segment_end + segment_size
   }
-  # Last segment
+  #last segment
   mz_segments <- c(mz_segments, max_mz)
   
   scanmodes <- c("positive", "negative")
@@ -52,15 +51,15 @@ if (standard_run == "yes" & min_mz > 68 & min_mz < 71 & max_mz > 599 & max_mz < 
       hmdb_add_iso <- HMDB_add_iso.Pos
     }
 
-    # Filter mass range meassured
+    # filter mass range meassured
     hmdb_add_iso = hmdb_add_iso[which(hmdb_add_iso[ , column_label] >= min_mz &
                                       hmdb_add_iso[ , column_label] <= max_mz), ]
 
-    # Sort on mass
+    # sort on mass
     sorted_hmdb_add_iso <- hmdb_add_iso[order(as.numeric(hmdb_add_iso[ , column_label])),]
     nr_rows <- dim(sorted_hmdb_add_iso)[1]
 
-    # Create parts and save to file
+    # create parts and save to file
     for (mz_part_index in 1:(length(mz_segments) - 1)) {
       mz_start <- mz_segments[mz_part_index]
       mz_end <- mz_segments[mz_part_index + 1]

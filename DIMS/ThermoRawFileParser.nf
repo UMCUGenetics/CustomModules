@@ -1,6 +1,7 @@
 process ConvertRawFile {
     tag "DIMS ConvertRawFile ${file_id}"
     label 'ThermoRawFileParser_1_1_11'
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
         tuple(val(file_id), path(raw_file))
