@@ -6,6 +6,7 @@ on:
   push:
     branches: [main, develop]
     paths: [DIMS/**]
+  workflow_dispatch:
 
 jobs:
   tests:
