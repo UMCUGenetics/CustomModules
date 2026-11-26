@@ -521,7 +521,7 @@ add_lab_id_and_onderzoeksnr <- function(df_metabs_lims) {
   # Remove "P" and ".1" from the Sample id
   df_metabs_lims <- df_metabs_lims %>%
     mutate(
-      labnummer = str_remove_all(Sample, "^P|\\.[0-9]*"),
+      labnummer = stringr::str_remove_all(Sample, "^P|\\.[0-9]*"),
       Onderzoeksnummer = labnummer
     )
 
@@ -626,7 +626,7 @@ create_pdf_violin_plots <- function(pdf_dir, patient_id, metab_perpage, top_meta
   if (grepl("Diagnostics", pdf_dir) && is_diagnostic_patients(patient_id)) {
     suffix <- "_DIMS_DIAGP"
     # substitute P and M in P2020M00001 into right format for Helix
-    patient_id_sub <- str_remove_all(patient_id, "^P|\\.[0-9]*")
+    patient_id_sub <- stringr::str_remove_all(patient_id, "^P|\\.[0-9]*")
   } else if (grepl("Diagnostics", pdf_dir)) {
     prefix <- "Dx_"
   } else if (grepl("IEM", pdf_dir)) {
