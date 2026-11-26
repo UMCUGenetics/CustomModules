@@ -1,4 +1,4 @@
-# Unit tests for GenerateViolinPlots
+# unit tests for GenerateViolinPlots
 
 suppressPackageStartupMessages(library("dplyr"))
 library(reshape2)
@@ -487,50 +487,6 @@ testthat::test_that("prepare_toplist: Create a dataframe with the top 20 highest
   )
 })
 
-testthat::test_that("add_table_to_pdf: Create a pdf with a single table", {
-  local_edition(3)
-  temp_dir <- "./"
-  dir.create(paste0(temp_dir, "table/"))
-  
-  test_pdf_dir <- paste0(temp_dir, "table/")
-  test_patient_id <- "P2025M1"
-  test_prefix <- "T_"
-  test_suffix <- ""
-  test_table_theme <- ttheme_default()
-
-  test_top_metab_pt <- data.frame(
-    Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
-    `Z-score` = c("", "2.45", "", "-1.51")
-  )
-  
-  expect_silent(add_table_to_pdf(
-    test_top_metab_pt,
-    test_patient_id,
-    test_table_theme
-  ))
-  
-  pdf(paste0(test_pdf_dir, "/", test_prefix, test_patient_id, test_suffix, ".pdf"),
-      onefile = TRUE#,
-      #width = plot_width,
-      #height = plot_height
-  )
-  
-  add_table_to_pdf(
-    test_top_metab_pt,
-    test_patient_id,
-    test_table_theme
-  )
-  
-  dev.off()
-  
-  out_pdf_table <- file.path(test_pdf_dir, "T_P2025M1.pdf")
-  expect_true(file.exists(out_pdf_table))
-  content_pdf_table <- pdftools::pdf_text(out_pdf_table)
-  expect_snapshot(content_pdf_table)
-  
-  unlink(test_pdf_dir, recursive = TRUE)
-})
-
 testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top metabolites and violin plots", {
   local_edition(3)
   temp_dir <- "./"
@@ -552,18 +508,13 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
     Metabolite = c("Increased", "metab1", "Decreased", "metab11"),
     `Z-score` = c("", "2.45", "", "-1.51")
   )
-  
-  test_data_previous_runs <- NULL
-  test_top_drugs_patient <- NULL
 
   expect_silent(create_pdf_violin_plots(
     test_pdf_dir,
     test_patient_id,
     test_metab_perpage,
     test_top_metab_pt,
-    test_top_drugs_patient,
-    test_explanation,
-    test_data_previous_runs
+    test_explanation
   ))
 
   out_pdf_violinplots <- file.path(test_pdf_dir, "R_P2025M1.pdf")
@@ -572,24 +523,6 @@ testthat::test_that("create_pdf_violin_plots: Create a pdf with a table of top m
   expect_snapshot(content_pdf_violinplots)
 
   unlink(test_pdf_dir, recursive = TRUE)
-})
-
-testthat::test_that("create_overview_plot: Create overview plot", {
-  test_patient_id <- "P2025M1"
-  test_sub_perpage <- "test diagnostics"
-
-  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
-  test_gua_crea_df <- read.delim(test_path("fixtures/", "test_crea_gua_df.txt"))
-  test_diag_metabolites <- rbind(test_acyl_carnitines_df, test_gua_crea_df)
-
-  test_patient_zscore_df <- test_diag_metabolites %>% filter(Sample == test_patient_id)
-  test_patient_zscore_df$Z_score_capped <- test_patient_zscore_df$Z_score
-
-  expect_silent(create_overview_plot(test_patient_zscore_df, test_patient_id))
-
-  expect_doppelganger("overview_plot_P2025M1", create_overview_plot(
-    test_patient_zscore_df, test_patient_id
-  ))
 })
 
 testthat::test_that("create_violin_plot: Create a violin plot", {
@@ -629,8 +562,33 @@ testthat::test_that("run_diem_algorithm :Run dIEM algorithm", {
     c("Disease A", "Disease B", "Disease C", "Disease D", "Disease E", "Disease F", "Disease G")
   )
   expect_equal(run_diem_algorithm(test_expected_biomarkers_df, test_zscore_patient_df, test_sample_cols)$P2025M1,
-    c(14.00,7.00,12.50,25.00,40.00,25.00,-79.50),
+    c(10.94172, 0.95343, 12.12121, 0.00000, 44.28850, 0.00000, -38.70370),
     tolerance = 0.0001
+  )
+})
+
+testthat::test_that("rank_patient_zscores: Ranking Z-scores for a patient", {
+  test_zscore_col <- c(1, 5, 6, 2, 7, -2, 3)
+
+  expect_equal(length(rank_patient_zscores(test_zscore_col)), 7)
+
+  expect_identical(
+    rank_patient_zscores(test_zscore_col),
+    c(6, 3, 2, 5, 1, 1, 4)
+  )
+
+  test_zscore_col <- c(3, 2, 1, 3)
+
+  expect_identical(
+    rank_patient_zscores(test_zscore_col),
+    c(1, 2, 3, 1)
+  )
+
+  test_zscore_col <- c(-1, -2, -3, -4)
+
+  expect_identical(
+    rank_patient_zscores(test_zscore_col),
+    c(4, 3, 2, 1)
   )
 })
 
@@ -661,7 +619,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
   expect_equal(
     colnames(prepare_intensities_zscore_df(test_intensities_zscore_df)),
     c(
-      "HMDB_code", "HMDB_name", "plots", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
+      "HMDB_code", "HMDB_name", "C101.1", "C102.1", "C103.1", "C104.1", "C105.1", "C106.1", "C107.1", "C108.1",
       "C109.1", "C110.1", "C111.1", "C112.1", "P2.1", "P3.1", "mean_controls", "sd_controls"
     )
   )
@@ -670,7 +628,7 @@ testthat::test_that("prepare_intensities_zscore_df: Preparing the intensities an
     unname(sapply(prepare_intensities_zscore_df(test_intensities_zscore_df), class)),
     c(
       "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
-      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
+      "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"
     )
   )
 })
@@ -679,9 +637,11 @@ testthat::test_that("get_colnames_by_prefix: Get all column names containing a s
   test_intensities_zscore_df <- read.delim(test_path("fixtures/", "test_intensities_zscore_df.txt"))
 
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "P"),
-               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5"))
+               c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5",
+                 "P2025M1_Zscore", "P2025M2_Zscore", "P2025M3_Zscore", "P2025M4_Zscore", "P2025M5_Zscore"))
   expect_equal(get_colnames_by_prefix(test_intensities_zscore_df, "C"),
-               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1"))
+               c("C101.1", "C102.1", "C103.1", "C104.1", "C105.1",
+                 "C101.1_Zscore", "C102.1_Zscore", "C103.1_Zscore", "C104.1_Zscore", "C105.1_Zscore"))
 })
 
 testthat::test_that("remove_suffix_from_items: Remove the suffix from a vector of names", {
@@ -716,8 +676,7 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1,
-    c(1000, 1200, 1300, 1400, 1500, 1600, 0.8333333, 0.9285714, 3700.0000),
-    tolerance = 0.0001
+    c(1000, 1200, 1300, 1400, 1500, 1600, -0.2630344, -0.1069152, 11.8533096)
   )
   expect_equal(
     add_zscores_ratios_to_df(
@@ -725,7 +684,7 @@ testthat::test_that("add_zscores_ratios_to_df: Add Zscores for multiple ratios t
       test_metabolites_ratios_df,
       test_all_sample_ids
     )$C101.1_Zscore,
-    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.4573938, 0.5552258, -0.4485691),
+    c(0.45, 1.67, -1.86, 0.58, 2.47, -0.56, -0.5899371, 0.4858991, -0.4552026),
     tolerance = 0.0001
   )
 })
@@ -752,12 +711,11 @@ testthat::test_that("calculate_zscore_ratios: Calculate Zscores for ratios", {
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1,
-    c(0.8333333, 0.9285714, 3700.0000),
-    tolerance = 0.0001
+    c(-0.2630344, -0.1069152, 11.8533096)
   )
   expect_equal(
     calculate_zscore_ratios(test_metabolites_ratios_df, test_outlist_df, test_all_sample_ids)$C101.1_Zscore,
-    c(-0.4573938, 0.5552258, -0.4485691),
+    c(-0.5899371, 0.4858991, -0.4552026),
     tolerance = 0.0001
   )
 })
@@ -825,26 +783,21 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
   )
   test_run_name <- "unit_test"
   test_protocol_name <- "UNIT_TEST_PROTOCOL"
-  test_explanation <- "Unit test violin plot pdfs"
+  test_explanation_violin_plot <- "Unit test violin plot pdfs"
   test_number_of_metabolites <- list(
     highest = 2,
     lowest = 1
   )
-  test_data_previous_runs <- NULL
-  test_zscore_pat_drugs_df <- test_zscore_patients_df
-  test_zscore_pat_drugs_df$HMDB_code <- gsub("HMDB", "CHEMBL", test_zscore_pat_drugs_df$HMDB_code)
 
   expect_silent(make_and_save_violin_plot_pdfs(
     test_zscore_patients_df,
     test_zscore_controls_df,
-    test_zscore_pat_drugs_df,
     test_path_metabolite_groups,
     test_nr_plots_perpage,
     test_number_of_samples,
     test_run_name,
     test_protocol_name,
-    test_explanation,
-    test_data_previous_runs,
+    test_explanation_violin_plot,
     test_number_of_metabolites
   ))
 
@@ -925,7 +878,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     top_number_iem_diseases = 5,
     threshold_iem = 5
   )
-  test_explanation <- "Unit test violin plot pdfs"
+  test_explanation_violin_plot <- "Unit test violin plot pdfs"
 
   expect_silent(make_and_save_diem_plots(
     test_diem_probability_score,
@@ -937,7 +890,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_number_of_samples,
     test_number_of_metabolites,
     test_iem_variables,
-    test_explanation
+    test_explanation_violin_plot
   ))
   unlink("dIEM_plots/", recursive = TRUE)
 
@@ -951,7 +904,7 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_number_of_samples,
     test_number_of_metabolites,
     test_iem_variables,
-    test_explanation
+    test_explanation_violin_plot
   ), "P2025M3")
 
   expect_true(file.exists("dIEM_plots/IEM_P2025M1.pdf"))
@@ -1007,16 +960,3 @@ testthat::test_that("save_patient_no_iem: Save a list of patient IDs to a text f
   expect_snapshot_file("missing_probability_scores.txt")
   file.remove("missing_probability_scores.txt")
 })
-
-testthat::test_that("add_previous_runs: Information for metabolites from previous runs is correctly added", {
-  test_acyl_carnitines_df <- read.delim(test_path("fixtures/", "test_acyl_carnitines_df.txt"))
-  test_patient_id <- "P2025M1"
-  test_patient_zscore_df <- test_acyl_carnitines_df %>% filter(Sample == test_patient_id)
-  test_data_previous_runs <- data.frame(matrix(1:12, ncol = 6, nrow = 2))
-  colnames(test_data_previous_runs) <- c("common_name", "average_patients", "min95", "max95", "min", "max")
-  test_data_previous_runs[, "common_name"] <- c("metab1", "metab3")
-  
-  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$min95[1], 5)
-  expect_equal(add_previous_runs(test_patient_zscore_df, test_data_previous_runs)$max95[2], 8)
-})
-
