@@ -500,7 +500,7 @@ transform_metab_df_to_glims_df <- function(protocol_name, df_metabs_lims) {
   df_metabs_lims <- df_metabs_lims %>%
     select(c(Vial, labnummer, Onderzoeksnummer, Protocol, Name, Amount)) %>%
     mutate(
-      Amount = round(Amount, digits = 2)
+      Amount = round(Amount, digits = 3)
     )
 
   # Remove duplicate patient-metabolite combinations ("leucine + isoleucine + allo-isoleucin_Z-score" is added 3 times)
