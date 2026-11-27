@@ -1,36 +1,27 @@
 process GenerateViolinPlots {
     tag "DIMS GenerateViolinPlots"
     label 'GenerateViolinPlots'
-    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
+    container = 'docker://umcugenbioinf/dims:1.3'
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
-       path(peakgrouplist_zscores)
-       path(peakgrouplist_drugs)
+       path(outlist_zscores)
        val(analysis_id)
-       val(export_scripts_dir)
-       val(path_metabolite_groups)
-       val(file_ratios_metabolites)
-       val(file_expected_biomarkers_IEM)
-       val(file_explanation)
-       val(file_previous_runs)
 
     output:
        path('Diagnostics/*.pdf'), emit: diag_plot_files, optional: true
        path('Other/*.pdf'), emit: other_plot_files, optional: true
        path('dIEM_plots/*.pdf'), emit: diem_plot_files, optional: true
        path('*.xlsx'), emit: excel_file, optional: true
-       path('*.csv'), emit: helix_file, optional: true
+       path('*.csv'), emit: lims_file, optional: true
        path('*.txt'), emit: txt_files, optional: true
 
     script:
         """
-        Rscript ${projectDir}/CustomModules/DIMS/GenerateViolinPlots.R \
-                $analysis_id \
-                $export_scripts_dir \
-                $path_metabolite_groups \
-                $file_ratios_metabolites \
-                $file_expected_biomarkers_IEM \
-                $file_explanation \
-                $file_previous_runs
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateViolinPlots.R $analysis_id $params.export_scripts_dir \
+                                                                    $params.path_metabolite_groups \
+                                                                    $params.file_ratios_metabolites \
+                                                                    $params.file_expected_biomarkers_IEM \
+                                                                    $params.file_explanation
         """
 }

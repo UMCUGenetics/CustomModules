@@ -1,32 +1,23 @@
 process GenerateExcel {
     tag "DIMS GenerateExcel"
     label 'GenerateExcel'
-    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
+    container = 'docker://umcugenbioinf/dims:1.3'
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(adductsums_combined)
-       path(relevance_file)
        val(analysis_id) 
-       val(export_scripts_dir)
-       val(path_metabolite_groups)
-       val(zscore)
+       path(relevance_file)
 
     output:
-       path("peakgrouplist.RData"), emit: peakgrouplist_zscores
+       path("outlist.RData"), emit: outlist_zscores
        tuple path("AdductSums_filtered_Zscores.RData"), path("AdductSums_filtered_robustZ.RData"), path("AdductSums_filtered_outliersremovedZ.RData"), optional: true
        tuple path("AdductSums_filtered_Zscores.txt"), path("AdductSums_filtered_robustZ.txt"), path("AdductSums_filtered_outliersremovedZ.txt"), optional: true
        path("${analysis_id}.xlsx"), emit: project_excel
-       path("Helix_${analysis_id}.xlsx"), optional: true
-       path("Drugs_${analysis_id}.xlsx"), optional: true
-       path("Drugs_in_dataset.RData"), emit: peakgrouplist_drugs, optional: true
+       path("LIMS_${analysis_id}.xlsx"), optional: true
 
     script:
         """
-        Rscript ${projectDir}/CustomModules/DIMS/GenerateExcel.R \
-                $analysis_id \
-                $relevance_file \
-                $zscore \
-                $export_scripts_dir \
-                $path_metabolite_groups
+        Rscript ${baseDir}/CustomModules/DIMS/GenerateExcel.R $analysis_id $relevance_file $params.zscore $params.export_scripts_dir $params.path_metabolite_groups
         """
 }

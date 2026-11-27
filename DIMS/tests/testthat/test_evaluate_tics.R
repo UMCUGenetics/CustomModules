@@ -1,27 +1,28 @@
-# Unit test for EvaluateTics
+# unit test for EvaluateTics
 
-# Source all functions for PeakGrouping
+# source all functions for PeakGrouping
 source("../../preprocessing/evaluate_tics_functions.R")
 
-# Test find_bad_replicates
+# test find_bad_replicates
 testthat::test_that("TICS are correctly accepted or rejected", {
   # It's necessary to copy/symlink the files to the current location for the combine_sum_adducts_parts function
+  # local: setwd("~/Development/DIMS_refactor_PeakFinding_codereview/CustomModules/DIMS/tests/testthat")
   test_files <- list.files("fixtures", "test_evaluate_tics", full.names = TRUE)
   file.symlink(file.path(test_files), getwd())
 
-  # Create replication pattern to test on:
+  # create replication pattern to test on:
   technical_replicates <- paste0("test_evaluate_tics_file", 1:3)
   test_repl_pattern <- list(technical_replicates)
   names(test_repl_pattern) <- "sample1"
   test_thresh2remove <- 10^9
 
-  # Test that output has two entries
+  # test that output has two entries
   expect_equal(length(find_bad_replicates(test_repl_pattern, test_thresh2remove)), 2)
-  # Test that first technical replicate is removed in positive scan mode
+  # test that first technical replicate is removed in positive scan mode
   expect_equal(find_bad_replicates(test_repl_pattern, test_thresh2remove)$pos, "test_evaluate_tics_file1", TRUE)
-  # Test that third technical replicate is removed in negative scan mode
+  # test that third technical replicate is removed in negative scan mode
   expect_equal(find_bad_replicates(test_repl_pattern, test_thresh2remove)$neg, "test_evaluate_tics_file3", TRUE)
-  # Test that output files are generated
+  # test that output files are generated
   expect_equal(sum(grepl("miss_infusions_", list.files("./"))), 2)
 
   # Remove symlinked files
@@ -31,32 +32,32 @@ testthat::test_that("TICS are correctly accepted or rejected", {
   file.remove(files_remove)
 })
 
-# Test remove_from_repl_pattern
+# test remove_from_repl_pattern
 testthat::test_that("technical replicates are correctly removed from replication pattern", {
-  # Create replication pattern to test on:
+  # create replication pattern to test on:
   technical_replicates <- paste0("test_evaluate_tics_file", 1:3)
   test_repl_pattern <- list(technical_replicates)
   names(test_repl_pattern) <- "sample1"
   test_bad_samples <- "test_evaluate_tics_file2"
   test_nr_replicates <- 3
 
-  # Test that the output contains 1 sample
+  # test that the output contains 1 sample
   expect_equal(length(remove_from_repl_pattern(test_bad_samples, test_repl_pattern, test_nr_replicates)), 1)
-  # Test that the output for the sample contains 2 technical replicates
+  # test that the output for the sample contains 2 technical replicates
   expect_equal(length(remove_from_repl_pattern(test_bad_samples, test_repl_pattern, test_nr_replicates)$sample1), 2)
-  # Test that the second technical replicate has been removed
+  # test that the second technical replicate has been removed
   expect_false(unique(grepl(test_bad_samples, remove_from_repl_pattern(test_bad_samples, test_repl_pattern, test_nr_replicates)$sample1)))
 })
 
-# Test get_overview_tech_reps
+# test get_overview_tech_reps
 testthat::test_that("overview of technical replicates is correctly created", {
-  # Create replication pattern to test on:
+  # create replication pattern to test on:
   technical_replicates <- paste0("test_evaluate_tics_file", 1:3)
   test_repl_pattern_filtered <- list(technical_replicates)
   names(test_repl_pattern_filtered) <- "sample1"
   test_scanmode <- "positive"
 
-  # Test that overview is correctly created
+  # test that overview is correctly created
   expect_equal(get_overview_tech_reps(test_repl_pattern_filtered, test_scanmode)[, 1], "sample1")
   expect_equal(get_overview_tech_reps(test_repl_pattern_filtered, test_scanmode)[, 3], "positive")
   expect_true(get_overview_tech_reps(test_repl_pattern_filtered, test_scanmode)[, 2] == 

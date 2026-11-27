@@ -1,23 +1,19 @@
 process PeakFinding {
     tag "DIMS PeakFinding ${rdata_file}"
     label 'PeakFinding'
-    container = 'ghcr.io/umcugenetics/dims:v1.4.0'
+    container = 'docker://umcugenbioinf/dims:1.3'
+    shell = ['/bin/bash', '-euo', 'pipefail']
 
     input:
        path(rdata_file)
        each path(sample_techreps)
-       val(resolution)
-       val(preprocessing_scripts_dir)
 
     output:
        path '*tive.RData', emit: peaklist_rdata, optional: true
-       path '*tive.txt', emit: peaklist_txt, optional: true
+       path '*tive.txt', optional: true
 
     script:
         """
-        Rscript ${projectDir}/CustomModules/DIMS/PeakFinding.R \
-                $rdata_file \
-                $resolution \
-                $preprocessing_scripts_dir
+        Rscript ${baseDir}/CustomModules/DIMS/PeakFinding.R $rdata_file $params.resolution $params.preprocessing_scripts_dir
         """
 }
