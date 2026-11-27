@@ -5,8 +5,9 @@ on:
   pull_request:
     paths: [DIMS/**]
   push:
-    branches: [master, develop]
+    branches: [main, develop]
     paths: [DIMS/**]
+  workflow_dispatch:
 
 jobs:
   lint:

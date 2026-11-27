@@ -120,25 +120,25 @@ if (z_score == 1) {
     path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
     pattern = "*.txt", full.names = FALSE, recursive = FALSE
   )
-  metab_df_helix <- NULL
+  metab_df_lims <- NULL
   for (file_index in seq_along(metabolite_files)) {
     infile <- metabolite_files[file_index]
     metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
       sep = "\t", header = TRUE, quote = ""
     )
-    metab_df_helix <- rbind(metab_df_helix, metab_list)
+    metab_df_lims <- rbind(metab_df_lims, metab_list)
   }
   # get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
-  metab_df_helix <- metab_df_helix %>%
+  metab_df_lims <- metab_df_lims %>%
     filter(Helix == "ja") %>%
     select(c(HMDB_code, HMDB_name)) %>%
     rename(H_Name = HMDB_name)
-  metab_list_helix <- unique(metab_df_helix$HMDB_code)
+  metab_list_helix <- unique(metab_df_lims$HMDB_code)
   metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
 
   outlist_helix <- outlist %>%
     filter(HMDB_key %in% metab_list_helix) %>%
-    left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
+    left_join(., metab_df_lims, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
       -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway),
       -all_of(control_col_idx), -all_of(patient_col_idx)
@@ -213,7 +213,7 @@ if (z_score == 1) {
     plots_present = TRUE
   )
   openxlsx::writeData(wb_helix_intensities, sheet = 1, outlist_helix, startCol = 1)
-  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/Helix_", project, ".xlsx"), overwrite = TRUE)
+  openxlsx::saveWorkbook(wb_helix_intensities, paste0(outdir, "/LIMS_", project, ".xlsx"), overwrite = TRUE)
   rm(wb_helix_intensities)
 
   # reorder outlist for Excel file
