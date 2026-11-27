@@ -115,39 +115,39 @@ metabolite_files <- list.files(
   path = paste(path_metabolite_groups, "Diagnostics", sep = "/"),
   pattern = "*.txt", full.names = FALSE, recursive = FALSE
 )
-metab_df_helix <- NULL
+metab_df_lims <- NULL
 for (file_index in seq_along(metabolite_files)) {
   infile <- metabolite_files[file_index]
   metab_list <- read.table(paste(path_metabolite_groups, "Diagnostics", infile, sep = "/"),
                            sep = "\t", header = TRUE, quote = ""
   )
-  metab_df_helix <- rbind(metab_df_helix, metab_list)
+  metab_df_lims <- rbind(metab_df_lims, metab_list)
 }
 # Get Helix metabolites and unique HMDB IDs and remove ratio HMDBs containing A or L
-metab_df_helix <- metab_df_helix %>%
+metab_df_lims <- metab_df_lims %>%
   filter(Helix == "ja") %>%
   select(c(HMDB_code, HMDB_name)) %>%
   rename(H_Name = HMDB_name)
-metab_list_helix <- unique(metab_df_helix$HMDB_code)
-metab_list_helix <- grep("[AL]", metab_list_helix, value = TRUE, invert = TRUE)
+metab_list_lims <- unique(metab_df_lims$HMDB_code)
+metab_list_lims <- grep("[AL]", metab_list_lims, value = TRUE, invert = TRUE)
 
 if (z_score == 1) {
   # Get intensities for Helix metabolites from dataset
-  peakgroup_list_helix <- peakgroup_list_filtered_zscores %>%
-    filter(HMDB_key %in% metab_list_helix) %>%
-    left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
+  peakgroup_list_lims <- peakgroup_list_filtered_zscores %>%
+    filter(HMDB_key %in% metab_list_lims) %>%
+    left_join(., metab_df_lims, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
       -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway, monositopic_mass, molecular_formula) #,
     ) 
 } else if (z_score == 0) {
   # Get intensities for Helix metabolites from dataset
   peakgroup_list_helix <- peakgroup_list_filtered %>%
-    filter(HMDB_key %in% metab_list_helix) %>%
+    filter(HMDB_key %in% metab_list_lims) %>%
     left_join(., metab_df_helix, by = join_by(HMDB_code == HMDB_code)) %>%
     select(
       -c(HMDB_key, sec_HMDB_ID_rlvnc, name, relevance, descr, origin, fluids, tissue, disease, pathway, monositopic_mass, molecular_formula) #,
     ) 
 }
 
-# Create Excel for Helix
-create_excel_output(peakgroup_list_helix, intensity_col_ids, "Helix_", z_score, project)
+# Create Excel for LIMS
+create_excel_output(peakgroup_list_helix, intensity_col_ids, "LIMS_", z_score, project)

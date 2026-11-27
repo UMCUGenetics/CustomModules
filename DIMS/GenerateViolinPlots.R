@@ -29,7 +29,7 @@ top_number_iem_diseases <- 5
 threshold_iem <- 5
 nr_plots_perpage <- 20
 zscore_cutoff <- 5
-protocol_name <- "DIMS_PL_DIAG"
+protocol_name <- "DIMS_DIAGP"
 number_of_metabolites <- list(
   highest = 20,
   lowest = 10

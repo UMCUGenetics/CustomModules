@@ -282,7 +282,7 @@ testthat::test_that("get_data_per_metabolite_class: Combine patient and control 
   )
 })
 
-testthat::test_that("prepare_helix_patient_data: Generate a dataframe with information for Helix", {
+testthat::test_that("prepare_lims_patient_data: Generate a dataframe with information for Helix", {
   test_acyl_carnitines_pat <- read.delim(test_path("fixtures", "test_acyl_carnitines_patients.txt"))
   test_crea_gua_pat <- read.delim(test_path("fixtures", "test_crea_gua_patients.txt"))
 
@@ -296,35 +296,44 @@ testthat::test_that("prepare_helix_patient_data: Generate a dataframe with infor
   names(test_metab_list_all) <- c("test_acyl_carnitines", "test_crea_gua")
 
   expect_identical(
-    colnames(prepare_helix_patient_data(test_metab_interest_sorted, test_metab_list_all)),
+    colnames(prepare_lims_patient_data(test_metab_interest_sorted, test_metab_list_all)),
     c("HMDB_name", "Sample", "Z_score", "Helix_naam", "high_zscore", "low_zscore")
   )
   expect_equal(
-    dim(prepare_helix_patient_data(test_metab_interest_sorted, test_metab_list_all)),
+    dim(prepare_lims_patient_data(test_metab_interest_sorted, test_metab_list_all)),
     c(15, 6)
   )
   expect_identical(
-    unique(prepare_helix_patient_data(test_metab_interest_sorted, test_metab_list_all)$HMDB_name),
+    unique(prepare_lims_patient_data(test_metab_interest_sorted, test_metab_list_all)$HMDB_name),
     c("metab1", "metab4", "metab11")
   )
-  expect_false("ratio1" %in% prepare_helix_patient_data(test_metab_interest_sorted, test_metab_list_all)$HMDB_name)
+  expect_false("ratio1" %in% prepare_lims_patient_data(test_metab_interest_sorted, test_metab_list_all)$HMDB_name)
   expect_equal(
-    prepare_helix_patient_data(test_metab_interest_sorted, test_metab_list_all)$Z_score,
+    prepare_lims_patient_data(test_metab_interest_sorted, test_metab_list_all)$Z_score,
     c(0.31, 2.45, 2.14, 12.18, 3.22, 0.84, -0.46, -0.15, -1.51, -0.78, 1.68, 0.84, 1.48, 0.47, 1.18)
   )
 })
 
 testthat::test_that("is_diagnostic_patients: Check for diagnostic patients", {
-  test_patient_column <- c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "C101.1", "C102.1", "P2025D1", "P225M1")
+  test_patient_column <- c(
+    "P202510123456",
+    "P202521234567",
+    "P202532345678",
+    "P202543456789",
+    "C101.1",
+    "C102.1",
+    "P2025D1",
+    "P225M1"
+  )
 
   expect_equal(is_diagnostic_patients(test_patient_column), c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE))
   expect_equal(length(is_diagnostic_patients(test_patient_column)), 8)
 })
 
 testthat::test_that("add_lab_id_and_onderzoeksnr:Adding labnummer and Onderzoeksnummer to the Helix dataframe", {
-  test_df_metabs_helix <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
+  test_df_metabs_lims <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
 
-  test_df_metabs_helix <- test_df_metabs_helix %>%
+  test_df_metabs_helix <- test_df_metabs_lims %>%
     group_by(Sample) %>%
     mutate(Vial = cur_group_id()) %>%
     ungroup()
@@ -333,48 +342,48 @@ testthat::test_that("add_lab_id_and_onderzoeksnr:Adding labnummer and Onderzoeks
   expect_true("Onderzoeksnummer" %in% colnames(add_lab_id_and_onderzoeksnr(test_df_metabs_helix)))
   expect_identical(
     unique(add_lab_id_and_onderzoeksnr(test_df_metabs_helix)$labnummer),
-    c("2025M1", "2025M2", "2025M3", "2025M4", "2025M5")
+    c("202510123456", "202521234567", "202532345678", "202543456789", "202554567890")
   )
   expect_identical(
     unique(add_lab_id_and_onderzoeksnr(test_df_metabs_helix)$Onderzoeksnummer),
-    c("MB2025/1", "MB2025/2", "MB2025/3", "MB2025/4", "MB2025/5")
+    c("202510123456", "202521234567", "202532345678", "202543456789", "202554567890")
   )
 })
 
-testthat::test_that("transform_metab_df_to_helix_df: Make the output for Helix", {
+testthat::test_that("transform_metab_df_to_glims_df: Make the output for Helix", {
   test_protocol_name <- "test_protocol_name"
 
-  test_df_metabs_helix <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
+  test_df_metabs_lims <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
 
   expect_equal(
-    dim(transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)),
+    dim(transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)),
     c(15, 6)
   )
   expect_identical(
-    colnames(transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)),
+    colnames(transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)),
     c("Vial", "labnummer", "Onderzoeksnummer", "Protocol", "Name", "Amount")
   )
   expect_identical(
-    unique(transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)$Protocol),
+    unique(transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)$Protocol),
     "test_protocol_name"
   )
   expect_identical(
-    unique(transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)$labnummer),
-    c("2025M1", "2025M2", "2025M3", "2025M4", "2025M5")
+    unique(transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)$labnummer),
+    c("202510123456", "202521234567", "202532345678", "202543456789", "202554567890")
   )
   expect_identical(
-    unique(transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)$Onderzoeksnummer),
-    c("MB2025/1", "MB2025/2", "MB2025/3", "MB2025/4", "MB2025/5")
+    unique(transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)$Onderzoeksnummer),
+    c("202510123456", "202521234567", "202532345678", "202543456789", "202554567890")
   )
   expect_equal(
-    transform_metab_df_to_helix_df(test_protocol_name, test_df_metabs_helix)$Amount,
+    transform_metab_df_to_glims_df(test_protocol_name, test_df_metabs_lims)$Amount,
     c(0.31, 2.45, 2.14, 12.18, 3.22, 0.84, -0.46, -0.15, -1.51, -0.78, 1.68, 0.84, 1.48, 0.47, 1.18)
   )
 })
 
 testthat::test_that("get_top_metabolites_df: Create a dataframe with the top metabolites", {
   test_df_metabs_helix <- read.delim(test_path("fixtures/", "test_df_metabs_helix.txt"))
-  test_patient_id <- "P2025M1"
+  test_patient_id <- "P202510123456"
 
   expect_equal(
     dim(get_top_metabolites_df(test_patient_id, test_df_metabs_helix)),
@@ -385,7 +394,7 @@ testthat::test_that("get_top_metabolites_df: Create a dataframe with the top met
     c("Metabolite", "Z-score")
   )
 
-  test_patient_id <- "P2025M2"
+  test_patient_id <- "P202521234567"
   expect_equal(
     dim(get_top_metabolites_df(test_patient_id, test_df_metabs_helix)),
     c(4, 2)
@@ -395,7 +404,7 @@ testthat::test_that("get_top_metabolites_df: Create a dataframe with the top met
     c("", "2.45", "", "-1.51")
   )
 
-  test_patient_id <- "P2025M4"
+  test_patient_id <- "P202543456789"
   expect_equal(
     dim(get_top_metabolites_df(test_patient_id, test_df_metabs_helix)),
     c(3, 2)
@@ -848,18 +857,18 @@ testthat::test_that("make_and_save_violin_plot_pdfs: Make and save violin plots 
     test_number_of_metabolites
   ))
 
-  patient_ids <- c("P2025M1", "P2025M2", "P2025M3", "P2025M4", "P2025M5")
+  patient_ids <- c("P202510123456",	"P202521234567", "P202532345678", "P202543456789", "P202554567890")
   for (patient_id in patient_ids) {
-    pdf_file_name_diagnotics <- file.path(paste0("Diagnostics/MB", gsub("^P|M", "", patient_id), "_DIMS_PL_DIAG.pdf"))
+    pdf_file_name_diagnotics <- file.path(paste0("Diagnostics/", gsub("^P|M", "", patient_id), "_DIMS_DIAGP.pdf"))
     pdf_file_name_other <- file.path(paste0("Other/R_", patient_id, ".pdf"))
 
     expect_true(file.exists(pdf_file_name_diagnotics))
     expect_true(file.exists(pdf_file_name_other))
   }
-  expect_true(file.exists("output_Helix_unit_test.csv"))
+  expect_true(file.exists("output_GLIMS_unit_test.csv"))
 
   unlink(c("Diagnostics", "Other"), recursive = TRUE)
-  file.remove("output_Helix_unit_test.csv")
+  file.remove("output_GLIMS_unit_test.csv")
 })
 
 testthat::test_that("get_probabilities_top_iems: Get the IEM probabilities for a patient for all diseases", {
@@ -904,11 +913,11 @@ testthat::test_that("get_probabilities_top_iems: Get the IEM probabilities for a
 testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
   test_diem_probability_score <- data.frame(
     Disease = c("Disease A", "Disease B", "Disease C", "Disease D", "Disease E"),
-    P2025M1 = c(100, 75, 50, 25, 12.5),
-    P2025M2 = c(25, 0, 2, 8, 3),
-    P2025M3 = c(0, 1, 2, 3, 4)
+    P202510123456 = c(100, 75, 50, 25, 12.5),
+    P202521234567 = c(25, 0, 2, 8, 3),
+    P202532345678 = c(0, 1, 2, 3, 4)
   )
-  test_patient_ids <- c("P2025M1", "P2025M2", "P2025M3")
+  test_patient_ids <- c("P202510123456", "P202521234567", "P202532345678")
   test_expected_biomarkers_df <- read.delim(test_path("fixtures", "test_expected_biomarkers_df.txt"))
   test_zscore_patients_df <- read.delim(test_path("fixtures/GenerateViolinPlots", "test_zscore_patients_df.txt"))
   test_zscore_controls_df <- read.delim(test_path("fixtures/GenerateViolinPlots", "test_zscore_controls_df.txt"))
@@ -952,10 +961,10 @@ testthat::test_that("make_and_save_diem_plots: Make and save dIEM plots", {
     test_number_of_metabolites,
     test_iem_variables,
     test_explanation
-  ), "P2025M3")
+  ), "P202532345678")
 
-  expect_true(file.exists("dIEM_plots/IEM_P2025M1.pdf"))
-  expect_true(file.exists("dIEM_plots/IEM_P2025M2.pdf"))
+  expect_true(file.exists("dIEM_plots/IEM_P202510123456.pdf"))
+  expect_true(file.exists("dIEM_plots/IEM_P202521234567.pdf"))
 
   unlink("dIEM_plots/", recursive = TRUE)
 })
